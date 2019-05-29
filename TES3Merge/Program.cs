@@ -267,6 +267,7 @@ namespace TES3Merge
                     {
                         CompanyName = "TES3Merge",
                         Description = $"Automatic merge generated at {DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")}.",
+                        Version = 1.3f,
                     }
                 };
                 mergedObjects.Records.Add(mergedObjectsHeader);
@@ -429,12 +430,16 @@ namespace TES3Merge
 
                 // Save out the merged objects file.
                 mergedObjectsHeader.HEDR.NumRecords = mergedObjects.Records.Count - 1;
-                mergedObjectsHeader.HEDR.Version = 1.3f;
                 mergedObjects.TES3Save(morrowindPath + "\\Data Files\\Merged Objects.esp");
                 Logger.WriteLine($"Wrote {mergedObjects.Records.Count - 1} merged objects.");
 
-                Console.WriteLine("Press any key to exit...");
-                Console.ReadKey();
+                bool pauseOnCompletion = true;
+                bool.TryParse(Configuration["General"]["PauseOnCompletion"], out pauseOnCompletion);
+                if (pauseOnCompletion)
+                {
+                    Console.WriteLine("Press any key to exit...");
+                    Console.ReadKey();
+                }
             }
 #if DEBUG == false
             catch (Exception e)
