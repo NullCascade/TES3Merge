@@ -12,7 +12,7 @@ Simply run TES3Merge.exe, then activate the new Merged Objects.esp file.
 
 ## Further Details
 
-For example, [Patch for Purists](https://www.nexusmods.com/morrowind/mods/45096/?) fixes the Expensive Skirt's name, while Better Clothes provides alternative apperances. If you use the two mods together, the changes from one mod will be ignored. With object merging, the changes that both mods make can make it into the game. The following image demonstrates the resolved conflict:
+For example, [Patch for Purists](https://www.nexusmods.com/morrowind/mods/45096/?) fixes the Expensive Skirt's name, while [Better Clothes](https://www.nexusmods.com/morrowind/mods/42262/?) provides alternative apperances. If you use the two mods together, the changes from one mod will be ignored. With object merging, the changes that both mods make can make it into the game. The following image demonstrates the resolved conflict:
 
 ![Example conflict resolution image](https://cdn.discordapp.com/attachments/381219559094616064/583192237450461187/unknown.png)
 
