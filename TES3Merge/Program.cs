@@ -272,7 +272,23 @@ namespace TES3Merge
                 mergedObjects.Records.Add(mergedObjectsHeader);
 
                 // Get a list of supported mergable object types.
-                List<string> supportedMergeTags = new List<string> { "ACTI", "ALCH", "APPA", "ARMO", "BOOK", "CLOT", "CONT", "CREA", "DOOR", "GMST", "MISC", "NPC_", "WEAP" };
+                List<string> supportedMergeTags = new List<string>
+                {
+                    "ACTI", "ALCH", "APPA", "ARMO", "BOOK", "CLOT", "CONT", "CREA", "DOOR", "ENCH",
+                    "INGR", "LIGH", "LOCK", "GMST", "MISC", "NPC_", "PROB", "RACE", "REPA", "WEAP"
+                };
+
+                // Allow INI to remove types from merge.
+                foreach (var recordTypeConfig in Configuration["RecordTypes"])
+                {
+                    bool supported = true;
+                    bool.TryParse(recordTypeConfig.Value, out supported);
+                    if (!supported)
+                    {
+                        supportedMergeTags.Remove(recordTypeConfig.KeyName);
+                    }
+                }
+                Logger.WriteLine($"Supported record types: {string.Join(", ", supportedMergeTags)}");
 
                 // Collections for managing our objects.
                 Dictionary<string, Dictionary<string, List<TES3Lib.Base.Record>>> recordOverwriteMap = new Dictionary<string, Dictionary<string, List<TES3Lib.Base.Record>>>();
