@@ -77,7 +77,7 @@ namespace TES3Merge
             {
                 if (!firstValue.Equals(nextValue))
                 {
-                    property.SetValue(obj, property.GetValue(next));
+                    property.SetValue(obj, nextValue);
                     return true;
                 }
             }
@@ -151,9 +151,20 @@ namespace TES3Merge
                     }
                     else
                     {
-                        if (MergeSubrecord(currentValue, firstValue, nextValue))
+                        if (currentValue == null)
                         {
-                            modified = true;
+                            if (!nextValue.Equals(firstValue))
+                            {
+                                property.SetValue(record, nextValue);
+                                modified = true;
+                            }
+                        }
+                        else
+                        {
+                            if (MergeSubrecord(currentValue, firstValue, nextValue))
+                            {
+                                modified = true;
+                            }
                         }
                     }
                 }
