@@ -339,6 +339,8 @@ namespace TES3Merge
             }
 
             // Save out the merged objects file.
+            mergedObjectsHeader.HEDR.NumRecords = mergedObjects.Records.Count - 1;
+            mergedObjectsHeader.HEDR.Version = 1.3f;
             mergedObjects.TES3Save(morrowindPath + "\\Data Files\\Merged Objects.esp");
 
             Console.WriteLine("Press any key to exit...");
