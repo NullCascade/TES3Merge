@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 using IniParser;
 using IniParser.Model;
@@ -231,6 +229,8 @@ namespace TES3Merge
             Dictionary<TES3Lib.Base.Record, TES3> recordMasters = new Dictionary<TES3Lib.Base.Record, TES3>();
             {
                 var parser = new FileIniDataParser();
+                var config = parser.Parser.Configuration;
+                config.SkipInvalidLines = true;
                 IniData data = parser.ReadFile(morrowindPath + "\\Morrowind.ini");
 
                 for (int i = 0; i < 255; i++)
