@@ -50,9 +50,9 @@ namespace TES3Merge
         /// <param name="loadOrder">The base sorted load order collection.</param>
         /// <param name="filter">The filter to include elements from.</param>
         /// <returns>A copy of <paramref name="loadOrder"/>, filtered to only elements that match with <paramref name="filter"/>.</returns>
-        static SortedList<int, string> GetFilteredLoadList(SortedList<int, string> loadOrder, IEnumerable<string> filter)
+        static SortedList<long, string> GetFilteredLoadList(SortedList<long, string> loadOrder, IEnumerable<string> filter)
         {
-            SortedList<int, string> result = new SortedList<int, string>();
+            SortedList<long, string> result = new SortedList<long, string>();
 
             foreach (var pair in loadOrder)
             {
@@ -155,9 +155,11 @@ namespace TES3Merge
                 Dictionary<string, Dictionary<string, List<TES3Lib.Base.Record>>> recordOverwriteMap = new Dictionary<string, Dictionary<string, List<TES3Lib.Base.Record>>>();
 
                 // Get the game file list from the ini file.
-                SortedList<int, string> sortedMasters = new SortedList<int, string>();
-                Dictionary<TES3, string> masterFileNames = new Dictionary<TES3, string>();
+                SortedList<long, string> sortedMasters = new SortedList<long, string>();
+                Dictionary<TES3, string> mapTES3ToFileNames = new Dictionary<TES3, string>();
+                Dictionary<string, TES3> mapFileNamesToTES3 = new Dictionary<string, TES3>();
                 Dictionary<TES3Lib.Base.Record, TES3> recordMasters = new Dictionary<TES3Lib.Base.Record, TES3>();
+                Console.WriteLine("Parsing content files...");
                 {
                     // Try to get INI information.
                     IniData data;
@@ -192,11 +194,21 @@ namespace TES3Merge
                             continue;
                         }
 
-                        Logger.WriteLine($"Parsing input file: {gameFile}");
-                        TES3 file = TES3.TES3Load(morrowindPath + "\\Data Files\\" + gameFile, supportedMergeTags);
-                        masterFileNames[file] = gameFile;
-                        sortedMasters[i] = gameFile;
+                        string fullGameFilePath = $"{morrowindPath}\\Data Files\\{gameFile}";
+                        var lastWriteTime = File.GetLastWriteTime(fullGameFilePath);
+                        Logger.WriteLine($"Parsing input file: {gameFile} @ {lastWriteTime}");
+                        TES3 file = TES3.TES3Load(fullGameFilePath, supportedMergeTags);
 
+                        // Add the file to our various maps.
+                        mapTES3ToFileNames[file] = gameFile;
+                        mapFileNamesToTES3[gameFile] = file;
+                        sortedMasters[lastWriteTime.Ticks] = gameFile;
+                    }
+
+                    // Go through and build a record list.
+                    foreach (var sortedMaster in sortedMasters)
+                    {
+                        var file = mapFileNamesToTES3[sortedMaster.Value];
                         foreach (var record in file.Records)
                         {
                             if (record == null)
@@ -227,7 +239,7 @@ namespace TES3Merge
                                         allow = kv.Value;
                                     }
                                 }
-                                catch(Exception)
+                                catch (Exception)
                                 {
 
                                 }
@@ -263,6 +275,8 @@ namespace TES3Merge
                 }
 
                 // Go through and build merged objects.
+                bool.TryParse(Configuration["General"]["DumpMergedRecordsToLog"], out bool dumpMergedRecordsToLog);
+                Console.WriteLine("Building merges...");
                 HashSet<string> usedMasters = new HashSet<string>();
                 foreach (var recordType in recordOverwriteMap.Keys)
                 {
@@ -274,8 +288,8 @@ namespace TES3Merge
                         {
                             var firstRecord = records[0];
                             var lastRecord = records.Last();
-                            var firstMaster = masterFileNames[recordMasters[firstRecord]];
-                            var lastMaster = masterFileNames[recordMasters[lastRecord]];
+                            var firstMaster = mapTES3ToFileNames[recordMasters[firstRecord]];
+                            var lastMaster = mapTES3ToFileNames[recordMasters[lastRecord]];
 
                             HashSet<string> localUsedMasters = new HashSet<string>() { firstMaster, lastMaster };
 
@@ -283,13 +297,16 @@ namespace TES3Merge
                             for (int i = records.Count - 2; i > 0; i--)
                             {
                                 var record = records[i];
+                                var master = mapTES3ToFileNames[recordMasters[record]];
                                 if (newRecord.MergeWith(record, firstRecord))
                                 {
-                                    localUsedMasters.Add(masterFileNames[recordMasters[record]]);
+                                    localUsedMasters.Add(master);
                                 }
                             }
 
-                            if (!lastRecord.SerializeRecord().SequenceEqual(newRecord.SerializeRecord()))
+                            var lastSerialized = lastRecord.SerializeRecord();
+                            var newSerialized = newRecord.SerializeRecord();
+                            if (!lastSerialized.SequenceEqual(newSerialized))
                             {
                                 Console.WriteLine($"Merged {newRecord.Name} record: {id}");
                                 mergedObjects.Records.Add(newRecord);
@@ -301,6 +318,16 @@ namespace TES3Merge
 
                                 string masterList = string.Join(", ", GetFilteredLoadList(sortedMasters, localUsedMasters).Values.ToArray());
                                 Logger.WriteLine($"Resolved conflicts for {firstRecord.Name} record '{id}' from mods: {masterList}");
+                                
+                                if (dumpMergedRecordsToLog)
+                                {
+                                    foreach (var record in records)
+                                    {
+                                        var master = mapTES3ToFileNames[recordMasters[record]];
+                                        Logger.WriteLine($">> {master}: {BitConverter.ToString(record.SerializeRecord()).Replace("-", "")}");
+                                    }
+                                    Logger.WriteLine($">> Merged Objects.esp: {BitConverter.ToString(newSerialized).Replace("-", "")}");
+                                }
                             }
                         }
                     }
