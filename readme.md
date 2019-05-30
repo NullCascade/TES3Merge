@@ -2,7 +2,7 @@
 
 This tool helps to automatically patch conflicts between mods for *The Elder Scrolls III: Morrowind*.
 
-This program includes an INI file to allow customization. Check [TES3Merge.ini](TES3Merge.ini) for details on object blacklisting/whitelisting, debug options, and object type toggles.
+This program includes an INI file to allow customization. Check [TES3Merge.ini](TES3Merge/TES3Merge.ini) for details on object blacklisting/whitelisting, debug options, and object type toggles.
 
 ## Usage
 
