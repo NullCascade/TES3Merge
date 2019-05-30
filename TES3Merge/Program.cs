@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Deployment;
 using System.IO;
@@ -16,166 +17,6 @@ namespace TES3Merge
     {
         static StreamWriter Logger;
         static IniData Configuration;
-
-        static bool ListsMatch(List<(TES3Lib.Subrecords.ARMO.INDX INDX, TES3Lib.Subrecords.Shared.BNAM BNAM, TES3Lib.Subrecords.ARMO.CNAM CNAM)> a, List<(TES3Lib.Subrecords.ARMO.INDX INDX, TES3Lib.Subrecords.Shared.BNAM BNAM, TES3Lib.Subrecords.ARMO.CNAM CNAM)> b)
-        {
-            if (a.Count != b.Count)
-            {
-                return false;
-            }
-
-            for (int i = 0; i < a.Count; i++)
-            {
-#pragma warning disable IDE0042 // Deconstruct variable declaration
-                var first = a[i];
-                var second = b[i];
-#pragma warning restore IDE0042 // Deconstruct variable declaration
-                if (first.INDX.Type != second.INDX.Type)
-                {
-                    return false;
-                }
-
-                if (first.BNAM?.EditorId != second.BNAM?.EditorId)
-                {
-                    return false;
-                }
-
-                if (first.CNAM?.FemalePartName != second.CNAM?.FemalePartName)
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        static bool MergeProperty(PropertyInfo property, object obj, object first, object next)
-        {
-            var currentValue = obj != null ? property.GetValue(obj) : null;
-            var firstValue = first != null ? property.GetValue(first) : null;
-            var nextValue = next != null ? property.GetValue(next) : null;
-
-            // Handle null cases.
-            if (currentValue == null && firstValue != null)
-            {
-                return false;
-            }
-            else if (currentValue == null && nextValue == null)
-            {
-                return false;
-            }
-            else if (firstValue != null && nextValue == null)
-            {
-                property.SetValue(obj, null);
-                return true;
-            }
-
-            // Special handling for structures that we want to do custom merging for.
-            if (property.PropertyType.Equals(typeof(List<(TES3Lib.Subrecords.ARMO.INDX INDX, TES3Lib.Subrecords.Shared.BNAM BNAM, TES3Lib.Subrecords.ARMO.CNAM CNAM)>)))
-            {
-                var currentAsList = currentValue as List<(TES3Lib.Subrecords.ARMO.INDX INDX, TES3Lib.Subrecords.Shared.BNAM BNAM, TES3Lib.Subrecords.ARMO.CNAM CNAM)>;
-                var firstAsList = firstValue as List<(TES3Lib.Subrecords.ARMO.INDX INDX, TES3Lib.Subrecords.Shared.BNAM BNAM, TES3Lib.Subrecords.ARMO.CNAM CNAM)>;
-                var nextAsList = nextValue as List<(TES3Lib.Subrecords.ARMO.INDX INDX, TES3Lib.Subrecords.Shared.BNAM BNAM, TES3Lib.Subrecords.ARMO.CNAM CNAM)>;
-                if (ListsMatch(currentAsList, firstAsList) && !ListsMatch(nextAsList, firstAsList))
-                {
-                    property.SetValue(obj, nextAsList);
-                    return true;
-                }
-            }
-            // General case, just uses equality checks.
-            else
-            {
-                if (currentValue.Equals(firstValue) && !nextValue.Equals(firstValue))
-                {
-                    property.SetValue(obj, nextValue);
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        static bool MergeSubrecord(TES3Lib.Base.Subrecord subrecord, TES3Lib.Base.Subrecord first, TES3Lib.Base.Subrecord next)
-        {
-            if (first == next)
-            {
-                return false;
-            }
-
-            var properties = next.GetType()
-                .GetProperties(BindingFlags.Public |
-                               BindingFlags.Instance |
-                               BindingFlags.DeclaredOnly)
-                               .OrderBy(x => x.MetadataToken)
-                               .ToList();
-
-            bool modified = false;
-            foreach (PropertyInfo property in properties)
-            {
-                if (MergeProperty(property, subrecord, first, next))
-                {
-                    modified = true;
-                }
-            }
-
-            return modified;
-        }
-
-        static bool MergeRecord(TES3Lib.Base.Record record, TES3Lib.Base.Record first, TES3Lib.Base.Record next)
-        {
-            if (first == next)
-            {
-                return false;
-            }
-
-            bool modified = false;
-            if (record.Flags.SequenceEqual(first.Flags) && !next.Flags.SequenceEqual(first.Flags))
-            {
-                record.Flags = next.Flags;
-                modified = true;
-            }
-
-            var properties = next.GetType()
-                .GetProperties(BindingFlags.Public |
-                               BindingFlags.Instance |
-                               BindingFlags.DeclaredOnly)
-                               .OrderBy(x => x.MetadataToken)
-                               .ToList();
-
-            foreach (PropertyInfo property in properties)
-            {
-                if (property.PropertyType.IsSubclassOf(typeof(TES3Lib.Base.Subrecord)))
-                {
-                    var currentValue = property.GetValue(record) as TES3Lib.Base.Subrecord;
-                    var firstValue = property.GetValue(first) as TES3Lib.Base.Subrecord;
-                    var nextValue = property.GetValue(next) as TES3Lib.Base.Subrecord;
-
-                    // Handle null cases.
-                    if (currentValue == null && firstValue == null)
-                    {
-                        continue;
-                    }
-                    else if (firstValue != null && nextValue == null)
-                    {
-                        property.SetValue(record, null);
-                        modified = true;
-                    }
-                    else if (MergeSubrecord(currentValue, firstValue, nextValue))
-                    {
-                        modified = true;
-                    }
-                }
-                else
-                {
-                    if (MergeProperty(property, record, first, next))
-                    {
-                        modified = true;
-                    }
-                }
-            }
-
-            return modified;
-        }
 
         /// <summary>
         /// Finds the relevant Morrowind directory. It will prefer a directory that is shares or is parent to the current folder.
@@ -203,6 +44,12 @@ namespace TES3Merge
             return null;
         }
 
+        /// <summary>
+        /// Returns a list that is a copy of the load order, filtered to certain results.
+        /// </summary>
+        /// <param name="loadOrder">The base sorted load order collection.</param>
+        /// <param name="filter">The filter to include elements from.</param>
+        /// <returns>A copy of <paramref name="loadOrder"/>, filtered to only elements that match with <paramref name="filter"/>.</returns>
         static SortedList<int, string> GetFilteredLoadList(SortedList<int, string> loadOrder, IEnumerable<string> filter)
         {
             SortedList<int, string> result = new SortedList<int, string>();
@@ -218,6 +65,10 @@ namespace TES3Merge
             return result;
         }
 
+        /// <summary>
+        /// Writes to both the console and the log file.
+        /// </summary>
+        /// <param name="Message">Message to write.</param>
         static void WriteToLogAndConsole(string Message)
         {
             Logger.WriteLine(Message);
@@ -432,7 +283,7 @@ namespace TES3Merge
                             for (int i = records.Count - 2; i > 0; i--)
                             {
                                 var record = records[i];
-                                if (MergeRecord(newRecord, firstRecord, record))
+                                if (newRecord.MergeWith(record, firstRecord))
                                 {
                                     localUsedMasters.Add(masterFileNames[recordMasters[record]]);
                                 }
