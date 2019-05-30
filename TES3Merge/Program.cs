@@ -50,15 +50,15 @@ namespace TES3Merge
         /// <param name="loadOrder">The base sorted load order collection.</param>
         /// <param name="filter">The filter to include elements from.</param>
         /// <returns>A copy of <paramref name="loadOrder"/>, filtered to only elements that match with <paramref name="filter"/>.</returns>
-        static SortedList<long, string> GetFilteredLoadList(SortedList<long, string> loadOrder, IEnumerable<string> filter)
+        static List<string> GetFilteredLoadList(List<string> loadOrder, IEnumerable<string> filter)
         {
-            SortedList<long, string> result = new SortedList<long, string>();
+            List<string> result = new List<string>();
 
-            foreach (var pair in loadOrder)
+            foreach (var file in loadOrder)
             {
-                if (filter.Contains(pair.Value))
+                if (filter.Contains(file))
                 {
-                    result[pair.Key] = pair.Value;
+                    result.Add(file);
                 }
             }
 
@@ -87,8 +87,7 @@ namespace TES3Merge
             {
                 AutoFlush = true
             };
-
-            var x = System.Reflection.Assembly.GetExecutingAssembly();
+            
             var version = Assembly.GetExecutingAssembly().GetName().Version;
             Logger.WriteLine($"TES3Merge v0.2.");
 
@@ -155,9 +154,8 @@ namespace TES3Merge
                 Dictionary<string, Dictionary<string, List<TES3Lib.Base.Record>>> recordOverwriteMap = new Dictionary<string, Dictionary<string, List<TES3Lib.Base.Record>>>();
 
                 // Get the game file list from the ini file.
-                SortedList<long, string> sortedMasters = new SortedList<long, string>();
+                List<string> sortedMasters = new List<string>();
                 Dictionary<TES3, string> mapTES3ToFileNames = new Dictionary<TES3, string>();
-                Dictionary<string, TES3> mapFileNamesToTES3 = new Dictionary<string, TES3>();
                 Dictionary<TES3Lib.Base.Record, TES3> recordMasters = new Dictionary<TES3Lib.Base.Record, TES3>();
                 Console.WriteLine("Parsing content files...");
                 {
@@ -180,7 +178,8 @@ namespace TES3Merge
                         data = parser.ReadFile($"{morrowindPath}\\Morrowind.ini");
                     }
 
-                    // Build a list of valid files.
+                    // Build a list of activated files.
+                    HashSet<string> activatedMasters = new HashSet<string>();
                     for (int i = 0; i < 255; i++)
                     {
                         string gameFile = data["Game Files"]["GameFile" + i];
@@ -194,21 +193,36 @@ namespace TES3Merge
                             continue;
                         }
 
-                        string fullGameFilePath = $"{morrowindPath}\\Data Files\\{gameFile}";
-                        var lastWriteTime = File.GetLastWriteTime(fullGameFilePath);
-                        Logger.WriteLine($"Parsing input file: {gameFile} @ {lastWriteTime}");
-                        TES3 file = TES3.TES3Load(fullGameFilePath, supportedMergeTags);
+                        activatedMasters.Add(gameFile);
+                    }
 
-                        // Add the file to our various maps.
-                        mapTES3ToFileNames[file] = gameFile;
-                        mapFileNamesToTES3[gameFile] = file;
-                        sortedMasters[lastWriteTime.Ticks] = gameFile;
+                    // Add all ESM files first, then ESP files.
+                    foreach (var path in Directory.GetFiles($"{morrowindPath}\\Data Files", "*.esm", SearchOption.TopDirectoryOnly).OrderBy(p => File.GetLastWriteTime(p).Ticks))
+                    {
+                        var fileName = Path.GetFileName(path);
+                        if (activatedMasters.Contains(fileName))
+                        {
+                            sortedMasters.Add(fileName);
+                        }
+                    }
+                    foreach (var path in Directory.GetFiles($"{morrowindPath}\\Data Files", "*.esp", SearchOption.TopDirectoryOnly).OrderBy(p => File.GetLastWriteTime(p).Ticks))
+                    {
+                        var fileName = Path.GetFileName(path);
+                        if (activatedMasters.Contains(fileName))
+                        {
+                            sortedMasters.Add(fileName);
+                        }
                     }
 
                     // Go through and build a record list.
                     foreach (var sortedMaster in sortedMasters)
                     {
-                        var file = mapFileNamesToTES3[sortedMaster.Value];
+                        string fullGameFilePath = $"{morrowindPath}\\Data Files\\{sortedMaster}";
+                        var lastWriteTime = File.GetLastWriteTime(fullGameFilePath);
+                        Logger.WriteLine($"Parsing input file: {sortedMaster} @ {lastWriteTime}");
+                        TES3 file = TES3.TES3Load(fullGameFilePath, supportedMergeTags);
+                        mapTES3ToFileNames[file] = sortedMaster;
+
                         foreach (var record in file.Records)
                         {
                             if (record == null)
@@ -316,7 +330,7 @@ namespace TES3Merge
                                     usedMasters.Add(master);
                                 }
 
-                                string masterList = string.Join(", ", GetFilteredLoadList(sortedMasters, localUsedMasters).Values.ToArray());
+                                string masterList = string.Join(", ", GetFilteredLoadList(sortedMasters, localUsedMasters).ToArray());
                                 Logger.WriteLine($"Resolved conflicts for {firstRecord.Name} record '{id}' from mods: {masterList}");
                                 
                                 if (dumpMergedRecordsToLog)
@@ -344,7 +358,7 @@ namespace TES3Merge
                 // Add the necessary masters.
                 Logger.WriteLine("Saving Merged Objects.esp ...");
                 mergedObjectsHeader.Masters = new List<(TES3Lib.Subrecords.TES3.MAST MAST, TES3Lib.Subrecords.TES3.DATA DATA)>();
-                foreach (var gameFile in GetFilteredLoadList(sortedMasters, usedMasters).Values)
+                foreach (var gameFile in GetFilteredLoadList(sortedMasters, usedMasters))
                 {
                     if (usedMasters.Contains(gameFile))
                     {
