@@ -26,8 +26,10 @@ namespace TES3Merge
 
             for (int i = 0; i < a.Count; i++)
             {
+#pragma warning disable IDE0042 // Deconstruct variable declaration
                 var first = a[i];
                 var second = b[i];
+#pragma warning restore IDE0042 // Deconstruct variable declaration
                 if (first.INDX.Type != second.INDX.Type)
                 {
                     return false;
@@ -282,8 +284,7 @@ namespace TES3Merge
                 // Allow INI to remove types from merge.
                 foreach (var recordTypeConfig in Configuration["RecordTypes"])
                 {
-                    bool supported = true;
-                    bool.TryParse(recordTypeConfig.Value, out supported);
+                    bool.TryParse(recordTypeConfig.Value, out bool supported);
                     if (!supported)
                     {
                         supportedMergeTags.Remove(recordTypeConfig.KeyName);
@@ -372,6 +373,14 @@ namespace TES3Merge
                     }
                 }
 
+                // Check to see if we have any potential merges.
+                if (recordMasters.Count == 0)
+                {
+                    WriteToLogAndConsole("No potential record merges found. Aborting.");
+                    ShowCompletionPrompt();
+                    return;
+                }
+
                 // Go through and build merged objects.
                 HashSet<string> usedMasters = new HashSet<string>();
                 foreach (var recordType in recordOverwriteMap.Keys)
@@ -416,6 +425,14 @@ namespace TES3Merge
                     }
                 }
 
+                // Did we even merge anything?
+                if (usedMasters.Count == 0)
+                {
+                    WriteToLogAndConsole("No merges were deemed necessary. Aborting.");
+                    ShowCompletionPrompt();
+                    return;
+                }
+
                 // Add the necessary masters.
                 Logger.WriteLine("Saving Merged Objects.esp ...");
                 mergedObjectsHeader.Masters = new List<(TES3Lib.Subrecords.TES3.MAST MAST, TES3Lib.Subrecords.TES3.DATA DATA)>();
@@ -433,13 +450,7 @@ namespace TES3Merge
                 mergedObjects.TES3Save(morrowindPath + "\\Data Files\\Merged Objects.esp");
                 Logger.WriteLine($"Wrote {mergedObjects.Records.Count - 1} merged objects.");
 
-                bool pauseOnCompletion = true;
-                bool.TryParse(Configuration["General"]["PauseOnCompletion"], out pauseOnCompletion);
-                if (pauseOnCompletion)
-                {
-                    Console.WriteLine("Press any key to exit...");
-                    Console.ReadKey();
-                }
+                ShowCompletionPrompt();
             }
 #if DEBUG == false
             catch (Exception e)
@@ -449,6 +460,16 @@ namespace TES3Merge
                 Logger.WriteLine(e.Message);
             }
 #endif
+        }
+
+        private static void ShowCompletionPrompt()
+        {
+            bool.TryParse(Configuration["General"]["PauseOnCompletion"], out bool pauseOnCompletion);
+            if (pauseOnCompletion)
+            {
+                Console.WriteLine("Press any key to exit...");
+                Console.ReadKey();
+            }
         }
     }
 }
