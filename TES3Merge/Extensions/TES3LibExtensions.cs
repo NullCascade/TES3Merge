@@ -97,8 +97,10 @@ namespace TES3Merge
                 var currentValue = record != null ? property.GetValue(record) : null;
                 var firstValue = first != null ? property.GetValue(first) : null;
                 var nextValue = next != null ? property.GetValue(next) : null;
-                if (currentValue == null && firstValue == null)
+                if (firstValue == null && currentValue == null && nextValue != null)
                 {
+                    property.SetValue(record, nextValue);
+                    modified = true;
                     continue;
                 }
                 else if (firstValue != null && nextValue == null)
