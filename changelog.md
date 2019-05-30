@@ -1,5 +1,12 @@
 # TES3Merge Changelog
 
+## v0.2.1 (2019-05-30)
+
+Hotfix to fix issue where ESM files were loaded prior to ESP files.
+
+* Fixed issue where ESM files would take priority over ESP files.
+* Fixed broken link in readme.
+
 ## v0.2 (2019-05-30)
 
 * Improved merge logic.
