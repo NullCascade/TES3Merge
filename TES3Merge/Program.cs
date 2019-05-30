@@ -4,7 +4,7 @@ using System.Deployment;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-
+using System.Text.RegularExpressions;
 using IniParser;
 using IniParser.Model;
 using Microsoft.Win32;
@@ -292,6 +292,14 @@ namespace TES3Merge
                 }
                 Logger.WriteLine($"Supported record types: {string.Join(", ", supportedMergeTags)}");
 
+                // Get object ID filtering from INI.
+                List<KeyValuePair<string, bool>> objectIdFilters = new List<KeyValuePair<string, bool>>();
+                foreach (var kv in Configuration["ObjectFilters"])
+                {
+                    bool.TryParse(kv.Value, out bool allow);
+                    objectIdFilters.Add(new KeyValuePair<string, bool>(kv.KeyName.Trim('"'), allow));
+                }
+
                 // Collections for managing our objects.
                 Dictionary<string, Dictionary<string, List<TES3Lib.Base.Record>>> recordOverwriteMap = new Dictionary<string, Dictionary<string, List<TES3Lib.Base.Record>>>();
 
@@ -350,15 +358,37 @@ namespace TES3Merge
                                 continue;
                             }
 
-                            if (!recordOverwriteMap.ContainsKey(record.Name))
-                            {
-                                recordOverwriteMap[record.Name] = new Dictionary<string, List<TES3Lib.Base.Record>>();
-                            }
-
                             string editorId = record.GetEditorId().Replace("\0", string.Empty);
                             if (string.IsNullOrEmpty(editorId))
                             {
                                 continue;
+                            }
+
+                            // Check against object filters.
+                            bool allow = true;
+                            string lowerId = editorId.ToLower();
+                            foreach (var kv in objectIdFilters)
+                            {
+                                try
+                                {
+                                    if (Regex.Match(lowerId, kv.Key).Success)
+                                    {
+                                        allow = kv.Value;
+                                    }
+                                }
+                                catch(Exception)
+                                {
+
+                                }
+                            }
+                            if (!allow)
+                            {
+                                continue;
+                            }
+
+                            if (!recordOverwriteMap.ContainsKey(record.Name))
+                            {
+                                recordOverwriteMap[record.Name] = new Dictionary<string, List<TES3Lib.Base.Record>>();
                             }
 
                             var map = recordOverwriteMap[record.Name];
