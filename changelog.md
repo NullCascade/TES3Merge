@@ -1,5 +1,12 @@
 # TES3Merge Changelog
 
+## v0.3 (2019-05-31)
+
+This update merges in changes to Bahamut's TES3Tool to fix Windows-style quotes from becoming question marks.
+
+* Fixed encoding issues. Note that encoding is restricted to English content files.
+* Added support for more record types: BODY, FACT, MGEF, SKIL
+
 ## v0.2.1 (2019-05-30)
 
 Hotfix to fix issue where ESM files were loaded prior to ESP files.

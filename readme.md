@@ -1,4 +1,4 @@
-# TES3Merge v0.2.1
+# TES3Merge v0.3
 
 This tool helps to automatically patch conflicts between mods for *The Elder Scrolls III: Morrowind*.
 
@@ -9,6 +9,8 @@ This program includes an INI file to allow customization. Check [TES3Merge.ini](
 Extract the TES3Merge folder into the Morrowind installation directory. It can work outside this directory, but when managing multiple installs, it will always look to the parent directory first to find Morrowind.
 
 Simply run TES3Merge.exe, then activate the new Merged Objects.esp file.
+
+**Note: At this time, TES3Merge only supports English content files.**
 
 ## Further Details
 
@@ -22,21 +24,25 @@ Currently, TES3Merge supports the following record types:
 * Alchemy
 * Apparatus
 * Armor
+* Body
 * Book
 * Clothing
 * Container
 * Creature
 * Door
 * Enchantment
+* Faction
+* GMST
 * Ingredient
 * Light
 * Lock
-* GMST
+* Magic Effect
 * Miscellaneous
 * NPC
 * Probe
 * Race
 * Repair Item
+* Skill
 * Weapon
 
 Merge rules respect the load order, with the first appearance of the record becoming the base for comparisons. If a later mod modifies the record, its changes will be preserved. Another mod after that will only have its changes made if they differ from the base record.
