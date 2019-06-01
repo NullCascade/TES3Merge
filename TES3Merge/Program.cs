@@ -128,7 +128,7 @@ namespace TES3Merge
                 List<string> supportedMergeTags = new List<string>
                 {
                     "ACTI", "ALCH", "APPA", "ARMO", "BOOK", "CLOT", "CONT", "CREA", "DOOR", "ENCH",
-                    "INGR", "LIGH", "LOCK", "GMST", "MISC", "NPC_", "PROB", "RACE", "REPA", "WEAP"
+                    "INGR", "LIGH", "LOCK", "GMST", "MISC", "NPC_", "PROB", "RACE", "REPA", "WEAP",
                 };
 
                 // Allow INI to remove types from merge.
