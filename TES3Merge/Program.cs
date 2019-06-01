@@ -127,8 +127,49 @@ namespace TES3Merge
                 // Get a list of supported mergable object types.
                 List<string> supportedMergeTags = new List<string>
                 {
-                    "ACTI", "ALCH", "APPA", "ARMO", "BOOK", "CLOT", "CONT", "CREA", "DOOR", "ENCH",
-                    "INGR", "LIGH", "LOCK", "GMST", "MISC", "NPC_", "PROB", "RACE", "REPA", "WEAP",
+                    "ACTI",
+                    "ALCH",
+                    "APPA",
+                    "ARMO",
+                    "BODY",
+                    "BOOK",
+                    //"BSGN",
+                    //"CELL",
+                    //"CLAS",
+                    "CLOT",
+                    "CONT",
+                    "CREA",
+                    //"DIAL",
+                    "DOOR",
+                    "ENCH",
+                    "FACT",
+                    //"GLOB",
+                    "GMST",
+                    //"INFO",
+                    "INGR",
+                    //"LAND",
+                    //"LEVC",
+                    //"LEVI",
+                    "LIGH",
+                    "LOCK",
+                    //"LTEX",
+                    "MGEF",
+                    "MISC",
+                    "NPC_",
+                    //"PGRD",
+                    "PROB",
+                    //"RACE",
+                    //"REFR",
+                    //"REGN",
+                    "REPA",
+                    //"SCPT",
+                    "SKIL",
+                    //"SNDG",
+                    //"SOUN",
+                    //"SPEL",
+                    "STAT",
+                    //"TES3",
+                    "WEAP",
                 };
 
                 // Allow INI to remove types from merge.
@@ -380,6 +421,7 @@ namespace TES3Merge
                 Console.WriteLine("A serious error has occurred. Please post the TES3Merge.log file to GitHub: https://github.com/NullCascade/TES3Merge/issues");
                 Logger.WriteLine("An unhandled exception has occurred. Traceback:");
                 Logger.WriteLine(e.Message);
+                ShowCompletionPrompt();
             }
 #endif
         }
