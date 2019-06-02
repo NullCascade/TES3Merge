@@ -221,12 +221,12 @@ namespace TES3Merge
 
                             // If the first pass fails, be more forgiving, but let the user know their INI has issues.
                             Console.WriteLine("WARNING: Issues were found with your Morrowind.ini file. See TES3Merge.log for details.");
-                            Logger.WriteLine($"WARNING: Could not parse INI with initial pass. Error: {firstTry.Message}");
+                            Logger.WriteLine($"WARNING: Could not parse Morrowind.ini with initial pass. Error: {firstTry.Message}");
                         }
                         catch (Exception secondTry)
                         {
                             Console.WriteLine("ERROR: Unrecoverable issues were found with your Morrowind.ini file. See TES3Merge.log for details.");
-                            Logger.WriteLine($"ERROR: Could not parse INI with second pass. Error: {secondTry.Message}");
+                            Logger.WriteLine($"ERROR: Could not parse Morrowind.ini with second pass. Error: {secondTry.Message}");
 
                             ShowCompletionPrompt();
                             return;
