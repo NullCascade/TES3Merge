@@ -229,7 +229,7 @@ namespace TES3Merge
                             break;
                         }
 
-                        if (gameFile == "Merged Objects.esp")
+                        if (gameFile == "Merged_Objects.esp" || gameFile == "Merged Objects.esp")
                         {
                             continue;
                         }
