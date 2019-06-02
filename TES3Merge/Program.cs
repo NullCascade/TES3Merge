@@ -379,7 +379,7 @@ namespace TES3Merge
                                     foreach (var record in records)
                                     {
                                         var master = mapTES3ToFileNames[recordMasters[record]];
-                                        Logger.WriteLine($">> {master}: {BitConverter.ToString(record.SerializeRecord()).Replace("-", "")}");
+                                        Logger.WriteLine($">> {master}: {BitConverter.ToString(record.GetRawLoadedBytes()).Replace("-", "")}");
                                     }
                                     Logger.WriteLine($">> Merged Objects.esp: {BitConverter.ToString(newSerialized).Replace("-", "")}");
                                 }

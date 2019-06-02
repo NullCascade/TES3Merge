@@ -85,7 +85,7 @@ namespace TES3Merge
             }
 
             var properties = next.GetType()
-                .GetProperties(System.Reflection.BindingFlags.Public |
+                .GetProperties(BindingFlags.Public |
                                BindingFlags.Instance |
                                BindingFlags.DeclaredOnly)
                                .OrderBy(x => x.MetadataToken)
