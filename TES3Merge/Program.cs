@@ -111,9 +111,9 @@ namespace TES3Merge
                     if (int.TryParse(iniEncodingCode, out int newEncodingCode))
                     {
                         // TODO: Check a list of supported encoding codes.
-                        if (newEncodingCode < 1250 || newEncodingCode > 1252)
+                        if (newEncodingCode != 932 && (newEncodingCode < 1250 || newEncodingCode > 1252))
                         {
-                            throw new Exception($"Encoding code '{newEncodingCode}' is not supported. Enter a value from the following: 1250 (English), 1251 (Polish), 1252 (Russian).");
+                            throw new Exception($"Encoding code '{newEncodingCode}' is not supported. See TES3Merge.ini for supported values.");
                         }
 
                         var encoding = Encoding.GetEncoding(newEncodingCode);
@@ -122,7 +122,7 @@ namespace TES3Merge
                     }
                     else
                     {
-                        throw new Exception($"Encoding code '{iniEncodingCode}' is not a valid integer. Enter a value from the following: 1250 (English), 1251 (Polish), 1252 (Russian).");
+                        throw new Exception($"Encoding code '{iniEncodingCode}' is not a valid integer. See TES3Merge.ini for supported values.");
                     }
                 }
                 catch (Exception e)
