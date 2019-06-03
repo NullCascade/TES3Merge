@@ -63,6 +63,10 @@
       <Project>{eb6c834a-b58e-4bbf-8bc5-4dee6a925b4b}</Project>
       <Name>TES3Lib</Name>
     </ProjectReference>
+    <ProjectReference Include="..\TES3Tool\Utility\Utility.csproj">
+      <Project>{1bc5cbbb-e155-4d9a-bc55-6fe75109c1b9}</Project>
+      <Name>Utility</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -5,6 +5,7 @@ using System.Deployment;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 using IniParser;
 using IniParser.Model;
@@ -101,6 +102,35 @@ namespace TES3Merge
                     var parser = new FileIniDataParser();
                     string iniPath = $"{AppDomain.CurrentDomain.BaseDirectory}\\TES3Merge.ini";
                     Configuration = parser.ReadFile(iniPath);
+                }
+
+                // Determine what encoding to use.
+                try
+                {
+                    var iniEncodingCode = Configuration["General"]["TextEncodingCode"];
+                    if (int.TryParse(iniEncodingCode, out int newEncodingCode))
+                    {
+                        // TODO: Check a list of supported encoding codes.
+                        if (newEncodingCode < 1250 || newEncodingCode > 1252)
+                        {
+                            throw new Exception($"Encoding code '{newEncodingCode}' is not supported. Enter a value from the following: 1250 (English), 1251 (Polish), 1252 (Russian).");
+                        }
+
+                        var encoding = Encoding.GetEncoding(newEncodingCode);
+                        Logger.WriteLine($"Using encoding: {encoding.EncodingName}");
+                        Utility.Common.TextEncodingCode = newEncodingCode;
+                    }
+                    else
+                    {
+                        throw new Exception($"Encoding code '{iniEncodingCode}' is not a valid integer. Enter a value from the following: 1250 (English), 1251 (Polish), 1252 (Russian).");
+                    }
+                }
+                catch (Exception e)
+                {
+                    // Write the exception as a warning and set the default Windows-1252 encoding.
+                    WriteToLogAndConsole($"WARNING: Could not resolve default text encoding code: {e.Message}");
+                    Console.WriteLine("Default encoding of Windows-1252 (English) will be used.");
+                    Utility.Common.TextEncodingCode = 1252;
                 }
 
                 // Find out where Morrowind lives.
