@@ -168,7 +168,6 @@ namespace TES3Merge
                     "SOUN",
                     "SPEL",
                     "STAT",
-                    //"TES3",
                     "WEAP",
                 };
 
@@ -362,7 +361,8 @@ namespace TES3Merge
 
                             HashSet<string> localUsedMasters = new HashSet<string>() { firstMaster, lastMaster };
 
-                            TES3Lib.Base.Record newRecord = Activator.CreateInstance(lastRecord.GetType(), new object[] { lastRecord.SerializeRecord() }) as TES3Lib.Base.Record;
+                            var lastSerialized = lastRecord.GetRawLoadedBytes();
+                            TES3Lib.Base.Record newRecord = Activator.CreateInstance(lastRecord.GetType(), new object[] { lastSerialized }) as TES3Lib.Base.Record;
                             for (int i = records.Count - 2; i > 0; i--)
                             {
                                 var record = records[i];
@@ -373,7 +373,6 @@ namespace TES3Merge
                                 }
                             }
 
-                            var lastSerialized = lastRecord.SerializeRecord();
                             var newSerialized = newRecord.SerializeRecord();
                             if (!lastSerialized.SequenceEqual(newSerialized))
                             {
