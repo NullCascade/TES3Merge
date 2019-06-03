@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -75,6 +76,11 @@ namespace TES3Merge
             if (first == next)
             {
                 return false;
+            }
+
+            if (!first.Name.Equals(next.Name))
+            {
+                throw new Exception("Record types differ!");
             }
 
             bool modified = false;
