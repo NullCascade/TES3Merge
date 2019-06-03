@@ -1,5 +1,14 @@
 # TES3Merge Changelog
 
+## v0.4 (2019-06-03)
+
+* Added support for more record types: BSGN, CLAS, SNDG, SOUN, SPEL, STAT
+* Added filter to ignore "Merged_Objects.esp" from other merge object tools.
+* Fixed text encoding issues (again, maybe for real this time). Still restricted to Windows-1252 encoded content files.
+* Changed record dumping to provide the raw loaded bytes, rather than TES3Merge's interpretation of them. Does not apply to the tool's output serialization. This will help with debugging future issues.
+* Made stronger attempts to read invalid Morrowind.ini files.
+* Fixed issue where factions with no attributes would error when serializing.
+
 ## v0.3 (2019-05-31)
 
 This update merges in changes to Bahamut's TES3Tool to fix Windows-style quotes from becoming question marks.

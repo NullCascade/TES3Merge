@@ -1,4 +1,4 @@
-# TES3Merge v0.3
+# TES3Merge v0.4
 
 This tool helps to automatically patch conflicts between mods for *The Elder Scrolls III: Morrowind*.
 
@@ -24,8 +24,10 @@ Currently, TES3Merge supports the following record types:
 * Alchemy
 * Apparatus
 * Armor
+* Birthsign
 * Body
 * Book
+* Class
 * Clothing
 * Container
 * Creature
@@ -43,6 +45,10 @@ Currently, TES3Merge supports the following record types:
 * Race
 * Repair Item
 * Skill
+* Sound
+* Sound Generator
+* Spell
+* Static
 * Weapon
 
 Merge rules respect the load order, with the first appearance of the record becoming the base for comparisons. If a later mod modifies the record, its changes will be preserved. Another mod after that will only have its changes made if they differ from the base record.
