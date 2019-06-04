@@ -1,5 +1,10 @@
 # TES3Merge Changelog
 
+## v0.5 (2019-06-04)
+
+* Added support for specifying a file encoding in TES3Merge.ini. This brings in support for Russian, Polish, and Japanese installs.
+* Fixed handling of NPC/creature AI travel destinations, as well as escort/follow packages.
+
 ## v0.4 (2019-06-03)
 
 * Added support for more record types: BSGN, CLAS, SNDG, SOUN, SPEL, STAT

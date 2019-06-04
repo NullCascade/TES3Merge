@@ -1,4 +1,4 @@
-# TES3Merge v0.4
+# TES3Merge v0.5
 
 This tool helps to automatically patch conflicts between mods for *The Elder Scrolls III: Morrowind*.
 
@@ -10,7 +10,7 @@ Extract the TES3Merge folder into the Morrowind installation directory. It can w
 
 Simply run TES3Merge.exe, then activate the new Merged Objects.esp file.
 
-**Note: At this time, TES3Merge only supports English content files.**
+If running a Russian, Polish, or Japanese install, see [TES3Merge.ini](TES3Merge/TES3Merge.ini) to specify file encoding.
 
 ## Further Details
 
