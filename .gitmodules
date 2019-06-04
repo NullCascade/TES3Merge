@@ -1,4 +1,4 @@
 [submodule "TES3Tool"]
 	path = TES3Tool
-	url = git@github.com:NullCascade/TES3Tool.git
+	url = https://github.com/NullCascade/TES3Tool.git
 	branch = master
