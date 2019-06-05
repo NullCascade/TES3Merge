@@ -1,4 +1,4 @@
-# TES3Merge v0.5
+# TES3Merge v0.5.1
 
 This tool helps to automatically patch conflicts between mods for *The Elder Scrolls III: Morrowind*.
 
@@ -18,38 +18,7 @@ For example, [Patch for Purists](https://www.nexusmods.com/morrowind/mods/45096/
 
 ![Example conflict resolution image](https://cdn.discordapp.com/attachments/381219559094616064/583192237450461187/unknown.png)
 
-Currently, TES3Merge supports the following record types:
-
-* Activator
-* Alchemy
-* Apparatus
-* Armor
-* Birthsign
-* Body
-* Book
-* Class
-* Clothing
-* Container
-* Creature
-* Door
-* Enchantment
-* Faction
-* GMST
-* Ingredient
-* Light
-* Lock
-* Magic Effect
-* Miscellaneous
-* NPC
-* Probe
-* Race
-* Repair Item
-* Skill
-* Sound
-* Sound Generator
-* Spell
-* Static
-* Weapon
+Currently, TES3Merge supports the following record types: Activator, Alchemy, Apparatus, Armor, Birthsign, Body, Book, Class, Clothing, Container, Creature, Door, Enchantment, Faction, GMST, Ingredient, Light, Lock, Magic Effect, Miscellaneous, NPC, Probe, Race, Repair Item, Skill, Sound, Sound Generator, Spell, Static, and Weapon.
 
 Merge rules respect the load order, with the first appearance of the record becoming the base for comparisons. If a later mod modifies the record, its changes will be preserved. Another mod after that will only have its changes made if they differ from the base record.
 
