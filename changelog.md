@@ -3,6 +3,7 @@
 ## v0.5.1 (2019-06-05)
 
 * Fixed issue that would force default flags onto creatures, resulting in evolved slaughterfish that could go onto land.
+* Fixed issue with CREA.FNAM subrecord merging.
 
 ## v0.5 (2019-06-04)
 
