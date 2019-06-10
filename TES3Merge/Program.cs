@@ -210,7 +210,14 @@ namespace TES3Merge
                         supportedMergeTags.Remove(recordTypeConfig.KeyName);
                     }
                 }
-                Logger.WriteLine($"Supported record types: {string.Join(", ", supportedMergeTags)}");
+                WriteToLogAndConsole($"Supported record types: {string.Join(", ", supportedMergeTags)}");
+
+                // Make sure we're going to merge something.
+                if (supportedMergeTags.Count == 0)
+                {
+                    WriteToLogAndConsole("ERROR: No valid record types to merge. Check TES3Merge.ini's configuration.");
+                    return;
+                }
 
                 // Get object ID filtering from INI.
                 List<KeyValuePair<string, bool>> objectIdFilters = new List<KeyValuePair<string, bool>>();
