@@ -116,7 +116,22 @@ namespace TES3Merge
                     continue;
                 }
 
-                if (property.PropertyType.IsSubclassOf(typeof(TES3Lib.Base.Subrecord)))
+                // TODO: Change this to something fancy and reflection-y.
+                if (property.PropertyType == typeof(TES3Lib.Subrecords.CLAS.CLDT))
+                {
+                    if ((currentValue as TES3Lib.Subrecords.CLAS.CLDT).MergeWith(nextValue as TES3Lib.Subrecords.CLAS.CLDT, firstValue as TES3Lib.Subrecords.CLAS.CLDT))
+                    {
+                        modified = true;
+                    }
+                }
+                else if (property.PropertyType == typeof(TES3Lib.Subrecords.FACT.FADT))
+                {
+                    if ((currentValue as TES3Lib.Subrecords.FACT.FADT).MergeWith(nextValue as TES3Lib.Subrecords.FACT.FADT, firstValue as TES3Lib.Subrecords.FACT.FADT))
+                    {
+                        modified = true;
+                    }
+                }
+                else if (property.PropertyType.IsSubclassOf(typeof(TES3Lib.Base.Subrecord)))
                 {
                     if ((currentValue as TES3Lib.Base.Subrecord).MergeWith(nextValue as TES3Lib.Base.Subrecord, firstValue as TES3Lib.Base.Subrecord))
                     {
@@ -159,6 +174,77 @@ namespace TES3Merge
                     modified = true;
                 }
             }
+
+            return modified;
+        }
+
+        public static bool MergeWith(this TES3Lib.Subrecords.CLAS.CLDT subrecord, TES3Lib.Subrecords.CLAS.CLDT next, TES3Lib.Subrecords.CLAS.CLDT first)
+        {
+            if (first == next)
+            {
+                return false;
+            }
+
+            var properties = next.GetType()
+                .GetProperties(BindingFlags.Public |
+                               BindingFlags.Instance |
+                               BindingFlags.DeclaredOnly)
+                               .OrderBy(x => x.MetadataToken)
+                               .ToList();
+
+            bool modified = false;
+            foreach (PropertyInfo property in properties)
+            {
+                // Don't merge attributes/skills.
+                if (property.PropertyType == typeof(TES3Lib.Enums.Attribute) ||
+                    property.PropertyType == typeof(TES3Lib.Enums.Skill))
+                {
+                    continue;
+                }
+
+                if (MergeProperty(property, subrecord, first, next))
+                {
+                    modified = true;
+                }
+            }
+
+            // TODO: Smart merge major/minor skills, and attributes.
+
+            return modified;
+        }
+
+        public static bool MergeWith(this TES3Lib.Subrecords.FACT.FADT subrecord, TES3Lib.Subrecords.FACT.FADT next, TES3Lib.Subrecords.FACT.FADT first)
+        {
+            if (first == next)
+            {
+                return false;
+            }
+
+            var properties = next.GetType()
+                .GetProperties(BindingFlags.Public |
+                               BindingFlags.Instance |
+                               BindingFlags.DeclaredOnly)
+                               .OrderBy(x => x.MetadataToken)
+                               .ToList();
+
+            bool modified = false;
+            foreach (PropertyInfo property in properties)
+            {
+                // Don't merge attributes/skills/rank requirements.
+                if (property.PropertyType == typeof(TES3Lib.Enums.Attribute) ||
+                    property.PropertyType == typeof(TES3Lib.Enums.Skill[]) ||
+                    property.PropertyType == typeof(TES3Lib.Subrecords.FACT.FADT.RankRequirement[]))
+                {
+                    continue;
+                }
+
+                if (MergeProperty(property, subrecord, first, next))
+                {
+                    modified = true;
+                }
+            }
+
+            // TODO: Smart merge what we skip above.
 
             return modified;
         }

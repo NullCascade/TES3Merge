@@ -188,7 +188,7 @@ namespace TES3Merge
                     "NPC_",
                     //"PGRD",
                     "PROB",
-                    //"RACE",
+                    "RACE",
                     //"REFR",
                     //"REGN",
                     "REPA",
