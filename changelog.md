@@ -1,5 +1,16 @@
 # TES3Merge Changelog
 
+## v0.6 (2020-01-26)
+
+This update primarily brings up changes in TES3Lib and adds support for more than 255 mods.
+
+* Fixed compatibility with non-Windows environments (courtesy of Benjamin Winger). No Linux or macOS builds are provided.
+* Fixed issue where blacklisting all record types would instead try to merge all record types, including unsupported types.
+* Fixed CLAS.CLDT merging to ignore favored attributes/skills. These are no longer merged, and will need to be done manually in a future version.
+* Fixed FACT.FADT merging to ignore favored attributes/skills as well as rank data. This could create a crash when approaching NPCs using this faction. See above note.
+* Brought upstreem changes to underlying TES3Lib changes, merging in SaintBahamut's work. No expected change in merge behavior.
+* Removed 255 mod limit.
+
 ## v0.5.1 (2019-06-08)
 
 * Fixed issue that would force default flags onto creatures, resulting in evolved slaughterfish that could go onto land.
