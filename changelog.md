@@ -1,5 +1,9 @@
 # TES3Merge Changelog
 
+## v0.6.1 (2020-01-26)
+
+* Fixed issue where generating merged objects with Merged Objects.esp active would freeze the program.
+
 ## v0.6 (2020-01-26)
 
 This update primarily brings up changes in TES3Lib and adds support for more than 255 mods.

@@ -275,13 +275,14 @@ namespace TES3Merge
                     while (true)
                     {
                         string gameFile = data["Game Files"]["GameFile" + gameFileIndex];
-                        if (gameFile == null)
+                        if (String.IsNullOrEmpty(gameFile))
                         {
                             break;
                         }
 
                         if (gameFile == "Merged_Objects.esp" || gameFile == "Merged Objects.esp")
                         {
+                            gameFileIndex++;
                             continue;
                         }
 
