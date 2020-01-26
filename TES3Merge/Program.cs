@@ -271,9 +271,10 @@ namespace TES3Merge
 
                     // Build a list of activated files.
                     HashSet<string> activatedMasters = new HashSet<string>();
-                    for (int i = 0; i < 255; i++)
+                    int gameFileIndex = 0;
+                    while (true)
                     {
-                        string gameFile = data["Game Files"]["GameFile" + i];
+                        string gameFile = data["Game Files"]["GameFile" + gameFileIndex];
                         if (gameFile == null)
                         {
                             break;
@@ -285,6 +286,8 @@ namespace TES3Merge
                         }
 
                         activatedMasters.Add(gameFile);
+
+                        gameFileIndex++;
                     }
 
                     // Add all ESM files first, then ESP files.
