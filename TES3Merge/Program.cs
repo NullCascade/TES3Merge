@@ -170,7 +170,7 @@ namespace TES3Merge
                     //"DIAL",
                     "DOOR",
                     "ENCH",
-                    "FACT",
+                    //"FACT",
                     //"GLOB",
                     "GMST",
                     //"INFO",
