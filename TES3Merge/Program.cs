@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Deployment;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -269,6 +267,17 @@ namespace TES3Merge
                         }
                     }
 
+                    // Get a list of ignored files.
+                    HashSet<string> fileFilters = new HashSet<string>();
+                    foreach (var kv in Configuration["FileFilters"])
+                    {
+                        bool.TryParse(kv.Value, out bool allow);
+                        if (!allow)
+                        {
+                            fileFilters.Add(kv.KeyName.ToLower());
+                        }
+                    }
+
                     // Build a list of activated files.
                     HashSet<string> activatedMasters = new HashSet<string>();
                     int gameFileIndex = 0;
@@ -280,14 +289,24 @@ namespace TES3Merge
                             break;
                         }
 
+                        // Hard filters.
                         if (gameFile == "Merged_Objects.esp" || gameFile == "Merged Objects.esp")
                         {
                             gameFileIndex++;
                             continue;
                         }
 
-                        activatedMasters.Add(gameFile);
+                        // Check for custom filters.
+                        if (fileFilters.Contains(gameFile.ToLower()))
+                        {
+                            Console.WriteLine($"Ignoring file: {gameFile}");
+                            Logger.WriteLine($"Ignoring file: {gameFile}");
+                            gameFileIndex++;
+                            continue;
+                        }
 
+                        // Add to masters list.
+                        activatedMasters.Add(gameFile);
                         gameFileIndex++;
                     }
 
