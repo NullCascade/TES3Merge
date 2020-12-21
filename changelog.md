@@ -1,5 +1,11 @@
 # TES3Merge Changelog
 
+## v0.7 (2020-12-20)
+
+* Pulls in various updates to TES3Tool. This includes a fix to autocalculated NPCs.
+* Added file filtering, to blacklist certain esm/esp files from merging.
+* Disabled FACT merging entirely until there are cycles to fix it.
+
 ## v0.6.1 (2020-01-26)
 
 * Fixed issue where generating merged objects with Merged Objects.esp active would freeze the program.
