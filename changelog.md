@@ -1,5 +1,10 @@
 # TES3Merge Changelog
 
+## v0.8 (2021-02-19)
+
+* Skips merging AIPackage lists for NPC and CREA records. Has to be hand tailored at a later date.
+* Provide more logging and useful feedback on the event of an exception happening when merging properties.
+
 ## v0.7 (2020-12-20)
 
 * Pulls in various updates to TES3Tool. This includes a fix to autocalculated NPCs.
