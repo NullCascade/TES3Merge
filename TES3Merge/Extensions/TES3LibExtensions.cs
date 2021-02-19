@@ -138,6 +138,13 @@ namespace TES3Merge
                         modified = true;
                     }
                 }
+                else if (property.PropertyType == typeof(List<(TES3Lib.Base.IAIPackage AIPackage, TES3Lib.Subrecords.CREA.CNDT)>)
+                    || property.PropertyType == typeof(List<(TES3Lib.Base.IAIPackage, TES3Lib.Subrecords.NPC_.CNDT)>))
+                {
+                    // We can't currently merge AI package lists, so we skip it to prevent errors.
+                    // TODO: Make this actually work.
+                    continue;
+                }
                 else
                 {
                     if (MergeProperty(property, record, first, next))
