@@ -14,8 +14,8 @@ namespace TES3Merge
 {
     class Program
     {
-        static StreamWriter Logger;
-        static IniData Configuration;
+        public static StreamWriter Logger;
+        public static IniData Configuration;
 
         /// <summary>
         /// Finds the relevant Morrowind directory. It will prefer a directory that is shares or is parent to the current folder.
@@ -68,7 +68,7 @@ namespace TES3Merge
         /// Writes to both the console and the log file.
         /// </summary>
         /// <param name="Message">Message to write.</param>
-        static void WriteToLogAndConsole(string Message)
+        public static void WriteToLogAndConsole(string Message)
         {
             Logger.WriteLine(Message);
             Console.WriteLine(Message);

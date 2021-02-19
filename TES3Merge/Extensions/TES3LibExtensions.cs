@@ -147,9 +147,22 @@ namespace TES3Merge
                 }
                 else
                 {
-                    if (MergeProperty(property, record, first, next))
+                    try
                     {
-                        modified = true;
+                        if (MergeProperty(property, record, first, next))
+                        {
+                            modified = true;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Program.WriteToLogAndConsole(string.Format("WARNING: Could not merge property {0} for object {1}: {2}", property.Name, record.GetEditorId().Replace("\0", string.Empty), e.Message));
+                        Program.Logger.WriteLine($">> Record: {BitConverter.ToString(record.SerializeRecord()).Replace("-", "")}");
+                        Program.Logger.WriteLine($">> First: {BitConverter.ToString(first.SerializeRecord()).Replace("-", "")}");
+                        Program.Logger.WriteLine($">> Next: {BitConverter.ToString(next.SerializeRecord()).Replace("-", "")}");
+                        Program.WriteToLogAndConsole(">> Please post the TES3Merge.log file to GitHub: https://github.com/NullCascade/TES3Merge/issues");
+                        Program.WriteToLogAndConsole(">> Note that some unintended issues may arrise from this merge. You may wish to blacklist the given ID.");
+                        continue;
                     }
                 }
             }
