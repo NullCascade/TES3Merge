@@ -1,4 +1,4 @@
-# TES3Merge v0.6
+# TES3Merge v0.8
 
 This tool helps to automatically patch conflicts between mods for *The Elder Scrolls III: Morrowind*.
 
