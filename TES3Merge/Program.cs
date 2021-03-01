@@ -98,7 +98,7 @@ namespace TES3Merge
                 // Load this application's configuration.
                 {
                     var parser = new FileIniDataParser();
-                    string iniPath = Path.Combine($"{AppDomain.CurrentDomain.BaseDirectory}", "TES3Merge.ini");
+                    string iniPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TES3Merge.ini");
                     Configuration = parser.ReadFile(iniPath);
                 }
 
@@ -239,7 +239,7 @@ namespace TES3Merge
                     try
                     {
                         var parser = new FileIniDataParser();
-                        data = parser.ReadFile(Path.Combine($"{morrowindPath}", "Morrowind.ini"));
+                        data = parser.ReadFile(Path.Combine(morrowindPath, "Morrowind.ini"));
                     }
                     catch (Exception firstTry)
                     {
@@ -251,7 +251,7 @@ namespace TES3Merge
                             config.SkipInvalidLines = true;
                             config.AllowDuplicateKeys = true;
                             config.AllowDuplicateSections = true;
-                            data = parser.ReadFile(Path.Combine($"{morrowindPath}", "Morrowind.ini"));
+                            data = parser.ReadFile(Path.Combine(morrowindPath, "Morrowind.ini"));
 
                             // If the first pass fails, be more forgiving, but let the user know their INI has issues.
                             Console.WriteLine("WARNING: Issues were found with your Morrowind.ini file. See TES3Merge.log for details.");
@@ -311,7 +311,7 @@ namespace TES3Merge
                     }
 
                     // Add all ESM files first, then ESP files.
-                    foreach (var path in Directory.GetFiles(Path.Combine($"{morrowindPath}", "Data Files"), "*.esm", SearchOption.TopDirectoryOnly).OrderBy(p => File.GetLastWriteTime(p).Ticks))
+                    foreach (var path in Directory.GetFiles(Path.Combine(morrowindPath, "Data Files"), "*.esm", SearchOption.TopDirectoryOnly).OrderBy(p => File.GetLastWriteTime(p).Ticks))
                     {
                         var fileName = Path.GetFileName(path);
                         if (activatedMasters.Contains(fileName))
@@ -319,7 +319,7 @@ namespace TES3Merge
                             sortedMasters.Add(fileName);
                         }
                     }
-                    foreach (var path in Directory.GetFiles(Path.Combine($"{morrowindPath}", "Data Files"), "*.esp", SearchOption.TopDirectoryOnly).OrderBy(p => File.GetLastWriteTime(p).Ticks))
+                    foreach (var path in Directory.GetFiles(Path.Combine(morrowindPath, "Data Files"), "*.esp", SearchOption.TopDirectoryOnly).OrderBy(p => File.GetLastWriteTime(p).Ticks))
                     {
                         var fileName = Path.GetFileName(path);
                         if (activatedMasters.Contains(fileName))
@@ -331,7 +331,7 @@ namespace TES3Merge
                     // Go through and build a record list.
                     foreach (var sortedMaster in sortedMasters)
                     {
-                        string fullGameFilePath = Path.Combine($"{morrowindPath}", "Data Files", $"{sortedMaster}");
+                        string fullGameFilePath = Path.Combine(morrowindPath, "Data Files", $"{sortedMaster}");
                         var lastWriteTime = File.GetLastWriteTime(fullGameFilePath);
                         Logger.WriteLine($"Parsing input file: {sortedMaster} @ {lastWriteTime}");
                         TES3 file = TES3.TES3Load(fullGameFilePath, supportedMergeTags);
@@ -476,7 +476,7 @@ namespace TES3Merge
                 {
                     if (usedMasters.Contains(gameFile))
                     {
-                        long size = new FileInfo(Path.Combine($"{morrowindPath}", "Data Files", $"{gameFile}")).Length;
+                        long size = new FileInfo(Path.Combine(morrowindPath, "Data Files", $"{gameFile}")).Length;
                         mergedObjectsHeader.Masters.Add((new TES3Lib.Subrecords.TES3.MAST { Filename = $"{gameFile}\0" }, new TES3Lib.Subrecords.TES3.DATA { MasterDataSize = size }));
                     }
                 }
