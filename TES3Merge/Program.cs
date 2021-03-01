@@ -133,9 +133,9 @@ namespace TES3Merge
 
                 // Find out where Morrowind lives.
                 string morrowindPath = GetMorrowindFolder();
-                if (morrowindPath == null)
+                if (string.IsNullOrEmpty(morrowindPath))
                 {
-                    WriteToLogAndConsole("ERROR: Could not resolve Morrowind directory. Install TES3Merge folder into the Morrowind installation folder.");
+                    throw new Exception($"ERROR: Could not resolve Morrowind directory. Install TES3Merge into Morrowind\\TES3Merge\\TES3Merge.exe or reinstall Morrowind to fix registry values.");
                 }
                 Logger.WriteLine($"Morrowind found at '{morrowindPath}'.");
 
