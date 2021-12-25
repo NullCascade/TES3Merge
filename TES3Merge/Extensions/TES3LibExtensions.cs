@@ -131,6 +131,13 @@ namespace TES3Merge
                         modified = true;
                     }
                 }
+                else if (property.PropertyType == typeof(TES3Lib.Subrecords.NPC_.NPDT))
+                {
+                    if ((currentValue as TES3Lib.Subrecords.NPC_.NPDT).MergeWith(nextValue as TES3Lib.Subrecords.NPC_.NPDT, firstValue as TES3Lib.Subrecords.NPC_.NPDT))
+                    {
+                        modified = true;
+                    }
+                }
                 else if (property.PropertyType.IsSubclassOf(typeof(TES3Lib.Base.Subrecord)))
                 {
                     if ((currentValue as TES3Lib.Base.Subrecord).MergeWith(nextValue as TES3Lib.Base.Subrecord, firstValue as TES3Lib.Base.Subrecord))
@@ -229,6 +236,59 @@ namespace TES3Merge
             }
 
             // TODO: Smart merge major/minor skills, and attributes.
+
+            return modified;
+        }
+
+        public static bool MergeWith(this TES3Lib.Subrecords.NPC_.NPDT subrecord, TES3Lib.Subrecords.NPC_.NPDT next, TES3Lib.Subrecords.NPC_.NPDT first)
+        {
+            if (first == next)
+            {
+                return false;
+            }
+
+            var properties = next.GetType()
+                .GetProperties(BindingFlags.Public |
+                               BindingFlags.Instance |
+                               BindingFlags.DeclaredOnly)
+                               .OrderBy(x => x.MetadataToken)
+                               .ToList();
+
+            bool modified = false;
+            foreach (PropertyInfo property in properties)
+            {
+                // Don't merge null values.
+                if (property.Name == nameof(TES3Lib.Subrecords.NPC_.NPDT.Skills))
+                {
+                    continue;
+                }
+
+                if (MergeProperty(property, subrecord, first, next))
+                {
+                    modified = true;
+                }
+            }
+
+            // Smart-merge NPC skills.
+            if (next.Skills != null)
+            {
+                // Assign over new skills if we don't have any.
+                if (subrecord.Skills == null)
+                {
+                    subrecord.Skills = next.Skills;
+                }
+                // If we had existing skills to care about, compare and assign.
+                else if (first.Skills != null)
+                {
+                    for (var i = 0; i < subrecord.Skills.Length; i++)
+                    {
+                        if (first.Skills[i] != next.Skills[i])
+                        {
+                            subrecord.Skills[i] = next.Skills[i];
+                        }
+                    }
+                }
+            }
 
             return modified;
         }
