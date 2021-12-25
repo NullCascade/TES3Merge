@@ -14,14 +14,18 @@ namespace TES3Merge
 {
     class Program
     {
-        public static StreamWriter Logger;
-        public static IniData Configuration;
+        public static StreamWriter Logger = new("TES3Merge.log", false)
+        {
+            AutoFlush = true
+        };
+
+        public static IniData? Configuration;
 
         /// <summary>
         /// Finds the relevant Morrowind directory. It will prefer a directory that is shares or is parent to the current folder.
         /// </summary>
         /// <returns>A path to the directory where Morrowind.exe resides, or null if it could not be determined.</returns>
-        static string GetMorrowindFolder()
+        static string? GetMorrowindFolder()
         {
             if (File.Exists("Morrowind.exe"))
             {
@@ -29,11 +33,11 @@ namespace TES3Merge
             }
             else if (File.Exists(Path.Combine("..", "Morrowind.exe")))
             {
-                return Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
+                return Directory.GetParent(Directory.GetCurrentDirectory())?.FullName;
             }
             else
             {
-                string registryValue = Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\bethesda softworks\\Morrowind", "Installed Path", null) as String;
+                var registryValue = Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\bethesda softworks\\Morrowind", "Installed Path", null) as string;
                 if (!string.IsNullOrEmpty(registryValue) && File.Exists(Path.Combine(registryValue, "Morrowind.exe")))
                 {
                     return registryValue;
@@ -51,7 +55,7 @@ namespace TES3Merge
         /// <returns>A copy of <paramref name="loadOrder"/>, filtered to only elements that match with <paramref name="filter"/>.</returns>
         static List<string> GetFilteredLoadList(List<string> loadOrder, IEnumerable<string> filter)
         {
-            List<string> result = new List<string>();
+            var result = new List<string>();
 
             foreach (var file in loadOrder)
             {
@@ -80,12 +84,6 @@ namespace TES3Merge
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
 #endif
-
-            // Create our log.
-            Logger = new StreamWriter("TES3Merge.log", false)
-            {
-                AutoFlush = true
-            };
             
             var version = Assembly.GetExecutingAssembly().GetName().Version;
             Logger.WriteLine($"TES3Merge v{version}.");
@@ -132,7 +130,7 @@ namespace TES3Merge
                 }
 
                 // Find out where Morrowind lives.
-                string morrowindPath = GetMorrowindFolder();
+                var morrowindPath = GetMorrowindFolder();
                 if (string.IsNullOrEmpty(morrowindPath))
                 {
                     throw new Exception($"ERROR: Could not resolve Morrowind directory. Install TES3Merge into Morrowind\\TES3Merge\\TES3Merge.exe or reinstall Morrowind to fix registry values.");
@@ -140,20 +138,20 @@ namespace TES3Merge
                 Logger.WriteLine($"Morrowind found at '{morrowindPath}'.");
 
                 // Create our merged object TES3 file.
-                TES3 mergedObjects = new TES3();
+                var mergedObjects = new TES3();
                 var mergedObjectsHeader = new TES3Lib.Records.TES3
                 {
                     HEDR = new TES3Lib.Subrecords.TES3.HEDR()
                     {
                         CompanyName = "TES3Merge",
-                        Description = $"Automatic merge generated at {DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")}.",
+                        Description = $"Automatic merge generated at {DateTime.UtcNow:yyyy-MM-ddTHH:mm:ssZ}.",
                         Version = 1.3f,
                     }
                 };
                 mergedObjects.Records.Add(mergedObjectsHeader);
 
                 // Get a list of supported mergable object types.
-                List<string> supportedMergeTags = new List<string>
+                var supportedMergeTags = new List<string>
                 {
                     "ACTI",
                     "ALCH",
@@ -202,8 +200,7 @@ namespace TES3Merge
                 // Allow INI to remove types from merge.
                 foreach (var recordTypeConfig in Configuration["RecordTypes"])
                 {
-                    bool.TryParse(recordTypeConfig.Value, out bool supported);
-                    if (!supported)
+                    if (bool.TryParse(recordTypeConfig.Value, out bool supported) && !supported)
                     {
                         supportedMergeTags.Remove(recordTypeConfig.KeyName);
                     }
@@ -218,20 +215,26 @@ namespace TES3Merge
                 }
 
                 // Get object ID filtering from INI.
-                List<KeyValuePair<string, bool>> objectIdFilters = new List<KeyValuePair<string, bool>>();
+                var objectIdFilters = new List<KeyValuePair<string, bool>>();
                 foreach (var kv in Configuration["ObjectFilters"])
                 {
-                    bool.TryParse(kv.Value, out bool allow);
-                    objectIdFilters.Add(new KeyValuePair<string, bool>(kv.KeyName.Trim('"'), allow));
+                    if (bool.TryParse(kv.Value, out bool allow))
+                    {
+                        objectIdFilters.Add(new KeyValuePair<string, bool>(kv.KeyName.Trim('"'), allow));
+                    }
+                    else
+                    {
+                        WriteToLogAndConsole($"WARNING: Filter {kv.KeyName} could not be parsed.");
+                    }
                 }
 
                 // Collections for managing our objects.
-                Dictionary<string, Dictionary<string, List<TES3Lib.Base.Record>>> recordOverwriteMap = new Dictionary<string, Dictionary<string, List<TES3Lib.Base.Record>>>();
+                var recordOverwriteMap = new Dictionary<string, Dictionary<string, List<TES3Lib.Base.Record>>>();
 
                 // Get the game file list from the ini file.
-                List<string> sortedMasters = new List<string>();
-                Dictionary<TES3, string> mapTES3ToFileNames = new Dictionary<TES3, string>();
-                Dictionary<TES3Lib.Base.Record, TES3> recordMasters = new Dictionary<TES3Lib.Base.Record, TES3>();
+                var sortedMasters = new List<string>();
+                var mapTES3ToFileNames = new Dictionary<TES3, string>();
+                var recordMasters = new Dictionary<TES3Lib.Base.Record, TES3>();
                 Console.WriteLine("Parsing content files...");
                 {
                     // Try to get INI information.
@@ -268,23 +271,22 @@ namespace TES3Merge
                     }
 
                     // Get a list of ignored files.
-                    HashSet<string> fileFilters = new HashSet<string>();
+                    var fileFilters = new HashSet<string>();
                     foreach (var kv in Configuration["FileFilters"])
                     {
-                        bool.TryParse(kv.Value, out bool allow);
-                        if (!allow)
+                        if (bool.TryParse(kv.Value, out bool allow) && !allow)
                         {
                             fileFilters.Add(kv.KeyName.ToLower());
                         }
                     }
 
                     // Build a list of activated files.
-                    HashSet<string> activatedMasters = new HashSet<string>();
+                    var activatedMasters = new HashSet<string>();
                     int gameFileIndex = 0;
                     while (true)
                     {
                         string gameFile = data["Game Files"]["GameFile" + gameFileIndex];
-                        if (String.IsNullOrEmpty(gameFile))
+                        if (string.IsNullOrEmpty(gameFile))
                         {
                             break;
                         }
@@ -403,9 +405,12 @@ namespace TES3Merge
                 }
 
                 // Go through and build merged objects.
-                bool.TryParse(Configuration["General"]["DumpMergedRecordsToLog"], out bool dumpMergedRecordsToLog);
+                if (!bool.TryParse(Configuration["General"]["DumpMergedRecordsToLog"], out bool dumpMergedRecordsToLog))
+                {
+                    dumpMergedRecordsToLog = false;
+                }
                 Console.WriteLine("Building merges...");
-                HashSet<string> usedMasters = new HashSet<string>();
+                var usedMasters = new HashSet<string>();
                 foreach (var recordType in recordOverwriteMap.Keys)
                 {
                     var recordsMap = recordOverwriteMap[recordType];
@@ -419,10 +424,10 @@ namespace TES3Merge
                             var firstMaster = mapTES3ToFileNames[recordMasters[firstRecord]];
                             var lastMaster = mapTES3ToFileNames[recordMasters[lastRecord]];
 
-                            HashSet<string> localUsedMasters = new HashSet<string>() { firstMaster, lastMaster };
+                            var localUsedMasters = new HashSet<string>() { firstMaster, lastMaster };
 
                             var lastSerialized = lastRecord.GetRawLoadedBytes();
-                            TES3Lib.Base.Record newRecord = Activator.CreateInstance(lastRecord.GetType(), new object[] { lastSerialized }) as TES3Lib.Base.Record;
+                            TES3Lib.Base.Record newRecord = Activator.CreateInstance(lastRecord.GetType(), new object[] { lastSerialized }) as TES3Lib.Base.Record ?? throw new Exception("Could not create activator instance.");
                             for (int i = records.Count - 2; i > 0; i--)
                             {
                                 var record = records[i];
@@ -502,8 +507,7 @@ namespace TES3Merge
 
         private static void ShowCompletionPrompt()
         {
-            bool.TryParse(Configuration["General"]["PauseOnCompletion"], out bool pauseOnCompletion);
-            if (pauseOnCompletion)
+            if (Configuration != null && bool.TryParse(Configuration["General"]["PauseOnCompletion"], out bool pauseOnCompletion) && pauseOnCompletion)
             {
                 Console.WriteLine("Press any key to exit...");
                 Console.ReadKey();

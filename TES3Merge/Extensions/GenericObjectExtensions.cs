@@ -34,8 +34,8 @@ namespace TES3Merge
                 var unequalProperties =
                     from pi in type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
                     where !ignoreList.Contains(pi.Name) && pi.GetUnderlyingType().IsSimpleType() && pi.GetIndexParameters().Length == 0
-                    let selfValue = type.GetProperty(pi.Name).GetValue(self, null)
-                    let toValue = type.GetProperty(pi.Name).GetValue(to, null)
+                    let selfValue = type.GetProperty(pi.Name)?.GetValue(self, null)
+                    let toValue = type.GetProperty(pi.Name)?.GetValue(to, null)
                     where selfValue != toValue && (selfValue == null || !selfValue.Equals(toValue))
                     select selfValue;
                 return !unequalProperties.Any();
@@ -67,22 +67,19 @@ namespace TES3Merge
 
         public static Type GetUnderlyingType(this MemberInfo member)
         {
-            switch (member.MemberType)
+            if (member == null)
             {
-                case MemberTypes.Event:
-                    return ((EventInfo)member).EventHandlerType;
-                case MemberTypes.Field:
-                    return ((FieldInfo)member).FieldType;
-                case MemberTypes.Method:
-                    return ((MethodInfo)member).ReturnType;
-                case MemberTypes.Property:
-                    return ((PropertyInfo)member).PropertyType;
-                default:
-                    throw new ArgumentException
-                    (
-                       "Input MemberInfo must be if type EventInfo, FieldInfo, MethodInfo, or PropertyInfo"
-                    );
+                throw new ArgumentException("Input MemberInfo must not be null.");
             }
+
+            return member.MemberType switch
+            {
+                MemberTypes.Event => ((EventInfo)member).EventHandlerType ?? throw new ArgumentException("EventInfo does not have EventHandlerType."),
+                MemberTypes.Field => ((FieldInfo)member).FieldType,
+                MemberTypes.Method => ((MethodInfo)member).ReturnType,
+                MemberTypes.Property => ((PropertyInfo)member).PropertyType,
+                _ => throw new ArgumentException("Input MemberInfo must be if type EventInfo, FieldInfo, MethodInfo, or PropertyInfo"),
+            };
         }
     }
 }

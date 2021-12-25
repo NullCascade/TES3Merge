@@ -12,7 +12,7 @@ namespace TES3Merge
         #region Generic Property Merging
         class PublicPropertyComparer : EqualityComparer<object>
         {
-            public override bool Equals(object a, object b)
+            public override bool Equals(object? a, object? b)
             {
                 if (a == null && b == null)
                     return true;
@@ -42,9 +42,9 @@ namespace TES3Merge
             // Handle collections.
             if (property.PropertyType.IsNonStringEnumerable())
             {
-                var currentAsEnumerable = (currentValue as IEnumerable)?.Cast<object>();
-                var firstAsEnumerable = (firstValue as IEnumerable)?.Cast<object>();
-                var nextAsEnumerable = (nextValue as IEnumerable)?.Cast<object>();
+                var currentAsEnumerable = (currentValue as IEnumerable)?.Cast<object>()!;
+                var firstAsEnumerable = (firstValue as IEnumerable)?.Cast<object>()!;
+                var nextAsEnumerable = (nextValue as IEnumerable)?.Cast<object>()!;
 
                 var comparer = new PublicPropertyComparer();
                 bool currentIsUnmodified = currentValue != null && firstValue != null ? currentAsEnumerable.SequenceEqual(firstAsEnumerable, comparer) : currentValue == firstValue;
@@ -73,6 +73,11 @@ namespace TES3Merge
         #region Record Extensions
         public static bool MergeWith(this TES3Lib.Base.Record record, TES3Lib.Base.Record next, TES3Lib.Base.Record first)
         {
+            if (record == null || next == null || first == null)
+            {
+                throw new ArgumentException("Record provided is null.");
+            }
+
             if (first == next)
             {
                 return false;
@@ -90,12 +95,7 @@ namespace TES3Merge
                 modified = true;
             }
 
-            var properties = next.GetType()
-                .GetProperties(BindingFlags.Public |
-                               BindingFlags.Instance |
-                               BindingFlags.DeclaredOnly)
-                               .OrderBy(x => x.MetadataToken)
-                               .ToList();
+            var properties = next.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly).OrderBy(x => x.MetadataToken).ToList();
 
             foreach (PropertyInfo property in properties)
             {
@@ -119,28 +119,28 @@ namespace TES3Merge
                 // TODO: Change this to something fancy and reflection-y.
                 if (property.PropertyType == typeof(TES3Lib.Subrecords.CLAS.CLDT))
                 {
-                    if ((currentValue as TES3Lib.Subrecords.CLAS.CLDT).MergeWith(nextValue as TES3Lib.Subrecords.CLAS.CLDT, firstValue as TES3Lib.Subrecords.CLAS.CLDT))
+                    if ((currentValue as TES3Lib.Subrecords.CLAS.CLDT)!.MergeWith((nextValue as TES3Lib.Subrecords.CLAS.CLDT)!, (firstValue as TES3Lib.Subrecords.CLAS.CLDT)!))
                     {
                         modified = true;
                     }
                 }
                 else if (property.PropertyType == typeof(TES3Lib.Subrecords.FACT.FADT))
                 {
-                    if ((currentValue as TES3Lib.Subrecords.FACT.FADT).MergeWith(nextValue as TES3Lib.Subrecords.FACT.FADT, firstValue as TES3Lib.Subrecords.FACT.FADT))
+                    if ((currentValue as TES3Lib.Subrecords.FACT.FADT)!.MergeWith((nextValue as TES3Lib.Subrecords.FACT.FADT)!, (firstValue as TES3Lib.Subrecords.FACT.FADT)!))
                     {
                         modified = true;
                     }
                 }
                 else if (property.PropertyType == typeof(TES3Lib.Subrecords.NPC_.NPDT))
                 {
-                    if ((currentValue as TES3Lib.Subrecords.NPC_.NPDT).MergeWith(nextValue as TES3Lib.Subrecords.NPC_.NPDT, firstValue as TES3Lib.Subrecords.NPC_.NPDT))
+                    if ((currentValue as TES3Lib.Subrecords.NPC_.NPDT)!.MergeWith((nextValue as TES3Lib.Subrecords.NPC_.NPDT)!, (firstValue as TES3Lib.Subrecords.NPC_.NPDT)!))
                     {
                         modified = true;
                     }
                 }
                 else if (property.PropertyType.IsSubclassOf(typeof(TES3Lib.Base.Subrecord)))
                 {
-                    if ((currentValue as TES3Lib.Base.Subrecord).MergeWith(nextValue as TES3Lib.Base.Subrecord, firstValue as TES3Lib.Base.Subrecord))
+                    if ((currentValue as TES3Lib.Base.Subrecord)!.MergeWith((nextValue as TES3Lib.Base.Subrecord)!, (firstValue as TES3Lib.Base.Subrecord)!))
                     {
                         modified = true;
                     }
@@ -156,17 +156,17 @@ namespace TES3Merge
                 {
                     try
                     {
-                        if (MergeProperty(property, record, first, next))
+                        if (MergeProperty(property, record!, first!, next!))
                         {
                             modified = true;
                         }
                     }
                     catch (Exception e)
                     {
-                        Program.WriteToLogAndConsole(string.Format("WARNING: Could not merge property {0} for object {1}: {2}", property.Name, record.GetEditorId().Replace("\0", string.Empty), e.Message));
+                        Program.WriteToLogAndConsole(string.Format("WARNING: Could not merge property {0} for object {1}: {2}", property.Name, record!.GetEditorId().Replace("\0", string.Empty), e.Message));
                         Program.Logger.WriteLine($">> Record: {BitConverter.ToString(record.SerializeRecord()).Replace("-", "")}");
-                        Program.Logger.WriteLine($">> First: {BitConverter.ToString(first.SerializeRecord()).Replace("-", "")}");
-                        Program.Logger.WriteLine($">> Next: {BitConverter.ToString(next.SerializeRecord()).Replace("-", "")}");
+                        Program.Logger.WriteLine($">> First: {BitConverter.ToString(first!.SerializeRecord()).Replace("-", "")}");
+                        Program.Logger.WriteLine($">> Next: {BitConverter.ToString(next!.SerializeRecord()).Replace("-", "")}");
                         Program.WriteToLogAndConsole(">> Please post the TES3Merge.log file to GitHub: https://github.com/NullCascade/TES3Merge/issues");
                         Program.WriteToLogAndConsole(">> Note that some unintended issues may arrise from this merge. You may wish to blacklist the given ID.");
                         continue;
