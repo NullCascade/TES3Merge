@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.645
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31410.357
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TES3Merge", "TES3Merge\TES3Merge.csproj", "{906F236A-BC3F-45BC-9EAF-999A29EDBD70}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -9,9 +9,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TES3Merge", "TES3Merge\TES3
 		{1BC5CBBB-E155-4D9A-BC55-6FE75109C1B9} = {1BC5CBBB-E155-4D9A-BC55-6FE75109C1B9}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TES3Lib", "TES3Tool\TES3Lib\TES3Lib.csproj", "{EB6C834A-B58E-4BBF-8BC5-4DEE6A925B4B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TES3Lib", "TES3Tool\TES3Lib\TES3Lib.csproj", "{EB6C834A-B58E-4BBF-8BC5-4DEE6A925B4B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utility", "TES3Tool\Utility\Utility.csproj", "{1BC5CBBB-E155-4D9A-BC55-6FE75109C1B9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utility", "TES3Tool\Utility\Utility.csproj", "{1BC5CBBB-E155-4D9A-BC55-6FE75109C1B9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
