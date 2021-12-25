@@ -88,7 +88,7 @@ namespace TES3Merge
             };
             
             var version = Assembly.GetExecutingAssembly().GetName().Version;
-            Logger.WriteLine($"TES3Merge v0.8.");
+            Logger.WriteLine($"TES3Merge v{version}.");
 
             // Main execution attempt.
 #if DEBUG == false
