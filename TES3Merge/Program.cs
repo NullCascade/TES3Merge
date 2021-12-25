@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using IniParser;
@@ -35,7 +36,7 @@ namespace TES3Merge
             {
                 return Directory.GetParent(Directory.GetCurrentDirectory())?.FullName;
             }
-            else
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 var registryValue = Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\bethesda softworks\\Morrowind", "Installed Path", null) as string;
                 if (!string.IsNullOrEmpty(registryValue) && File.Exists(Path.Combine(registryValue, "Morrowind.exe")))
