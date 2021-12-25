@@ -113,6 +113,9 @@ namespace TES3Merge
                             throw new Exception($"Encoding code '{newEncodingCode}' is not supported. See TES3Merge.ini for supported values.");
                         }
 
+                        // Register the encoding provider so we can understand 1252 and presumably others.
+                        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
                         var encoding = Encoding.GetEncoding(newEncodingCode);
                         Logger.WriteLine($"Using encoding: {encoding.EncodingName}");
                         Utility.Common.TextEncodingCode = newEncodingCode;
