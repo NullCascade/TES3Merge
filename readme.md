@@ -1,5 +1,7 @@
 # TES3Merge v0.8
 
+[![.NET](https://github.com/NullCascade/TES3Merge/actions/workflows/TES3Merge.yml/badge.svg)](https://github.com/NullCascade/TES3Merge/actions/workflows/TES3Merge.yml)
+
 This tool helps to automatically patch conflicts between mods for *The Elder Scrolls III: Morrowind*.
 
 This program includes an INI file to allow customization. Check [TES3Merge.ini](TES3Merge/TES3Merge.ini) for details on object blacklisting/whitelisting, debug options, and object type toggles.
