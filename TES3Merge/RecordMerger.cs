@@ -247,5 +247,21 @@ namespace TES3Merge
 
             return modified;
         }
+
+        public static bool MergeNamedProperties(in string[] propertyNames, object current, object first, object next)
+        {
+            bool modified = false;
+
+            foreach (var propertyName in propertyNames)
+            {
+                var subProperty = current.GetType().GetProperty(propertyName) ?? throw new Exception($"Property '{propertyName}' does not exist for type {current.GetType().FullName}.");
+                if (Merge(subProperty, current, first, next))
+                {
+                    modified = true;
+                }
+            }
+
+            return modified;
+        }
     }
 }

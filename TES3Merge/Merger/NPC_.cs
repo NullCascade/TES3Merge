@@ -21,13 +21,9 @@ namespace TES3Merge.Merger
             bool modified = false;
 
             // Perform basic merges.
-            foreach (var propertyName in NPCDataBasicProperties)
+            if (RecordMerger.MergeNamedProperties(NPCDataBasicProperties, current, first, next))
             {
-                var subProperty = typeof(TES3Lib.Subrecords.NPC_.NPDT).GetProperty(propertyName) ?? throw new Exception($"Property '{propertyName}' does not exist.");
-                if (RecordMerger.Merge(subProperty, current, first, next))
-                {
-                    modified = true;
-                }
+                modified = true;
             }
 
             return modified;
