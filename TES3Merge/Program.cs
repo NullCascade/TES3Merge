@@ -431,9 +431,9 @@ namespace TES3Merge
                             for (int i = records.Count - 2; i > 0; i--)
                             {
                                 var record = records[i];
-                                var master = mapTES3ToFileNames[recordMasters[record]];
                                 if (RecordMerger.Merge(newRecord, firstRecord, record))
                                 {
+                                    var master = mapTES3ToFileNames[recordMasters[record]];
                                     localUsedMasters.Add(master);
                                 }
                             }
