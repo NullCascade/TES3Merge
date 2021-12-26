@@ -8,6 +8,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Plugins\merge_add_effects.json" />
+    <None Remove="Plugins\merge_base.json" />
+    <None Remove="Plugins\merge_edit_all.json" />
+    <None Remove="Plugins\merge_minor_tweaks.json" />
+    <None Remove="Plugins\tes3conv.exe" />
+    <None Remove="Plugins\to_json.bat" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="2.2.7" />
     <PackageReference Include="MSTest.TestFramework" Version="2.2.7" />
