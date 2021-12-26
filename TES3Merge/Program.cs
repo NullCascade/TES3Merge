@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -436,7 +432,7 @@ namespace TES3Merge
                             {
                                 var record = records[i];
                                 var master = mapTES3ToFileNames[recordMasters[record]];
-                                if (newRecord.MergeWith(record, firstRecord))
+                                if (RecordMerger.Merge(newRecord, firstRecord, record))
                                 {
                                     localUsedMasters.Add(master);
                                 }
