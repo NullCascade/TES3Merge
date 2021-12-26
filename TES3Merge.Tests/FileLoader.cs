@@ -25,5 +25,15 @@ namespace TES3Merge.Tests
             }
             return LoadedPlugins[name];
         }
+
+        internal static TES3Lib.Base.Record? FindRecord(string pluginName, string id)
+        {
+            var plugin = GetPlugin(pluginName);
+            if (plugin == null)
+            {
+                return null;
+            }
+            return plugin.FindRecord(id);
+        }
     }
 }

@@ -18,15 +18,10 @@ namespace TES3Merge.Tests.Merger
 
         public ALCH()
         {
-            var pluginBase = FileLoader.GetPlugin("merge_base.esp")!;
-            var pluginEditAll = FileLoader.GetPlugin("merge_edit_all.esp")!;
-            var pluginAddEffects = FileLoader.GetPlugin("merge_add_effects.esp")!;
-            var pluginMinorTweaks = FileLoader.GetPlugin("merge_minor_tweaks.esp")!;
-
-            pluginBaseRecord = pluginBase.FindRecord("merge_alchemy") as TES3Lib.Records.ALCH ?? throw new Exception("Plugin did not have required record.");
-            pluginEditAllRecord = pluginEditAll.FindRecord("merge_alchemy") as TES3Lib.Records.ALCH ?? throw new Exception("Plugin did not have required record.");
-            pluginAddEffectsRecord = pluginAddEffects.FindRecord("merge_alchemy") as TES3Lib.Records.ALCH ?? throw new Exception("Plugin did not have required record.");
-            pluginMinorTweaksRecord = pluginMinorTweaks.FindRecord("merge_alchemy") as TES3Lib.Records.ALCH ?? throw new Exception("Plugin did not have required record.");
+            pluginBaseRecord = FileLoader.FindRecord("merge_base.esp", "merge_alchemy") as TES3Lib.Records.ALCH ?? throw new Exception("Plugin did not have required record.");
+            pluginEditAllRecord = FileLoader.FindRecord("merge_edit_all.esp", "merge_alchemy") as TES3Lib.Records.ALCH ?? throw new Exception("Plugin did not have required record.");
+            pluginAddEffectsRecord = FileLoader.FindRecord("merge_add_effects.esp", "merge_alchemy") as TES3Lib.Records.ALCH ?? throw new Exception("Plugin did not have required record.");
+            pluginMinorTweaksRecord = FileLoader.FindRecord("merge_minor_tweaks.esp", "merge_alchemy") as TES3Lib.Records.ALCH ?? throw new Exception("Plugin did not have required record.");
 
             pluginDefaultMerged = new TES3Lib.Records.ALCH(pluginMinorTweaksRecord.SerializeRecord());
             RecordMerger.Merge(pluginDefaultMerged, pluginBaseRecord, pluginAddEffectsRecord);
