@@ -11,11 +11,15 @@ namespace TES3Merge.Tests
     {
         static Dictionary<string, TES3Lib.TES3> LoadedPlugins = new();
 
+        static readonly List<string> testedRecords = new(new string[] {
+            "ALCH",
+        });
+
         internal static TES3Lib.TES3? GetPlugin(string name)
         {
             if (!LoadedPlugins.ContainsKey(name))
             {
-                var loadedPlugin = TES3Lib.TES3.TES3Load(Path.Combine("Plugins", name));
+                var loadedPlugin = TES3Lib.TES3.TES3Load(Path.Combine("Plugins", name), testedRecords);
                 LoadedPlugins[name] = loadedPlugin;
                 return loadedPlugin;
             }
