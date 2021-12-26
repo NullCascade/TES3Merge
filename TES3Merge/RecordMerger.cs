@@ -46,9 +46,9 @@ namespace TES3Merge
 
             // Define property merge behaviors.
             MergePropertyFunctionMapper[typeof(TES3Lib.Base.Subrecord)] = MergePropertySubrecord;
-            MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.CLAS.CLDT)] = MergePropertyClassData;
-            MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.FACT.FADT)] = MergePropertyFactionData;
-            MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.NPC_.NPDT)] = MergePropertyNPCData;
+            MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.CLAS.CLDT)] = Merger.CLAS.CLDT;
+            MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.FACT.FADT)] = Merger.FACT.FADT;
+            MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.NPC_.NPDT)] = Merger.NPC_.NPDT;
         }
 
         public static Func<object, object, object, bool>? GetTypeMergeFunction(Type? type)
@@ -88,19 +88,6 @@ namespace TES3Merge
                 return false;
             }
 
-            if (current is TES3Lib.Records.WEAP)
-            {
-                var record = (current as TES3Lib.Records.WEAP);
-                if (record != null)
-                {
-                    string editorId = record.GetEditorId().Replace("\0", string.Empty);
-                    if (editorId == "silver staff")
-                    {
-                        int x = 4;
-                    }
-                }
-            }
-
             // Figure out what merge function we will use.
             var mergeFunction = GetTypeMergeFunction(current.GetType());
             if (mergeFunction == null)
@@ -119,17 +106,12 @@ namespace TES3Merge
                 return false;
             }
 
-            if (property.Name == "WPDT")
-            {
-                int x = 4;
-            }
-
             // Figure out what merge function we will use.
             var mergeFunction = GetPropertyMergeFunction(property.PropertyType);
             return mergeFunction(property, current, first, next);
         }
 
-        static bool MergeAllProperties(object current, object first, object next)
+        static bool MergeAllProperties(object? current, object? first, object? next)
         {
             if (next == null)
             {
@@ -159,7 +141,7 @@ namespace TES3Merge
                 }
 
                 // Find a merger and run it.
-                if (Merge(property, current, first, next))
+                if (Merge(property, current!, first!, next!))
                 {
                     modified = true;
                 }
@@ -258,78 +240,6 @@ namespace TES3Merge
             else
             {
                 if (MergeAllProperties(currentValue, firstValue, nextValue))
-                {
-                    modified = true;
-                }
-            }
-
-            return modified;
-        }
-
-        static readonly string[] ClassDataBasicProperties = { "IsPlayable", "Specialization" };
-
-        static bool MergePropertyClassData(PropertyInfo property, object currentParam, object firstParam, object nextParam)
-        {
-            // Get the values as their correct type.
-            var current = property.GetValue(currentParam) as TES3Lib.Subrecords.CLAS.CLDT ?? throw new ArgumentException("Current record is of incorrect type.");
-            var first = property.GetValue(firstParam) as TES3Lib.Subrecords.CLAS.CLDT ?? throw new ArgumentException("First record is of incorrect type.");
-            var next = property.GetValue(nextParam) as TES3Lib.Subrecords.CLAS.CLDT ?? throw new ArgumentException("Next record is of incorrect type.");
-
-            bool modified = false;
-
-            // Perform basic merges.
-            foreach (var propertyName in ClassDataBasicProperties)
-            {
-                var subProperty = typeof(TES3Lib.Subrecords.CLAS.CLDT).GetProperty(propertyName) ?? throw new Exception($"Property '{propertyName}' does not exist.");
-                if (Merge(subProperty, current, first, next))
-                {
-                    modified = true;
-                }
-            }
-
-            return modified;
-        }
-
-        static readonly string[] FactionDataBasicProperties = { "IsHiddenFromPlayer" };
-
-        static bool MergePropertyFactionData(PropertyInfo property, object currentParam, object firstParam, object nextParam)
-        {
-            // Get the values as their correct type.
-            var current = property.GetValue(currentParam) as TES3Lib.Subrecords.FACT.FADT ?? throw new ArgumentException("Current record is of incorrect type.");
-            var first = property.GetValue(firstParam) as TES3Lib.Subrecords.FACT.FADT ?? throw new ArgumentException("First record is of incorrect type.");
-            var next = property.GetValue(nextParam) as TES3Lib.Subrecords.FACT.FADT ?? throw new ArgumentException("Next record is of incorrect type.");
-
-            bool modified = false;
-
-            // Perform basic merges.
-            foreach (var propertyName in FactionDataBasicProperties)
-            {
-                var subProperty = typeof(TES3Lib.Subrecords.FACT.FADT).GetProperty(propertyName) ?? throw new Exception($"Property '{propertyName}' does not exist.");
-                if (Merge(subProperty, current, first, next))
-                {
-                    modified = true;
-                }
-            }
-
-            return modified;
-        }
-
-        static readonly string[] NPCDataBasicProperties = { "Agility", "Disposition", "Endurance", "Fatigue", "Gold", "Health", "Intelligence", "Level", "Luck", "Personality", "Rank", "Reputation", "Speed", "SpellPts", "Strength", "Unknown1", "Unknown2", "Unknown3", "Willpower" };
-
-        static bool MergePropertyNPCData(PropertyInfo property, object currentParam, object firstParam, object nextParam)
-        {
-            // Get the values as their correct type.
-            var current = property.GetValue(currentParam) as TES3Lib.Subrecords.NPC_.NPDT ?? throw new ArgumentException("Current record is of incorrect type.");
-            var first = property.GetValue(firstParam) as TES3Lib.Subrecords.NPC_.NPDT ?? throw new ArgumentException("First record is of incorrect type.");
-            var next = property.GetValue(nextParam) as TES3Lib.Subrecords.NPC_.NPDT ?? throw new ArgumentException("Next record is of incorrect type.");
-
-            bool modified = false;
-
-            // Perform basic merges.
-            foreach (var propertyName in NPCDataBasicProperties)
-            {
-                var subProperty = typeof(TES3Lib.Subrecords.NPC_.NPDT).GetProperty(propertyName) ?? throw new Exception($"Property '{propertyName}' does not exist.");
-                if (Merge(subProperty, current, first, next))
                 {
                     modified = true;
                 }
