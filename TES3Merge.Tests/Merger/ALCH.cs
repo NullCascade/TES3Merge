@@ -6,6 +6,11 @@ using System.Linq;
 
 namespace TES3Merge.Tests.Merger
 {
+    /// <summary>
+    /// Special cases to consider for this record:
+    /// - Effects can be added and removed.
+    /// - Effects can be changed, and effect data can be made strange if merged dumbly.
+    /// </summary>
     [TestClass]
     public class ALCH
     {
