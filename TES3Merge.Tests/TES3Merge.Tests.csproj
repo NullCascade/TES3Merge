@@ -13,6 +13,7 @@
     <None Remove="Plugins\merge_edit_all.json" />
     <None Remove="Plugins\merge_minor_tweaks.json" />
     <None Remove="Plugins\tes3conv.exe" />
+    <None Remove="Plugins\to_esp.bat" />
     <None Remove="Plugins\to_json.bat" />
   </ItemGroup>
 
