@@ -105,7 +105,7 @@ namespace TES3Merge.Tests.Merger
             Assert.AreEqual(pluginDefaultMerged.SCRI?.ScriptName, pluginEditAllRecord.SCRI?.ScriptName);
         }
 
-        internal void LogEffects(List<TES3Lib.Subrecords.ALCH.ENAM>? effects)
+        internal static void LogEffects(List<TES3Lib.Subrecords.ALCH.ENAM>? effects)
         {
             if (effects == null) return;
 
