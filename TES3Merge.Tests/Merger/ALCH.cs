@@ -1,8 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace TES3Merge.Tests.Merger
 {

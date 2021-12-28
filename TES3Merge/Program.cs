@@ -1,10 +1,10 @@
-﻿using System.Reflection;
+﻿using IniParser;
+using IniParser.Model;
+using Microsoft.Win32;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using IniParser;
-using IniParser.Model;
-using Microsoft.Win32;
 using TES3Lib;
 
 namespace TES3Merge
@@ -81,7 +81,7 @@ namespace TES3Merge
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
 #endif
-            
+
             var version = Assembly.GetExecutingAssembly().GetName().Version;
             Logger.WriteLine($"TES3Merge v{version}.");
 
@@ -451,7 +451,7 @@ namespace TES3Merge
 
                                 string masterList = string.Join(", ", GetFilteredLoadList(sortedMasters, localUsedMasters).ToArray());
                                 Logger.WriteLine($"Resolved conflicts for {firstRecord.Name} record '{id}' from mods: {masterList}");
-                                
+
                                 if (dumpMergedRecordsToLog)
                                 {
                                     foreach (var record in records)
