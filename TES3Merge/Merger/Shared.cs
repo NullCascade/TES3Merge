@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Reflection;
 
 namespace TES3Merge.Merger
 {
-    internal static class ALCH
+    internal static class Shared
     {
-        public static bool MergeEffect(List<TES3Lib.Subrecords.ALCH.ENAM> current, List<TES3Lib.Subrecords.ALCH.ENAM> first, List<TES3Lib.Subrecords.ALCH.ENAM> next, int index)
+        public static bool MergeEffect(List<TES3Lib.Subrecords.Shared.Castable.ENAM> current, List<TES3Lib.Subrecords.Shared.Castable.ENAM> first, List<TES3Lib.Subrecords.Shared.Castable.ENAM> next, int index)
         {
             var currentValue = current.ElementAtOrDefault(index);
             var firstValue = first.ElementAtOrDefault(index);
@@ -44,9 +39,9 @@ namespace TES3Merge.Merger
         public static bool EffectList(PropertyInfo property, object currentParam, object firstParam, object nextParam)
         {
             // Get the values as their correct type.
-            var current = property.GetValue(currentParam) as List<TES3Lib.Subrecords.ALCH.ENAM> ?? throw new ArgumentException("Current record is of incorrect type.");
-            var first = property.GetValue(firstParam) as List<TES3Lib.Subrecords.ALCH.ENAM> ?? throw new ArgumentException("First record is of incorrect type.");
-            var next = property.GetValue(nextParam) as List<TES3Lib.Subrecords.ALCH.ENAM> ?? throw new ArgumentException("Next record is of incorrect type.");
+            var current = property.GetValue(currentParam) as List<TES3Lib.Subrecords.Shared.Castable.ENAM> ?? throw new ArgumentException("Current record is of incorrect type.");
+            var first = property.GetValue(firstParam) as List<TES3Lib.Subrecords.Shared.Castable.ENAM> ?? throw new ArgumentException("First record is of incorrect type.");
+            var next = property.GetValue(nextParam) as List<TES3Lib.Subrecords.Shared.Castable.ENAM> ?? throw new ArgumentException("Next record is of incorrect type.");
 
             bool modified = false;
 

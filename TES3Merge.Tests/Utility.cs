@@ -12,5 +12,14 @@ namespace TES3Merge.Tests
             return plugin.Records.FirstOrDefault(r => r.GetEditorId() == $"{id}\0");
         }
 
+        internal static void LogEffects(List<TES3Lib.Subrecords.Shared.Castable.ENAM>? effects)
+        {
+            if (effects == null) return;
+
+            foreach (var effect in effects)
+            {
+                Logger.LogMessage($"  - Effect: {effect.MagicEffect}; Skill: {effect.Skill}; Attribute: {effect.Attribute}; Magnitude: {effect.Magnitude}; Duration: {effect.Duration}");
+            }
+        }
     }
 }

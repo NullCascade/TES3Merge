@@ -40,10 +40,10 @@ namespace TES3Merge
 
             // Define property merge behaviors.
             MergePropertyFunctionMapper[typeof(TES3Lib.Base.Subrecord)] = MergePropertySubrecord;
+            MergePropertyFunctionMapper[typeof(List<TES3Lib.Subrecords.Shared.Castable.ENAM>)] = Merger.Shared.EffectList;
             MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.CLAS.CLDT)] = Merger.CLAS.CLDT;
             MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.FACT.FADT)] = Merger.FACT.FADT;
             MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.NPC_.NPDT)] = Merger.NPC_.NPDT;
-            MergePropertyFunctionMapper[typeof(List<TES3Lib.Subrecords.ALCH.ENAM>)] = Merger.ALCH.EffectList;
         }
 
         public static Func<object, object, object, bool>? GetTypeMergeFunction(Type? type)

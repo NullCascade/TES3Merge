@@ -108,29 +108,19 @@ namespace TES3Merge.Tests.Merger
             Assert.AreEqual(pluginDefaultMerged.SCRI?.ScriptName, pluginEditAllRecord.SCRI?.ScriptName);
         }
 
-        internal static void LogEffects(List<TES3Lib.Subrecords.ALCH.ENAM>? effects)
-        {
-            if (effects == null) return;
-
-            foreach (var effect in effects)
-            {
-                Logger.LogMessage($"  - Effect: {effect.MagicEffect}; Skill: {effect.Skill}; Attribute: {effect.Attribute}; Magnitude: {effect.Magnitude}; Duration: {effect.Duration}");
-            }
-        }
-
         [TestMethod]
         public void Effects()
         {
             Logger.LogMessage($"merge_base.esp : {pluginBaseRecord.ENAM?.Count} effects");
-            LogEffects(pluginBaseRecord.ENAM);
+            Utility.LogEffects(pluginBaseRecord.ENAM);
             Logger.LogMessage($"merge_edit_all.esp : {pluginEditAllRecord.ENAM?.Count} effects");
-            LogEffects(pluginEditAllRecord.ENAM);
+            Utility.LogEffects(pluginEditAllRecord.ENAM);
             Logger.LogMessage($"merge_add_effects.esp : {pluginAddEffectsRecord.ENAM?.Count} effects");
-            LogEffects(pluginAddEffectsRecord.ENAM);
+            Utility.LogEffects(pluginAddEffectsRecord.ENAM);
             Logger.LogMessage($"merge_minor_tweaks.esp : {pluginMinorTweaksRecord.ENAM?.Count} effects");
-            LogEffects(pluginMinorTweaksRecord.ENAM);
+            Utility.LogEffects(pluginMinorTweaksRecord.ENAM);
             Logger.LogMessage($"merged.esp : {pluginDefaultMerged.ENAM?.Count} effects");
-            LogEffects(pluginDefaultMerged.ENAM);
+            Utility.LogEffects(pluginDefaultMerged.ENAM);
 
             // Ensure we have the right number of effects.
             Assert.IsNotNull(pluginDefaultMerged.ENAM);
