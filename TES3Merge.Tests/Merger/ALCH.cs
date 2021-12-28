@@ -14,9 +14,12 @@ namespace TES3Merge.Tests.Merger
     {
         internal TES3Lib.Records.ALCH MergedDefault;
 
+        static readonly string[] BasicMergeMasters = new string[] { "merge_base.esp", "merge_edit_all.esp", "merge_minor_tweaks.esp" };
+        static readonly string[] AddedEffectsMergeMasters = new string[] { "merge_base.esp", "merge_edit_all.esp", "merge_add_effects.esp", "merge_minor_tweaks.esp" };
+
         public ALCH()
         {
-            MergedDefault = CreateMergedRecord("merge_alchemy", "merge_base.esp", "merge_edit_all.esp", "merge_add_effects.esp", "merge_minor_tweaks.esp");
+            MergedDefault = CreateMergedRecord("merge_alchemy", AddedEffectsMergeMasters);
         }
 
         internal override void LogRecordsEffects(TES3Lib.Records.ALCH merged, params string[] plugins)
@@ -34,7 +37,7 @@ namespace TES3Merge.Tests.Merger
         [TestMethod]
         public void EditorId()
         {
-            LogRecords("NAME.EditorId", MergedDefault, "merge_base.esp", "merge_edit_all.esp", "merge_minor_tweaks.esp");
+            LogRecords("NAME.EditorId", MergedDefault, BasicMergeMasters);
 
             Assert.AreEqual(MergedDefault.NAME.EditorId, GetCached("merge_minor_tweaks.esp").NAME.EditorId);
         }
@@ -42,7 +45,7 @@ namespace TES3Merge.Tests.Merger
         [TestMethod]
         public void ModelPath()
         {
-            LogRecords("MODL.ModelPath", MergedDefault, "merge_base.esp", "merge_edit_all.esp", "merge_minor_tweaks.esp");
+            LogRecords("MODL.ModelPath", MergedDefault, BasicMergeMasters);
 
             Assert.AreEqual(MergedDefault.MODL.ModelPath, GetCached("merge_edit_all.esp").MODL.ModelPath);
         }
@@ -50,7 +53,7 @@ namespace TES3Merge.Tests.Merger
         [TestMethod]
         public void IconPath()
         {
-            LogRecords("TEXT.IconPath", MergedDefault, "merge_base.esp", "merge_edit_all.esp", "merge_minor_tweaks.esp");
+            LogRecords("TEXT.IconPath", MergedDefault, BasicMergeMasters);
 
             Assert.AreEqual(MergedDefault.TEXT.IconPath, GetCached("merge_edit_all.esp").TEXT.IconPath);
         }
@@ -58,7 +61,7 @@ namespace TES3Merge.Tests.Merger
         [TestMethod]
         public void DisplayName()
         {
-            LogRecords("FNAM.FileName", MergedDefault, "merge_base.esp", "merge_edit_all.esp", "merge_minor_tweaks.esp");
+            LogRecords("FNAM.FileName", MergedDefault, BasicMergeMasters);
 
             Assert.AreEqual(MergedDefault.FNAM.FileName, GetCached("merge_minor_tweaks.esp").FNAM.FileName);
         }
@@ -66,7 +69,7 @@ namespace TES3Merge.Tests.Merger
         [TestMethod]
         public void Value()
         {
-            LogRecords("ALDT.Value", MergedDefault, "merge_base.esp", "merge_edit_all.esp", "merge_minor_tweaks.esp");
+            LogRecords("ALDT.Value", MergedDefault, BasicMergeMasters);
 
             Assert.AreEqual(MergedDefault.ALDT.Value, GetCached("merge_edit_all.esp").ALDT.Value);
         }
@@ -74,7 +77,7 @@ namespace TES3Merge.Tests.Merger
         [TestMethod]
         public void Weight()
         {
-            LogRecords("ALDT.Weight", MergedDefault, "merge_base.esp", "merge_edit_all.esp", "merge_minor_tweaks.esp");
+            LogRecords("ALDT.Weight", MergedDefault, BasicMergeMasters);
 
             Assert.AreEqual(MergedDefault.ALDT.Weight, GetCached("merge_edit_all.esp").ALDT.Weight);
         }
@@ -82,7 +85,7 @@ namespace TES3Merge.Tests.Merger
         [TestMethod]
         public void ScriptName()
         {
-            LogRecords("SCRI.ScriptName", MergedDefault, "merge_base.esp", "merge_edit_all.esp", "merge_minor_tweaks.esp");
+            LogRecords("SCRI.ScriptName", MergedDefault, BasicMergeMasters);
 
             Assert.AreEqual(MergedDefault.SCRI?.ScriptName, GetCached("merge_edit_all.esp").SCRI?.ScriptName);
         }
@@ -90,7 +93,7 @@ namespace TES3Merge.Tests.Merger
         [TestMethod]
         public void Effects()
         {
-            LogRecordsEffects(MergedDefault, "merge_base.esp", "merge_edit_all.esp", "merge_add_effects.esp", "merge_minor_tweaks.esp");
+            LogRecordsEffects(MergedDefault, AddedEffectsMergeMasters);
 
             // Ensure we have the right number of effects.
             Assert.IsNotNull(MergedDefault.ENAM);
