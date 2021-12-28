@@ -2,11 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static TES3Merge.Tests.FileLoader;
 
 namespace TES3Merge.Tests
 {
     internal static class Utility
     {
+        const string MergedObjectsPluginName = "Merged Objects.esp";
         internal static TES3Lib.Base.Record? FindRecord(this TES3Lib.TES3 plugin, string id)
         {
             return plugin.Records.FirstOrDefault(r => r.GetEditorId() == $"{id}\0");
@@ -18,7 +20,7 @@ namespace TES3Merge.Tests
             List<TES3Lib.TES3> parents = new();
             foreach (var file in parentFiles)
             {
-                var parent = FileLoader.GetPlugin(file) ?? throw new Exception($"Parent file {file} could not be loaded.");
+                var parent = GetPlugin(file) ?? throw new Exception($"Parent file {file} could not be loaded.");
                 parents.Add(parent);
             }
 
@@ -63,12 +65,48 @@ namespace TES3Merge.Tests
 
         internal static void LogRecordValue<T>(Dictionary<string, T> pluginCache, string property, string plugin) where T : TES3Lib.Base.Record
         {
-            Logger.LogMessage($"{plugin} : {GetPropertyValue(pluginCache[plugin], property)}");
+            LogRecordValue(pluginCache[plugin], property, plugin);
         }
 
-        internal static void LogRecordValue<T>(T record, string property, string plugin = "Merged Objects.esp") where T : TES3Lib.Base.Record
+        internal static void LogRecordValue<T>(T record, string property, string plugin = MergedObjectsPluginName) where T : TES3Lib.Base.Record
         {
             Logger.LogMessage($"{plugin} : {GetPropertyValue(record, property)}");
+        }
+
+        internal static void LogRecordsEffects(Dictionary<string, TES3Lib.Records.ALCH> pluginCache, TES3Lib.Records.ALCH merged, params string[] plugins)
+        {
+            foreach (var parent in plugins)
+            {
+                var plugin = pluginCache[parent];
+                Logger.LogMessage($"{plugin} : {plugin.ENAM?.Count}");
+                LogEffects(plugin.ENAM);
+            }
+            Logger.LogMessage($"{MergedObjectsPluginName} : {merged.ENAM?.Count}");
+            LogEffects(merged.ENAM);
+        }
+
+        internal static void LogRecordsEffects(Dictionary<string, TES3Lib.Records.ENCH> pluginCache, TES3Lib.Records.ENCH merged, params string[] plugins)
+        {
+            foreach (var parent in plugins)
+            {
+                var plugin = pluginCache[parent];
+                Logger.LogMessage($"{plugin} : {plugin.ENAM?.Count}");
+                LogEffects(plugin.ENAM);
+            }
+            Logger.LogMessage($"{MergedObjectsPluginName} : {merged.ENAM?.Count}");
+            LogEffects(merged.ENAM);
+        }
+
+        internal static void LogRecordsEffects(Dictionary<string, TES3Lib.Records.SPEL> pluginCache, TES3Lib.Records.SPEL merged, params string[] plugins)
+        {
+            foreach (var parent in plugins)
+            {
+                var plugin = pluginCache[parent];
+                Logger.LogMessage($"{plugin} : {plugin.ENAM?.Count}");
+                LogEffects(plugin.ENAM);
+            }
+            Logger.LogMessage($"{MergedObjectsPluginName} : {merged.ENAM?.Count}");
+            LogEffects(merged.ENAM);
         }
 
         internal static void LogRecords<T>(Dictionary<string, T> pluginCache, string property, T merged, params string[] plugins) where T : TES3Lib.Base.Record
