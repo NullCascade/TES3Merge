@@ -8,7 +8,7 @@ namespace TES3Merge.Tests
         /// <summary>
         /// A map of loaded plugins. This is lazy-filled as requested.
         /// </summary>
-        static Dictionary<string, TES3Lib.TES3> LoadedPlugins = new();
+        readonly static Dictionary<string, TES3Lib.TES3> LoadedPlugins = new();
 
         /// <summary>
         /// A filter for all the types we will load. This optimizes loading so we don't load records we will never test.
