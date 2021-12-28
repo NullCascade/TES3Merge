@@ -28,7 +28,7 @@ namespace TES3Merge.Tests
             List<T> records = new();
             foreach (var parent in parents)
             {
-                var record = parent.FindRecord(objectId) as T ?? throw new Exception($"Parent file {parent.Path} does not have record {objectId}.");
+                var record = loadedParentRecords.ContainsKey(parent.Path) ? loadedParentRecords[parent.Path] : parent.FindRecord(objectId) as T ?? throw new Exception($"Parent file {parent.Path} does not have record {objectId}.");
                 records.Add(record);
                 loadedParentRecords[parent.Path] = record;
             }
