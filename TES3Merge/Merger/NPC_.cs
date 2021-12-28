@@ -26,6 +26,13 @@ namespace TES3Merge.Merger
                 modified = true;
             }
 
+            // Ensure that we always have skills, in case that we change the autocalc flag.
+            if (current.Skills == null && next.Skills != null)
+            {
+                current.Skills = next.Skills;
+                modified = true;
+            }
+
             return modified;
         }
     }
