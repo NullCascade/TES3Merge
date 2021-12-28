@@ -27,6 +27,7 @@ namespace TES3Merge.Tests
             if (!LoadedPlugins.ContainsKey(name))
             {
                 var loadedPlugin = TES3Lib.TES3.TES3Load(Path.Combine("Plugins", name), testedRecords);
+                loadedPlugin.Path = name; // Override path to remove prefix.
                 LoadedPlugins[name] = loadedPlugin;
                 return loadedPlugin;
             }
