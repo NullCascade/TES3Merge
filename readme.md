@@ -28,8 +28,6 @@ Merge rules respect the load order, with the first appearance of the record beco
 
 TES3Merge is written using C#, and makes use of the [TES3Tool](https://github.com/SaintBahamut/TES3Tool) library by [SaintBahamut](https://github.com/SaintBahamut). A fork of this dependency is cloned with this repo.
 
-Visual Studio 2017 is required to build the solution.
-
 ## License
 
 TES3Merge is MIT licensed. See [LICENSE](LICENSE) for more information.
