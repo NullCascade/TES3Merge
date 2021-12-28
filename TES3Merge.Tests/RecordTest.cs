@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using static TES3Merge.Tests.FileLoader;
@@ -54,7 +55,7 @@ namespace TES3Merge.Tests.Merger
 
         internal static void LogRecordValue(T record, string property, string plugin = Utility.MergedObjectsPluginName)
         {
-            TestContext.WriteLine($"{plugin} : {Utility.GetPropertyValue(record, property)}");
+            Logger.LogMessage($"{plugin} : {Utility.GetPropertyValue(record, property)}");
         }
 
         internal virtual void LogRecordsEffects(T merged, params string[] plugins)
@@ -77,7 +78,7 @@ namespace TES3Merge.Tests.Merger
 
             foreach (var effect in effects)
             {
-                TestContext.WriteLine($"  - Effect: {effect.MagicEffect}; Skill: {effect.Skill}; Attribute: {effect.Attribute}; Magnitude: {effect.Magnitude}; Duration: {effect.Duration}");
+                Logger.LogMessage($"  - Effect: {effect.MagicEffect}; Skill: {effect.Skill}; Attribute: {effect.Attribute}; Magnitude: {effect.Magnitude}; Duration: {effect.Duration}");
             }
         }
         #endregion
