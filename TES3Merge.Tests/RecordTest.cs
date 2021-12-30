@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,14 +10,14 @@ namespace TES3Merge.Tests.Merger
     public abstract class RecordTest<T> where T : TES3Lib.Base.Record
     {
         #region Record Management
-        internal Dictionary<string, T> RecordCache = new();
+        internal static Dictionary<string, T> RecordCache = new();
 
-        internal T GetCached(string plugin)
+        internal static T GetCached(string plugin)
         {
             return RecordCache[plugin];
         }
 
-        internal T CreateMergedRecord(string objectId, params string[] parentFiles)
+        internal static T CreateMergedRecord(string objectId, params string[] parentFiles)
         {
             // Load files.
             List<TES3Lib.TES3> parents = new();
@@ -48,7 +49,7 @@ namespace TES3Merge.Tests.Merger
         #endregion
 
         #region Logging
-        internal void LogRecordValue(string property, string plugin)
+        internal static void LogRecordValue(string property, string plugin)
         {
             LogRecordValue(GetCached(plugin), property, plugin);
         }
@@ -63,7 +64,7 @@ namespace TES3Merge.Tests.Merger
             throw new NotImplementedException();
         }
 
-        internal void LogRecords(string property, T merged, params string[] plugins)
+        internal static void LogRecords(string property, T merged, params string[] plugins)
         {
             foreach (var plugin in plugins)
             {
