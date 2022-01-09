@@ -438,29 +438,47 @@ namespace TES3Merge
                                 }
                             }
 
-                            var newSerialized = newRecord.SerializeRecord();
-                            if (!lastSerialized.SequenceEqual(newSerialized))
+                            try
                             {
-                                Console.WriteLine($"Merged {newRecord.Name} record: {id}");
-                                mergedObjects.Records.Add(newRecord);
-
-                                foreach (string master in localUsedMasters)
+                                var newSerialized = newRecord.SerializeRecord();
+                                if (!lastSerialized.SequenceEqual(newSerialized))
                                 {
-                                    usedMasters.Add(master);
-                                }
+                                    Console.WriteLine($"Merged {newRecord.Name} record: {id}");
+                                    mergedObjects.Records.Add(newRecord);
 
-                                string masterList = string.Join(", ", GetFilteredLoadList(sortedMasters, localUsedMasters).ToArray());
-                                Logger.WriteLine($"Resolved conflicts for {firstRecord.Name} record '{id}' from mods: {masterList}");
+                                    string masterList = string.Join(", ", GetFilteredLoadList(sortedMasters, localUsedMasters).ToArray());
+                                    Logger.WriteLine($"Resolved conflicts for {firstRecord.Name} record '{id}' from mods: {masterList}");
 
-                                if (dumpMergedRecordsToLog)
-                                {
-                                    foreach (var record in records)
+                                    if (dumpMergedRecordsToLog)
                                     {
-                                        var master = mapTES3ToFileNames[recordMasters[record]];
-                                        Logger.WriteLine($">> {master}: {BitConverter.ToString(record.GetRawLoadedBytes()).Replace("-", "")}");
+                                        foreach (var record in records)
+                                        {
+                                            var master = mapTES3ToFileNames[recordMasters[record]];
+                                            Logger.WriteLine($">> {master}: {BitConverter.ToString(record.GetRawLoadedBytes()).Replace("-", "")}");
+                                        }
+                                        Logger.WriteLine($">> Merged Objects.esp: {BitConverter.ToString(newSerialized).Replace("-", "")}");
                                     }
-                                    Logger.WriteLine($">> Merged Objects.esp: {BitConverter.ToString(newSerialized).Replace("-", "")}");
+
+                                    foreach (string master in localUsedMasters)
+                                    {
+                                        usedMasters.Add(master);
+                                    }
                                 }
+                            }
+                            catch (Exception e)
+                            {
+                                string masterList = string.Join(", ", GetFilteredLoadList(sortedMasters, localUsedMasters).ToArray());
+                                Logger.WriteLine($"Could not resolve conflicts for {firstRecord.Name} record '{id}' from mods: {masterList}");
+                                foreach (var record in records)
+                                {
+                                    var master = mapTES3ToFileNames[recordMasters[record]];
+                                    Logger.WriteLine($">> {master}: {BitConverter.ToString(record.GetRawLoadedBytes()).Replace("-", "")}");
+                                }
+
+                                Logger.WriteLine(e.Message);
+                                Logger.WriteLine(e.StackTrace);
+                                ShowCompletionPrompt();
+                                return;
                             }
                         }
                     }
