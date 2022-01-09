@@ -431,10 +431,30 @@ namespace TES3Merge
                             for (int i = records.Count - 2; i > 0; i--)
                             {
                                 var record = records[i];
-                                if (RecordMerger.Merge(newRecord, firstRecord, record))
+                                var master = mapTES3ToFileNames[recordMasters[record]];
+                                try
                                 {
-                                    var master = mapTES3ToFileNames[recordMasters[record]];
-                                    localUsedMasters.Add(master);
+                                    if (RecordMerger.Merge(newRecord, firstRecord, record))
+                                    {
+                                        localUsedMasters.Add(master);
+                                    }
+                                }
+                                catch (Exception e)
+                                {
+
+                                    var masterListArray = GetFilteredLoadList(sortedMasters, localUsedMasters);
+                                    masterListArray.Add(master);
+                                    var masterList = string.Join(", ", masterListArray);
+                                    WriteToLogAndConsole($"Failed to merge {firstRecord.Name} record '{id}' from mods: {masterList}");
+                                    foreach (var r in records)
+                                    {
+                                        WriteToLogAndConsole($">> {mapTES3ToFileNames[recordMasters[r]]}: {BitConverter.ToString(r.GetRawLoadedBytes()).Replace("-", "")}");
+                                    }
+
+                                    WriteToLogAndConsole(e.Message);
+                                    if (e.StackTrace != null) WriteToLogAndConsole(e.StackTrace);
+                                    ShowCompletionPrompt();
+                                    return;
                                 }
                             }
 
