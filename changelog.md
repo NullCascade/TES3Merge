@@ -1,5 +1,16 @@
 # TES3Merge Changelog
 
+## v0.9 (2021-01-09)
+
+* Fixed error when merging NPC skill values.
+* Fixed error merging NPC autocalc status.
+* Fixed error when merging NPC and creature AI packages.
+* Improved logic when merging alchemy effects.
+* Disabled enchantment record merging by default until it can be refined.
+* Minor cross-platform code improvements.
+* Updated to .NET 6.0. This is now a requirement of the program.
+* Added automated test framework to ensure future merge consistency.
+
 ## v0.8 (2021-02-19)
 
 * Skips merging AIPackage lists for NPC and CREA records. Has to be hand tailored at a later date.
