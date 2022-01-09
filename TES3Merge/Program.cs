@@ -468,15 +468,15 @@ namespace TES3Merge
                             catch (Exception e)
                             {
                                 string masterList = string.Join(", ", GetFilteredLoadList(sortedMasters, localUsedMasters).ToArray());
-                                Logger.WriteLine($"Could not resolve conflicts for {firstRecord.Name} record '{id}' from mods: {masterList}");
+                                WriteToLogAndConsole($"Could not resolve conflicts for {firstRecord.Name} record '{id}' from mods: {masterList}");
                                 foreach (var record in records)
                                 {
                                     var master = mapTES3ToFileNames[recordMasters[record]];
-                                    Logger.WriteLine($">> {master}: {BitConverter.ToString(record.GetRawLoadedBytes()).Replace("-", "")}");
+                                    WriteToLogAndConsole($">> {master}: {BitConverter.ToString(record.GetRawLoadedBytes()).Replace("-", "")}");
                                 }
 
-                                Logger.WriteLine(e.Message);
-                                Logger.WriteLine(e.StackTrace);
+                                WriteToLogAndConsole(e.Message);
+                                if (e.StackTrace != null) WriteToLogAndConsole(e.StackTrace);
                                 ShowCompletionPrompt();
                                 return;
                             }
