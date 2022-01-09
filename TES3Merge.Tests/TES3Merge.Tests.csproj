@@ -8,10 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Plugins\Bob%27s Diverse Blood.json" />
     <None Remove="Plugins\merge_add_effects.json" />
     <None Remove="Plugins\merge_base.json" />
     <None Remove="Plugins\merge_edit_all.json" />
     <None Remove="Plugins\merge_minor_tweaks.json" />
+    <None Remove="Plugins\Morrowind.json" />
+    <None Remove="Plugins\Patch for Purists.json" />
     <None Remove="Plugins\tes3conv.exe" />
     <None Remove="Plugins\to_esp.bat" />
     <None Remove="Plugins\to_json.bat" />
@@ -33,6 +36,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Plugins\Bob%27s Diverse Blood.ESP">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Plugins\merge_add_effects.esp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -43,6 +49,18 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Plugins\merge_minor_tweaks.esp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Plugins\Morrowind.esm">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Plugins\Patch for Purists - Book Typos.ESP">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Plugins\Patch for Purists - Semi-Purist Fixes.ESP">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Plugins\Patch for Purists.esm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
