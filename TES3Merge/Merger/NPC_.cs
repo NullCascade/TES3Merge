@@ -30,9 +30,5 @@ namespace TES3Merge.Merger
 
             return modified;
         }
-        public static bool AIPackages(PropertyInfo property, object currentParam, object firstParam, object nextParam)
-        {
-            return false;
-        }
     }
 }
