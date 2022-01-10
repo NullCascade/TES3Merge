@@ -7,151 +7,151 @@ using System.Text;
 using System.Text.RegularExpressions;
 using TES3Lib;
 
-namespace TES3Merge
+namespace TES3Merge;
+
+class Program
 {
-    class Program
+    public static StreamWriter Logger = new("TES3Merge.log", false)
     {
-        public static StreamWriter Logger = new("TES3Merge.log", false)
+        AutoFlush = true
+    };
+
+    public static IniData? Configuration;
+
+    /// <summary>
+    /// Finds the relevant Morrowind directory. It will prefer a directory that is shares or is parent to the current folder.
+    /// </summary>
+    /// <returns>A path to the directory where Morrowind.exe resides, or null if it could not be determined.</returns>
+    static string? GetMorrowindFolder()
+    {
+        if (File.Exists("Morrowind.exe"))
         {
-            AutoFlush = true
-        };
-
-        public static IniData? Configuration;
-
-        /// <summary>
-        /// Finds the relevant Morrowind directory. It will prefer a directory that is shares or is parent to the current folder.
-        /// </summary>
-        /// <returns>A path to the directory where Morrowind.exe resides, or null if it could not be determined.</returns>
-        static string? GetMorrowindFolder()
+            return Directory.GetCurrentDirectory();
+        }
+        else if (File.Exists(Path.Combine("..", "Morrowind.exe")))
         {
-            if (File.Exists("Morrowind.exe"))
+            return Directory.GetParent(Directory.GetCurrentDirectory())?.FullName;
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            var registryValue = Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\bethesda softworks\\Morrowind", "Installed Path", null) as string;
+            if (!string.IsNullOrEmpty(registryValue) && File.Exists(Path.Combine(registryValue, "Morrowind.exe")))
             {
-                return Directory.GetCurrentDirectory();
+                return registryValue;
             }
-            else if (File.Exists(Path.Combine("..", "Morrowind.exe")))
-            {
-                return Directory.GetParent(Directory.GetCurrentDirectory())?.FullName;
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                var registryValue = Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\bethesda softworks\\Morrowind", "Installed Path", null) as string;
-                if (!string.IsNullOrEmpty(registryValue) && File.Exists(Path.Combine(registryValue, "Morrowind.exe")))
-                {
-                    return registryValue;
-                }
-            }
-
-            return null;
         }
 
-        /// <summary>
-        /// Returns a list that is a copy of the load order, filtered to certain results.
-        /// </summary>
-        /// <param name="loadOrder">The base sorted load order collection.</param>
-        /// <param name="filter">The filter to include elements from.</param>
-        /// <returns>A copy of <paramref name="loadOrder"/>, filtered to only elements that match with <paramref name="filter"/>.</returns>
-        static List<string> GetFilteredLoadList(List<string> loadOrder, IEnumerable<string> filter)
-        {
-            var result = new List<string>();
+        return null;
+    }
 
-            foreach (var file in loadOrder)
+    /// <summary>
+    /// Returns a list that is a copy of the load order, filtered to certain results.
+    /// </summary>
+    /// <param name="loadOrder">The base sorted load order collection.</param>
+    /// <param name="filter">The filter to include elements from.</param>
+    /// <returns>A copy of <paramref name="loadOrder"/>, filtered to only elements that match with <paramref name="filter"/>.</returns>
+    static List<string> GetFilteredLoadList(List<string> loadOrder, IEnumerable<string> filter)
+    {
+        var result = new List<string>();
+
+        foreach (var file in loadOrder)
+        {
+            if (filter.Contains(file))
             {
-                if (filter.Contains(file))
-                {
-                    result.Add(file);
-                }
+                result.Add(file);
             }
-
-            return result;
         }
 
-        /// <summary>
-        /// Writes to both the console and the log file.
-        /// </summary>
-        /// <param name="Message">Message to write.</param>
-        public static void WriteToLogAndConsole(string Message)
-        {
-            Logger.WriteLine(Message);
-            Console.WriteLine(Message);
-        }
+        return result;
+    }
 
-        static void Main(string[] args)
-        {
+    /// <summary>
+    /// Writes to both the console and the log file.
+    /// </summary>
+    /// <param name="Message">Message to write.</param>
+    public static void WriteToLogAndConsole(string Message)
+    {
+        Logger.WriteLine(Message);
+        Console.WriteLine(Message);
+    }
+
+    static void Main(string[] args)
+    {
 #if DEBUG
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
 #endif
 
-            var version = Assembly.GetExecutingAssembly().GetName().Version;
-            Logger.WriteLine($"TES3Merge v{version}.");
+        var version = Assembly.GetExecutingAssembly().GetName().Version;
+        Logger.WriteLine($"TES3Merge v{version}.");
 
-            // Main execution attempt.
+        // Main execution attempt.
 #if DEBUG == false
-            try
+        try
 #endif
+        {
+            // Load this application's configuration.
             {
-                // Load this application's configuration.
-                {
-                    var parser = new FileIniDataParser();
-                    string iniPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TES3Merge.ini");
-                    Configuration = parser.ReadFile(iniPath);
-                }
+                var parser = new FileIniDataParser();
+                string iniPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TES3Merge.ini");
+                Configuration = parser.ReadFile(iniPath);
+            }
 
-                // Determine what encoding to use.
-                try
+            // Determine what encoding to use.
+            try
+            {
+                var iniEncodingCode = Configuration["General"]["TextEncodingCode"];
+                if (int.TryParse(iniEncodingCode, out int newEncodingCode))
                 {
-                    var iniEncodingCode = Configuration["General"]["TextEncodingCode"];
-                    if (int.TryParse(iniEncodingCode, out int newEncodingCode))
+                    // TODO: Check a list of supported encoding codes.
+                    if (newEncodingCode != 932 && (newEncodingCode < 1250 || newEncodingCode > 1252))
                     {
-                        // TODO: Check a list of supported encoding codes.
-                        if (newEncodingCode != 932 && (newEncodingCode < 1250 || newEncodingCode > 1252))
-                        {
-                            throw new Exception($"Encoding code '{newEncodingCode}' is not supported. See TES3Merge.ini for supported values.");
-                        }
-
-                        // Register the encoding provider so we can understand 1252 and presumably others.
-                        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-
-                        var encoding = Encoding.GetEncoding(newEncodingCode);
-                        Logger.WriteLine($"Using encoding: {encoding.EncodingName}");
-                        Utility.Common.TextEncodingCode = newEncodingCode;
+                        throw new Exception($"Encoding code '{newEncodingCode}' is not supported. See TES3Merge.ini for supported values.");
                     }
-                    else
-                    {
-                        throw new Exception($"Encoding code '{iniEncodingCode}' is not a valid integer. See TES3Merge.ini for supported values.");
-                    }
-                }
-                catch (Exception e)
-                {
-                    // Write the exception as a warning and set the default Windows-1252 encoding.
-                    WriteToLogAndConsole($"WARNING: Could not resolve default text encoding code: {e.Message}");
-                    Console.WriteLine("Default encoding of Windows-1252 (English) will be used.");
-                    Utility.Common.TextEncodingCode = 1252;
-                }
 
-                // Find out where Morrowind lives.
-                var morrowindPath = GetMorrowindFolder();
-                if (string.IsNullOrEmpty(morrowindPath))
-                {
-                    throw new Exception($"ERROR: Could not resolve Morrowind directory. Install TES3Merge into Morrowind\\TES3Merge\\TES3Merge.exe or reinstall Morrowind to fix registry values.");
+                    // Register the encoding provider so we can understand 1252 and presumably others.
+                    Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+                    var encoding = Encoding.GetEncoding(newEncodingCode);
+                    Logger.WriteLine($"Using encoding: {encoding.EncodingName}");
+                    Utility.Common.TextEncodingCode = newEncodingCode;
                 }
-                Logger.WriteLine($"Morrowind found at '{morrowindPath}'.");
-
-                // Create our merged object TES3 file.
-                var mergedObjects = new TES3();
-                var mergedObjectsHeader = new TES3Lib.Records.TES3
+                else
                 {
-                    HEDR = new TES3Lib.Subrecords.TES3.HEDR()
-                    {
-                        CompanyName = "TES3Merge",
-                        Description = $"Automatic merge generated at {DateTime.UtcNow:yyyy-MM-ddTHH:mm:ssZ}.",
-                        Version = 1.3f,
-                    }
-                };
-                mergedObjects.Records.Add(mergedObjectsHeader);
+                    throw new Exception($"Encoding code '{iniEncodingCode}' is not a valid integer. See TES3Merge.ini for supported values.");
+                }
+            }
+            catch (Exception e)
+            {
+                // Write the exception as a warning and set the default Windows-1252 encoding.
+                WriteToLogAndConsole($"WARNING: Could not resolve default text encoding code: {e.Message}");
+                Console.WriteLine("Default encoding of Windows-1252 (English) will be used.");
+                Utility.Common.TextEncodingCode = 1252;
+            }
 
-                // Get a list of supported mergable object types.
-                var supportedMergeTags = new List<string>
+            // Find out where Morrowind lives.
+            var morrowindPath = GetMorrowindFolder();
+            if (string.IsNullOrEmpty(morrowindPath))
+            {
+                throw new Exception($"ERROR: Could not resolve Morrowind directory. Install TES3Merge into Morrowind\\TES3Merge\\TES3Merge.exe or reinstall Morrowind to fix registry values.");
+            }
+            Logger.WriteLine($"Morrowind found at '{morrowindPath}'.");
+
+            // Create our merged object TES3 file.
+            var mergedObjects = new TES3();
+            var mergedObjectsHeader = new TES3Lib.Records.TES3
+            {
+                HEDR = new TES3Lib.Subrecords.TES3.HEDR()
+                {
+                    CompanyName = "TES3Merge",
+                    Description = $"Automatic merge generated at {DateTime.UtcNow:yyyy-MM-ddTHH:mm:ssZ}.",
+                    Version = 1.3f,
+                }
+            };
+            mergedObjects.Records.Add(mergedObjectsHeader);
+
+            // Get a list of supported mergable object types.
+            var supportedMergeTags = new List<string>
                 {
                     "ACTI",
                     "ALCH",
@@ -197,302 +197,258 @@ namespace TES3Merge
                     "WEAP",
                 };
 
-                // Allow INI to remove types from merge.
-                foreach (var recordTypeConfig in Configuration["RecordTypes"])
+            // Allow INI to remove types from merge.
+            foreach (var recordTypeConfig in Configuration["RecordTypes"])
+            {
+                if (bool.TryParse(recordTypeConfig.Value, out bool supported) && !supported)
                 {
-                    if (bool.TryParse(recordTypeConfig.Value, out bool supported) && !supported)
-                    {
-                        supportedMergeTags.Remove(recordTypeConfig.KeyName);
-                    }
+                    supportedMergeTags.Remove(recordTypeConfig.KeyName);
                 }
-                WriteToLogAndConsole($"Supported record types: {string.Join(", ", supportedMergeTags)}");
+            }
+            WriteToLogAndConsole($"Supported record types: {string.Join(", ", supportedMergeTags)}");
 
-                // Make sure we're going to merge something.
-                if (supportedMergeTags.Count == 0)
+            // Make sure we're going to merge something.
+            if (supportedMergeTags.Count == 0)
+            {
+                WriteToLogAndConsole("ERROR: No valid record types to merge. Check TES3Merge.ini's configuration.");
+                return;
+            }
+
+            // Get object ID filtering from INI.
+            var objectIdFilters = new List<KeyValuePair<string, bool>>();
+            foreach (var kv in Configuration["ObjectFilters"])
+            {
+                if (bool.TryParse(kv.Value, out bool allow))
                 {
-                    WriteToLogAndConsole("ERROR: No valid record types to merge. Check TES3Merge.ini's configuration.");
-                    return;
+                    objectIdFilters.Add(new KeyValuePair<string, bool>(kv.KeyName.Trim('"'), allow));
                 }
-
-                // Get object ID filtering from INI.
-                var objectIdFilters = new List<KeyValuePair<string, bool>>();
-                foreach (var kv in Configuration["ObjectFilters"])
+                else
                 {
-                    if (bool.TryParse(kv.Value, out bool allow))
-                    {
-                        objectIdFilters.Add(new KeyValuePair<string, bool>(kv.KeyName.Trim('"'), allow));
-                    }
-                    else
-                    {
-                        WriteToLogAndConsole($"WARNING: Filter {kv.KeyName} could not be parsed.");
-                    }
+                    WriteToLogAndConsole($"WARNING: Filter {kv.KeyName} could not be parsed.");
                 }
+            }
 
-                // Collections for managing our objects.
-                var recordOverwriteMap = new Dictionary<string, Dictionary<string, List<TES3Lib.Base.Record>>>();
+            // Collections for managing our objects.
+            var recordOverwriteMap = new Dictionary<string, Dictionary<string, List<TES3Lib.Base.Record>>>();
 
-                // Get the game file list from the ini file.
-                var sortedMasters = new List<string>();
-                var mapTES3ToFileNames = new Dictionary<TES3, string>();
-                var recordMasters = new Dictionary<TES3Lib.Base.Record, TES3>();
-                Console.WriteLine("Parsing content files...");
+            // Get the game file list from the ini file.
+            var sortedMasters = new List<string>();
+            var mapTES3ToFileNames = new Dictionary<TES3, string>();
+            var recordMasters = new Dictionary<TES3Lib.Base.Record, TES3>();
+            Console.WriteLine("Parsing content files...");
+            {
+                // Try to get INI information.
+                IniData data;
+                try
                 {
-                    // Try to get INI information.
-                    IniData data;
+                    var parser = new FileIniDataParser();
+                    data = parser.ReadFile(Path.Combine(morrowindPath, "Morrowind.ini"));
+                }
+                catch (Exception firstTry)
+                {
                     try
                     {
+                        // Try again with invalid line skipping.
                         var parser = new FileIniDataParser();
+                        var config = parser.Parser.Configuration;
+                        config.SkipInvalidLines = true;
+                        config.AllowDuplicateKeys = true;
+                        config.AllowDuplicateSections = true;
                         data = parser.ReadFile(Path.Combine(morrowindPath, "Morrowind.ini"));
+
+                        // If the first pass fails, be more forgiving, but let the user know their INI has issues.
+                        Console.WriteLine("WARNING: Issues were found with your Morrowind.ini file. See TES3Merge.log for details.");
+                        Logger.WriteLine($"WARNING: Could not parse Morrowind.ini with initial pass. Error: {firstTry.Message}");
                     }
-                    catch (Exception firstTry)
+                    catch (Exception secondTry)
                     {
-                        try
-                        {
-                            // Try again with invalid line skipping.
-                            var parser = new FileIniDataParser();
-                            var config = parser.Parser.Configuration;
-                            config.SkipInvalidLines = true;
-                            config.AllowDuplicateKeys = true;
-                            config.AllowDuplicateSections = true;
-                            data = parser.ReadFile(Path.Combine(morrowindPath, "Morrowind.ini"));
+                        Console.WriteLine("ERROR: Unrecoverable issues were found with your Morrowind.ini file. See TES3Merge.log for details.");
+                        Logger.WriteLine($"ERROR: Could not parse Morrowind.ini with second pass. Error: {secondTry.Message}");
 
-                            // If the first pass fails, be more forgiving, but let the user know their INI has issues.
-                            Console.WriteLine("WARNING: Issues were found with your Morrowind.ini file. See TES3Merge.log for details.");
-                            Logger.WriteLine($"WARNING: Could not parse Morrowind.ini with initial pass. Error: {firstTry.Message}");
-                        }
-                        catch (Exception secondTry)
-                        {
-                            Console.WriteLine("ERROR: Unrecoverable issues were found with your Morrowind.ini file. See TES3Merge.log for details.");
-                            Logger.WriteLine($"ERROR: Could not parse Morrowind.ini with second pass. Error: {secondTry.Message}");
+                        ShowCompletionPrompt();
+                        return;
+                    }
+                }
 
-                            ShowCompletionPrompt();
-                            return;
-                        }
+                // Get a list of ignored files.
+                var fileFilters = new HashSet<string>();
+                foreach (var kv in Configuration["FileFilters"])
+                {
+                    if (bool.TryParse(kv.Value, out bool allow) && !allow)
+                    {
+                        fileFilters.Add(kv.KeyName.ToLower());
+                    }
+                }
+
+                // Build a list of activated files.
+                var activatedMasters = new HashSet<string>();
+                int gameFileIndex = 0;
+                while (true)
+                {
+                    string gameFile = data["Game Files"]["GameFile" + gameFileIndex];
+                    if (string.IsNullOrEmpty(gameFile))
+                    {
+                        break;
                     }
 
-                    // Get a list of ignored files.
-                    var fileFilters = new HashSet<string>();
-                    foreach (var kv in Configuration["FileFilters"])
+                    // Hard filters.
+                    if (gameFile == "Merged_Objects.esp" || gameFile == "Merged Objects.esp")
                     {
-                        if (bool.TryParse(kv.Value, out bool allow) && !allow)
-                        {
-                            fileFilters.Add(kv.KeyName.ToLower());
-                        }
-                    }
-
-                    // Build a list of activated files.
-                    var activatedMasters = new HashSet<string>();
-                    int gameFileIndex = 0;
-                    while (true)
-                    {
-                        string gameFile = data["Game Files"]["GameFile" + gameFileIndex];
-                        if (string.IsNullOrEmpty(gameFile))
-                        {
-                            break;
-                        }
-
-                        // Hard filters.
-                        if (gameFile == "Merged_Objects.esp" || gameFile == "Merged Objects.esp")
-                        {
-                            gameFileIndex++;
-                            continue;
-                        }
-
-                        // Check for custom filters.
-                        if (fileFilters.Contains(gameFile.ToLower()))
-                        {
-                            Console.WriteLine($"Ignoring file: {gameFile}");
-                            Logger.WriteLine($"Ignoring file: {gameFile}");
-                            gameFileIndex++;
-                            continue;
-                        }
-
-                        // Add to masters list.
-                        activatedMasters.Add(gameFile);
                         gameFileIndex++;
+                        continue;
                     }
 
-                    // Add all ESM files first, then ESP files.
-                    foreach (var path in Directory.GetFiles(Path.Combine(morrowindPath, "Data Files"), "*.esm", SearchOption.TopDirectoryOnly).OrderBy(p => File.GetLastWriteTime(p).Ticks))
+                    // Check for custom filters.
+                    if (fileFilters.Contains(gameFile.ToLower()))
                     {
-                        var fileName = Path.GetFileName(path);
-                        if (activatedMasters.Contains(fileName))
-                        {
-                            sortedMasters.Add(fileName);
-                        }
-                    }
-                    foreach (var path in Directory.GetFiles(Path.Combine(morrowindPath, "Data Files"), "*.esp", SearchOption.TopDirectoryOnly).OrderBy(p => File.GetLastWriteTime(p).Ticks))
-                    {
-                        var fileName = Path.GetFileName(path);
-                        if (activatedMasters.Contains(fileName))
-                        {
-                            sortedMasters.Add(fileName);
-                        }
+                        Console.WriteLine($"Ignoring file: {gameFile}");
+                        Logger.WriteLine($"Ignoring file: {gameFile}");
+                        gameFileIndex++;
+                        continue;
                     }
 
-                    // Go through and build a record list.
-                    foreach (var sortedMaster in sortedMasters)
+                    // Add to masters list.
+                    activatedMasters.Add(gameFile);
+                    gameFileIndex++;
+                }
+
+                // Add all ESM files first, then ESP files.
+                foreach (var path in Directory.GetFiles(Path.Combine(morrowindPath, "Data Files"), "*.esm", SearchOption.TopDirectoryOnly).OrderBy(p => File.GetLastWriteTime(p).Ticks))
+                {
+                    var fileName = Path.GetFileName(path);
+                    if (activatedMasters.Contains(fileName))
                     {
-                        string fullGameFilePath = Path.Combine(morrowindPath, "Data Files", $"{sortedMaster}");
-                        var lastWriteTime = File.GetLastWriteTime(fullGameFilePath);
-                        Logger.WriteLine($"Parsing input file: {sortedMaster} @ {lastWriteTime}");
-                        TES3 file = TES3.TES3Load(fullGameFilePath, supportedMergeTags);
-                        mapTES3ToFileNames[file] = sortedMaster;
-
-                        foreach (var record in file.Records)
-                        {
-                            if (record == null)
-                            {
-                                continue;
-                            }
-
-                            if (record.GetType().Equals(typeof(TES3Lib.Records.TES3)))
-                            {
-                                continue;
-                            }
-
-                            string editorId = record.GetEditorId().Replace("\0", string.Empty);
-                            if (string.IsNullOrEmpty(editorId))
-                            {
-                                continue;
-                            }
-
-                            // Check against object filters.
-                            bool allow = true;
-                            string lowerId = editorId.ToLower();
-                            foreach (var kv in objectIdFilters)
-                            {
-                                try
-                                {
-                                    if (Regex.Match(lowerId, kv.Key).Success)
-                                    {
-                                        allow = kv.Value;
-                                    }
-                                }
-                                catch (Exception)
-                                {
-
-                                }
-                            }
-                            if (!allow)
-                            {
-                                continue;
-                            }
-
-                            if (!recordOverwriteMap.ContainsKey(record.Name))
-                            {
-                                recordOverwriteMap[record.Name] = new Dictionary<string, List<TES3Lib.Base.Record>>();
-                            }
-
-                            var map = recordOverwriteMap[record.Name];
-                            if (!map.ContainsKey(editorId))
-                            {
-                                map[editorId] = new List<TES3Lib.Base.Record>();
-                            }
-
-                            map[editorId].Add(record);
-                            recordMasters[record] = file;
-                        }
+                        sortedMasters.Add(fileName);
+                    }
+                }
+                foreach (var path in Directory.GetFiles(Path.Combine(morrowindPath, "Data Files"), "*.esp", SearchOption.TopDirectoryOnly).OrderBy(p => File.GetLastWriteTime(p).Ticks))
+                {
+                    var fileName = Path.GetFileName(path);
+                    if (activatedMasters.Contains(fileName))
+                    {
+                        sortedMasters.Add(fileName);
                     }
                 }
 
-                // Check to see if we have any potential merges.
-                if (recordMasters.Count == 0)
+                // Go through and build a record list.
+                foreach (var sortedMaster in sortedMasters)
                 {
-                    WriteToLogAndConsole("No potential record merges found. Aborting.");
-                    ShowCompletionPrompt();
-                    return;
-                }
+                    string fullGameFilePath = Path.Combine(morrowindPath, "Data Files", $"{sortedMaster}");
+                    var lastWriteTime = File.GetLastWriteTime(fullGameFilePath);
+                    Logger.WriteLine($"Parsing input file: {sortedMaster} @ {lastWriteTime}");
+                    TES3 file = TES3.TES3Load(fullGameFilePath, supportedMergeTags);
+                    mapTES3ToFileNames[file] = sortedMaster;
 
-                // Go through and build merged objects.
-                if (!bool.TryParse(Configuration["General"]["DumpMergedRecordsToLog"], out bool dumpMergedRecordsToLog))
-                {
-                    dumpMergedRecordsToLog = false;
-                }
-                Console.WriteLine("Building merges...");
-                var usedMasters = new HashSet<string>();
-                foreach (var recordType in recordOverwriteMap.Keys)
-                {
-                    var recordsMap = recordOverwriteMap[recordType];
-                    foreach (string id in recordsMap.Keys)
+                    foreach (var record in file.Records)
                     {
-                        var records = recordsMap[id];
-                        if (records.Count > 2)
+                        if (record == null)
                         {
-                            var firstRecord = records[0];
-                            var lastRecord = records.Last();
-                            var firstMaster = mapTES3ToFileNames[recordMasters[firstRecord]];
-                            var lastMaster = mapTES3ToFileNames[recordMasters[lastRecord]];
+                            continue;
+                        }
 
-                            var localUsedMasters = new HashSet<string>() { firstMaster, lastMaster };
+                        if (record.GetType().Equals(typeof(TES3Lib.Records.TES3)))
+                        {
+                            continue;
+                        }
 
-                            var lastSerialized = lastRecord.GetRawLoadedBytes();
-                            TES3Lib.Base.Record newRecord = Activator.CreateInstance(lastRecord.GetType(), new object[] { lastSerialized }) as TES3Lib.Base.Record ?? throw new Exception("Could not create activator instance.");
-                            for (int i = records.Count - 2; i > 0; i--)
-                            {
-                                var record = records[i];
-                                var master = mapTES3ToFileNames[recordMasters[record]];
-                                try
-                                {
-                                    if (RecordMerger.Merge(newRecord, firstRecord, record))
-                                    {
-                                        localUsedMasters.Add(master);
-                                    }
-                                }
-                                catch (Exception e)
-                                {
+                        string editorId = record.GetEditorId().Replace("\0", string.Empty);
+                        if (string.IsNullOrEmpty(editorId))
+                        {
+                            continue;
+                        }
 
-                                    var masterListArray = GetFilteredLoadList(sortedMasters, localUsedMasters);
-                                    masterListArray.Add(master);
-                                    var masterList = string.Join(", ", masterListArray);
-                                    WriteToLogAndConsole($"Failed to merge {firstRecord.Name} record '{id}' from mods: {masterList}");
-                                    foreach (var r in records)
-                                    {
-                                        WriteToLogAndConsole($">> {mapTES3ToFileNames[recordMasters[r]]}: {BitConverter.ToString(r.GetRawLoadedBytes()).Replace("-", "")}");
-                                    }
-
-                                    WriteToLogAndConsole(e.Message);
-                                    if (e.StackTrace != null) WriteToLogAndConsole(e.StackTrace);
-                                    ShowCompletionPrompt();
-                                    return;
-                                }
-                            }
-
+                        // Check against object filters.
+                        bool allow = true;
+                        string lowerId = editorId.ToLower();
+                        foreach (var kv in objectIdFilters)
+                        {
                             try
                             {
-                                var newSerialized = newRecord.SerializeRecord();
-                                if (!lastSerialized.SequenceEqual(newSerialized))
+                                if (Regex.Match(lowerId, kv.Key).Success)
                                 {
-                                    Console.WriteLine($"Merged {newRecord.Name} record: {id}");
-                                    mergedObjects.Records.Add(newRecord);
+                                    allow = kv.Value;
+                                }
+                            }
+                            catch (Exception)
+                            {
 
-                                    string masterList = string.Join(", ", GetFilteredLoadList(sortedMasters, localUsedMasters).ToArray());
-                                    Logger.WriteLine($"Resolved conflicts for {firstRecord.Name} record '{id}' from mods: {masterList}");
+                            }
+                        }
+                        if (!allow)
+                        {
+                            continue;
+                        }
 
-                                    if (dumpMergedRecordsToLog)
-                                    {
-                                        foreach (var record in records)
-                                        {
-                                            var master = mapTES3ToFileNames[recordMasters[record]];
-                                            Logger.WriteLine($">> {master}: {BitConverter.ToString(record.GetRawLoadedBytes()).Replace("-", "")}");
-                                        }
-                                        Logger.WriteLine($">> Merged Objects.esp: {BitConverter.ToString(newSerialized).Replace("-", "")}");
-                                    }
+                        if (!recordOverwriteMap.ContainsKey(record.Name))
+                        {
+                            recordOverwriteMap[record.Name] = new Dictionary<string, List<TES3Lib.Base.Record>>();
+                        }
 
-                                    foreach (string master in localUsedMasters)
-                                    {
-                                        usedMasters.Add(master);
-                                    }
+                        var map = recordOverwriteMap[record.Name];
+                        if (!map.ContainsKey(editorId))
+                        {
+                            map[editorId] = new List<TES3Lib.Base.Record>();
+                        }
+
+                        map[editorId].Add(record);
+                        recordMasters[record] = file;
+                    }
+                }
+            }
+
+            // Check to see if we have any potential merges.
+            if (recordMasters.Count == 0)
+            {
+                WriteToLogAndConsole("No potential record merges found. Aborting.");
+                ShowCompletionPrompt();
+                return;
+            }
+
+            // Go through and build merged objects.
+            if (!bool.TryParse(Configuration["General"]["DumpMergedRecordsToLog"], out bool dumpMergedRecordsToLog))
+            {
+                dumpMergedRecordsToLog = false;
+            }
+            Console.WriteLine("Building merges...");
+            var usedMasters = new HashSet<string>();
+            foreach (var recordType in recordOverwriteMap.Keys)
+            {
+                var recordsMap = recordOverwriteMap[recordType];
+                foreach (string id in recordsMap.Keys)
+                {
+                    var records = recordsMap[id];
+                    if (records.Count > 2)
+                    {
+                        var firstRecord = records[0];
+                        var lastRecord = records.Last();
+                        var firstMaster = mapTES3ToFileNames[recordMasters[firstRecord]];
+                        var lastMaster = mapTES3ToFileNames[recordMasters[lastRecord]];
+
+                        var localUsedMasters = new HashSet<string>() { firstMaster, lastMaster };
+
+                        var lastSerialized = lastRecord.GetRawLoadedBytes();
+                        TES3Lib.Base.Record newRecord = Activator.CreateInstance(lastRecord.GetType(), new object[] { lastSerialized }) as TES3Lib.Base.Record ?? throw new Exception("Could not create activator instance.");
+                        for (int i = records.Count - 2; i > 0; i--)
+                        {
+                            var record = records[i];
+                            var master = mapTES3ToFileNames[recordMasters[record]];
+                            try
+                            {
+                                if (RecordMerger.Merge(newRecord, firstRecord, record))
+                                {
+                                    localUsedMasters.Add(master);
                                 }
                             }
                             catch (Exception e)
                             {
-                                string masterList = string.Join(", ", GetFilteredLoadList(sortedMasters, localUsedMasters).ToArray());
-                                WriteToLogAndConsole($"Could not resolve conflicts for {firstRecord.Name} record '{id}' from mods: {masterList}");
-                                foreach (var record in records)
+
+                                var masterListArray = GetFilteredLoadList(sortedMasters, localUsedMasters);
+                                masterListArray.Add(master);
+                                var masterList = string.Join(", ", masterListArray);
+                                WriteToLogAndConsole($"Failed to merge {firstRecord.Name} record '{id}' from mods: {masterList}");
+                                foreach (var r in records)
                                 {
-                                    var master = mapTES3ToFileNames[recordMasters[record]];
-                                    WriteToLogAndConsole($">> {master}: {BitConverter.ToString(record.GetRawLoadedBytes()).Replace("-", "")}");
+                                    WriteToLogAndConsole($">> {mapTES3ToFileNames[recordMasters[r]]}: {BitConverter.ToString(r.GetRawLoadedBytes()).Replace("-", "")}");
                                 }
 
                                 WriteToLogAndConsole(e.Message);
@@ -501,55 +457,98 @@ namespace TES3Merge
                                 return;
                             }
                         }
+
+                        try
+                        {
+                            var newSerialized = newRecord.SerializeRecord();
+                            if (!lastSerialized.SequenceEqual(newSerialized))
+                            {
+                                Console.WriteLine($"Merged {newRecord.Name} record: {id}");
+                                mergedObjects.Records.Add(newRecord);
+
+                                string masterList = string.Join(", ", GetFilteredLoadList(sortedMasters, localUsedMasters).ToArray());
+                                Logger.WriteLine($"Resolved conflicts for {firstRecord.Name} record '{id}' from mods: {masterList}");
+
+                                if (dumpMergedRecordsToLog)
+                                {
+                                    foreach (var record in records)
+                                    {
+                                        var master = mapTES3ToFileNames[recordMasters[record]];
+                                        Logger.WriteLine($">> {master}: {BitConverter.ToString(record.GetRawLoadedBytes()).Replace("-", "")}");
+                                    }
+                                    Logger.WriteLine($">> Merged Objects.esp: {BitConverter.ToString(newSerialized).Replace("-", "")}");
+                                }
+
+                                foreach (string master in localUsedMasters)
+                                {
+                                    usedMasters.Add(master);
+                                }
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            string masterList = string.Join(", ", GetFilteredLoadList(sortedMasters, localUsedMasters).ToArray());
+                            WriteToLogAndConsole($"Could not resolve conflicts for {firstRecord.Name} record '{id}' from mods: {masterList}");
+                            foreach (var record in records)
+                            {
+                                var master = mapTES3ToFileNames[recordMasters[record]];
+                                WriteToLogAndConsole($">> {master}: {BitConverter.ToString(record.GetRawLoadedBytes()).Replace("-", "")}");
+                            }
+
+                            WriteToLogAndConsole(e.Message);
+                            if (e.StackTrace != null) WriteToLogAndConsole(e.StackTrace);
+                            ShowCompletionPrompt();
+                            return;
+                        }
                     }
                 }
-
-                // Did we even merge anything?
-                if (usedMasters.Count == 0)
-                {
-                    WriteToLogAndConsole("No merges were deemed necessary. Aborting.");
-                    ShowCompletionPrompt();
-                    return;
-                }
-
-                // Add the necessary masters.
-                Logger.WriteLine("Saving Merged Objects.esp ...");
-                mergedObjectsHeader.Masters = new List<(TES3Lib.Subrecords.TES3.MAST MAST, TES3Lib.Subrecords.TES3.DATA DATA)>();
-                foreach (var gameFile in GetFilteredLoadList(sortedMasters, usedMasters))
-                {
-                    if (usedMasters.Contains(gameFile))
-                    {
-                        long size = new FileInfo(Path.Combine(morrowindPath, "Data Files", $"{gameFile}")).Length;
-                        mergedObjectsHeader.Masters.Add((new TES3Lib.Subrecords.TES3.MAST { Filename = $"{gameFile}\0" }, new TES3Lib.Subrecords.TES3.DATA { MasterDataSize = size }));
-                    }
-                }
-
-                // Save out the merged objects file.
-                mergedObjectsHeader.HEDR.NumRecords = mergedObjects.Records.Count - 1;
-                mergedObjects.TES3Save(Path.Combine(morrowindPath, "Data Files", "Merged Objects.esp"));
-                Logger.WriteLine($"Wrote {mergedObjects.Records.Count - 1} merged objects.");
-
-                ShowCompletionPrompt();
             }
-#if DEBUG == false
-            catch (Exception e)
+
+            // Did we even merge anything?
+            if (usedMasters.Count == 0)
             {
-                Console.WriteLine("A serious error has occurred. Please post the TES3Merge.log file to GitHub: https://github.com/NullCascade/TES3Merge/issues");
-                Logger.WriteLine("An unhandled exception has occurred. Traceback:");
-                Logger.WriteLine(e.Message);
-                Logger.WriteLine(e.StackTrace);
+                WriteToLogAndConsole("No merges were deemed necessary. Aborting.");
                 ShowCompletionPrompt();
+                return;
             }
-#endif
+
+            // Add the necessary masters.
+            Logger.WriteLine("Saving Merged Objects.esp ...");
+            mergedObjectsHeader.Masters = new List<(TES3Lib.Subrecords.TES3.MAST MAST, TES3Lib.Subrecords.TES3.DATA DATA)>();
+            foreach (var gameFile in GetFilteredLoadList(sortedMasters, usedMasters))
+            {
+                if (usedMasters.Contains(gameFile))
+                {
+                    long size = new FileInfo(Path.Combine(morrowindPath, "Data Files", $"{gameFile}")).Length;
+                    mergedObjectsHeader.Masters.Add((new TES3Lib.Subrecords.TES3.MAST { Filename = $"{gameFile}\0" }, new TES3Lib.Subrecords.TES3.DATA { MasterDataSize = size }));
+                }
+            }
+
+            // Save out the merged objects file.
+            mergedObjectsHeader.HEDR.NumRecords = mergedObjects.Records.Count - 1;
+            mergedObjects.TES3Save(Path.Combine(morrowindPath, "Data Files", "Merged Objects.esp"));
+            Logger.WriteLine($"Wrote {mergedObjects.Records.Count - 1} merged objects.");
+
+            ShowCompletionPrompt();
         }
-
-        private static void ShowCompletionPrompt()
+#if DEBUG == false
+        catch (Exception e)
         {
-            if (Configuration != null && bool.TryParse(Configuration["General"]["PauseOnCompletion"], out bool pauseOnCompletion) && pauseOnCompletion)
-            {
-                Console.WriteLine("Press any key to exit...");
-                Console.ReadKey();
-            }
+            Console.WriteLine("A serious error has occurred. Please post the TES3Merge.log file to GitHub: https://github.com/NullCascade/TES3Merge/issues");
+            Logger.WriteLine("An unhandled exception has occurred. Traceback:");
+            Logger.WriteLine(e.Message);
+            Logger.WriteLine(e.StackTrace);
+            ShowCompletionPrompt();
+        }
+#endif
+    }
+
+    private static void ShowCompletionPrompt()
+    {
+        if (Configuration != null && bool.TryParse(Configuration["General"]["PauseOnCompletion"], out bool pauseOnCompletion) && pauseOnCompletion)
+        {
+            Console.WriteLine("Press any key to exit...");
+            Console.ReadKey();
         }
     }
 }
