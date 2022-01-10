@@ -4,6 +4,7 @@ namespace TES3Merge.Merger
 {
     internal static class Shared
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter")]
         internal static bool NoMerge(PropertyInfo property, object currentParam, object firstParam, object nextParam)
         {
             return false;
