@@ -13,13 +13,16 @@ namespace TES3Merge.Tests.Merger;
 public class ALCH : RecordTest<TES3Lib.Records.ALCH>
 {
     internal TES3Lib.Records.ALCH MergedDefault;
+    internal TES3Lib.Records.ALCH p_fortify_intelligence_c;
 
     static readonly string[] BasicMergeMasters = new string[] { "merge_base.esp", "merge_edit_all.esp", "merge_minor_tweaks.esp" };
     static readonly string[] AddedEffectsMergeMasters = new string[] { "merge_base.esp", "merge_edit_all.esp", "merge_add_effects.esp", "merge_minor_tweaks.esp" };
+    static readonly string[] RealWorldTestMasters = new string[] { "Morrowind.esm", "BTB's Game Improvements (Necro Edit) Tweaked.esp", "AOF Potions Recolored.esp", "ST_Alchemy_Balance_Sri_1.4.esp" };
 
     public ALCH()
     {
         MergedDefault = CreateMergedRecord("merge_alchemy", AddedEffectsMergeMasters);
+        p_fortify_intelligence_c = CreateMergedRecord("p_fortify_intelligence_c", RealWorldTestMasters);
     }
 
     internal override void LogRecordsEffects(TES3Lib.Records.ALCH merged, params string[] plugins)

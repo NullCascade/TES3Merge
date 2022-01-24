@@ -10,11 +10,11 @@ internal static class Shared
         return false;
     }
 
-    internal static bool MergeEffect(List<TES3Lib.Subrecords.Shared.Castable.ENAM> current, List<TES3Lib.Subrecords.Shared.Castable.ENAM> first, List<TES3Lib.Subrecords.Shared.Castable.ENAM> next, int index)
+    internal static bool MergeEffect(List<TES3Lib.Subrecords.Shared.Castable.ENAM> current, List<TES3Lib.Subrecords.Shared.Castable.ENAM>? first, List<TES3Lib.Subrecords.Shared.Castable.ENAM>? next, int index)
     {
         var currentValue = current.ElementAtOrDefault(index);
-        var firstValue = first.ElementAtOrDefault(index);
-        var nextValue = next.ElementAtOrDefault(index);
+        var firstValue = first?.ElementAtOrDefault(index);
+        var nextValue = next?.ElementAtOrDefault(index);
 
         // If we have values for everything...
         if (currentValue != null && firstValue != null && nextValue != null)
@@ -45,11 +45,30 @@ internal static class Shared
     internal static bool EffectList(PropertyInfo property, object currentParam, object firstParam, object nextParam)
     {
         // Get the values as their correct type.
-        var current = property.GetValue(currentParam) as List<TES3Lib.Subrecords.Shared.Castable.ENAM> ?? throw new ArgumentException("Current record is of incorrect type.");
-        var first = property.GetValue(firstParam) as List<TES3Lib.Subrecords.Shared.Castable.ENAM> ?? throw new ArgumentException("First record is of incorrect type.");
-        var next = property.GetValue(nextParam) as List<TES3Lib.Subrecords.Shared.Castable.ENAM> ?? throw new ArgumentException("Next record is of incorrect type.");
+        var current = property.GetValue(currentParam) as List<TES3Lib.Subrecords.Shared.Castable.ENAM>;
+        var first = property.GetValue(firstParam) as List<TES3Lib.Subrecords.Shared.Castable.ENAM>;
+        var next = property.GetValue(nextParam) as List<TES3Lib.Subrecords.Shared.Castable.ENAM>;
 
         bool modified = false;
+
+        // Ensure that we have a current value.
+        if (current == null)
+        {
+            if (first != null)
+            {
+                current = new List<TES3Lib.Subrecords.Shared.Castable.ENAM>(first);
+                property.SetValue(currentParam, current);
+            }
+            else if (next != null)
+            {
+                current = new List<TES3Lib.Subrecords.Shared.Castable.ENAM>(next);
+                property.SetValue(currentParam, current);
+            }
+            else
+            {
+                return false;
+            }
+        }
 
         // 
         for (int i = 0; i < 8; i++)

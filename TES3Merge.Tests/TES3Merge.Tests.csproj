@@ -36,7 +36,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Plugins\AOF Potions Recolored.esp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Plugins\Bob%27s Diverse Blood.ESP">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Plugins\BTB%27s Game Improvements %28Necro Edit%29 Tweaked.esp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Plugins\merge_add_effects.esp">
@@ -61,6 +67,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Plugins\Patch for Purists.esm">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Plugins\ST_Alchemy_Balance_Sri_1.4.esp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

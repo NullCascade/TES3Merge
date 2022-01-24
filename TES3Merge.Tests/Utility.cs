@@ -6,6 +6,7 @@ namespace TES3Merge.Tests;
 internal static class Utility
 {
     internal const string MergedObjectsPluginName = "Merged Objects.esp";
+
     internal static TES3Lib.Base.Record? FindRecord(this TES3Lib.TES3 plugin, string id)
     {
         return plugin.Records.FirstOrDefault(r => r.GetEditorId() == $"{id}\0");
