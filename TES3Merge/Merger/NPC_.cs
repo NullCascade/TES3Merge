@@ -33,7 +33,7 @@ internal static class NPC_
         TES3Lib.Subrecords.NPC_.NPDT? first = property.GetValue(firstParam) as TES3Lib.Subrecords.NPC_.NPDT ?? throw new ArgumentException("First record is of incorrect type.");
         TES3Lib.Subrecords.NPC_.NPDT? next = property.GetValue(nextParam) as TES3Lib.Subrecords.NPC_.NPDT ?? throw new ArgumentException("Next record is of incorrect type.");
 
-        bool modified = false;
+        var modified = false;
 
         // Perform basic merges.
         if (RecordMerger.MergeNamedProperties(NPCDataBasicProperties, current, first, next))
@@ -48,6 +48,30 @@ internal static class NPC_
             modified = true;
         }
 
+        if (current.Skills != null && next.Skills != null)
+        {
+            if (current.Skills.SequenceEqual(next.Skills))
+            {
+                return modified;
+            }
+
+            // TODO length check
+
+            for (var i = 0; i < current.Skills.Length; i++)
+            {
+                var skill = current.Skills[i];
+                var firstSkill = first.Skills[i];
+                var nextSkill = next.Skills[i];
+
+                var currentIsModified = firstSkill != skill;
+                var nextIsModified = firstSkill != nextSkill;
+
+                if (!currentIsModified && nextIsModified)
+                {
+                    current.Skills[i] = nextSkill;
+                }
+            }
+        }
         return modified;
     }
 }
