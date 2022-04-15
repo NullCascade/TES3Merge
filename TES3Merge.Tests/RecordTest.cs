@@ -74,7 +74,7 @@ public abstract class RecordTest<T> where T : TES3Lib.Base.Record
 
     internal static void LogEffects(List<TES3Lib.Subrecords.Shared.Castable.ENAM>? effects)
     {
-        if (effects == null) return;
+        if (effects is null) return;
 
         foreach (var effect in effects)
         {

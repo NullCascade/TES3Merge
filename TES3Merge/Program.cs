@@ -341,7 +341,7 @@ class Program
 
                     foreach (var record in file.Records)
                     {
-                        if (record == null)
+                        if (record is null)
                         {
                             continue;
                         }
@@ -452,7 +452,7 @@ class Program
                                 }
 
                                 WriteToLogAndConsole(e.Message);
-                                if (e.StackTrace != null) WriteToLogAndConsole(e.StackTrace);
+                                if (e.StackTrace is not null) WriteToLogAndConsole(e.StackTrace);
                                 ShowCompletionPrompt();
                                 return;
                             }
@@ -496,7 +496,7 @@ class Program
                             }
 
                             WriteToLogAndConsole(e.Message);
-                            if (e.StackTrace != null) WriteToLogAndConsole(e.StackTrace);
+                            if (e.StackTrace is not null) WriteToLogAndConsole(e.StackTrace);
                             ShowCompletionPrompt();
                             return;
                         }
@@ -545,7 +545,7 @@ class Program
 
     private static void ShowCompletionPrompt()
     {
-        if (Configuration != null && bool.TryParse(Configuration["General"]["PauseOnCompletion"], out bool pauseOnCompletion) && pauseOnCompletion)
+        if (Configuration is not null && bool.TryParse(Configuration["General"]["PauseOnCompletion"], out bool pauseOnCompletion) && pauseOnCompletion)
         {
             Console.WriteLine("Press any key to exit...");
             Console.ReadKey();

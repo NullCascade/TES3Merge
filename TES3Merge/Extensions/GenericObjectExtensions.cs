@@ -7,24 +7,37 @@ static class GenericObjectExtensions
 {
     public static bool IsNonStringEnumerable(this PropertyInfo pi)
     {
-        return pi != null && pi.PropertyType.IsNonStringEnumerable();
+        return pi is not null && pi.PropertyType.IsNonStringEnumerable();
     }
 
     public static bool IsNonStringEnumerable(this object instance)
     {
-        return instance != null && instance.GetType().IsNonStringEnumerable();
+        return instance is not null && instance.GetType().IsNonStringEnumerable();
     }
 
     public static bool IsNonStringEnumerable(this Type type)
     {
-        if (type == null || type == typeof(string))
+        if (type is null || type == typeof(string))
             return false;
         return typeof(IEnumerable).IsAssignableFrom(type);
     }
 
+    internal static bool NullableSequenceEqual<T>(this IEnumerable<T>? a, IEnumerable<T>? b)
+    {
+        if (a is null)
+        {
+            return b is null;
+        }
+        else if (b is null)
+        {
+            return a is null;
+        }
+        return a.SequenceEqual(b);
+    }
+
     public static bool PublicInstancePropertiesEqual<T>(this T self, T to, params string[] ignore) where T : class
     {
-        if (self != null && to != null)
+        if (self is not null && to is not null)
         {
             var type = typeof(T);
             var ignoreList = new List<string>(ignore);
@@ -33,12 +46,25 @@ static class GenericObjectExtensions
                 where !ignoreList.Contains(pi.Name) && pi.GetUnderlyingType().IsSimpleType() && pi.GetIndexParameters().Length == 0
                 let selfValue = type.GetProperty(pi.Name)?.GetValue(self, null)
                 let toValue = type.GetProperty(pi.Name)?.GetValue(to, null)
-                where selfValue != toValue && (selfValue == null || !selfValue.Equals(toValue))
+                where selfValue != toValue && (selfValue is null || !selfValue.Equals(toValue))
                 select selfValue;
             return !unequalProperties.Any();
         }
         return self == to;
     }
+
+    /// <summary>
+    /// A set of types that are considered to be "simple" by default.
+    /// </summary>
+    public static readonly HashSet<Type> SimpleTypes = new()
+    {
+        typeof(string),
+        typeof(decimal),
+        typeof(DateTime),
+        typeof(DateTimeOffset),
+        typeof(TimeSpan),
+        typeof(Guid)
+    };
 
     /// <summary>
     /// Determine whether a type is simple (String, Decimal, DateTime, etc) 
@@ -50,21 +76,13 @@ static class GenericObjectExtensions
         return
            type.IsValueType ||
            type.IsPrimitive ||
-           new[]
-           {
-               typeof(String),
-               typeof(Decimal),
-               typeof(DateTime),
-               typeof(DateTimeOffset),
-               typeof(TimeSpan),
-               typeof(Guid)
-           }.Contains(type) ||
+           SimpleTypes.Contains(type) ||
            (Convert.GetTypeCode(type) != TypeCode.Object);
     }
 
     public static Type GetUnderlyingType(this MemberInfo member)
     {
-        if (member == null)
+        if (member is null)
         {
             throw new ArgumentException("Input MemberInfo must not be null.");
         }
