@@ -78,11 +78,11 @@ class Program
     static void Main(string[] args)
     {
 #if DEBUG
-            Console.WriteLine("Press any key to continue...");
-            Console.ReadKey();
+        //Console.WriteLine("Press any key to continue...");
+        //Console.ReadKey();
 #endif
 
-        var version = Assembly.GetExecutingAssembly().GetName().Version;
+        Version? version = Assembly.GetExecutingAssembly().GetName().Version;
         Logger.WriteLine($"TES3Merge v{version}.");
 
         // Main execution attempt.
@@ -93,7 +93,7 @@ class Program
             // Load this application's configuration.
             {
                 var parser = new FileIniDataParser();
-                string iniPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TES3Merge.ini");
+                var iniPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TES3Merge.ini");
                 Configuration = parser.ReadFile(iniPath);
             }
 
@@ -101,7 +101,7 @@ class Program
             try
             {
                 var iniEncodingCode = Configuration["General"]["TextEncodingCode"];
-                if (int.TryParse(iniEncodingCode, out int newEncodingCode))
+                if (int.TryParse(iniEncodingCode, out var newEncodingCode))
                 {
                     // TODO: Check a list of supported encoding codes.
                     if (newEncodingCode != 932 && (newEncodingCode < 1250 || newEncodingCode > 1252))
@@ -198,9 +198,9 @@ class Program
                 };
 
             // Allow INI to remove types from merge.
-            foreach (var recordTypeConfig in Configuration["RecordTypes"])
+            foreach (KeyData? recordTypeConfig in Configuration["RecordTypes"])
             {
-                if (bool.TryParse(recordTypeConfig.Value, out bool supported) && !supported)
+                if (bool.TryParse(recordTypeConfig.Value, out var supported) && !supported)
                 {
                     supportedMergeTags.Remove(recordTypeConfig.KeyName);
                 }
@@ -216,9 +216,9 @@ class Program
 
             // Get object ID filtering from INI.
             var objectIdFilters = new List<KeyValuePair<string, bool>>();
-            foreach (var kv in Configuration["ObjectFilters"])
+            foreach (KeyData? kv in Configuration["ObjectFilters"])
             {
-                if (bool.TryParse(kv.Value, out bool allow))
+                if (bool.TryParse(kv.Value, out var allow))
                 {
                     objectIdFilters.Add(new KeyValuePair<string, bool>(kv.KeyName.Trim('"'), allow));
                 }
@@ -250,7 +250,7 @@ class Program
                     {
                         // Try again with invalid line skipping.
                         var parser = new FileIniDataParser();
-                        var config = parser.Parser.Configuration;
+                        IniParser.Model.Configuration.IniParserConfiguration? config = parser.Parser.Configuration;
                         config.SkipInvalidLines = true;
                         config.AllowDuplicateKeys = true;
                         config.AllowDuplicateSections = true;
@@ -272,9 +272,9 @@ class Program
 
                 // Get a list of ignored files.
                 var fileFilters = new HashSet<string>();
-                foreach (var kv in Configuration["FileFilters"])
+                foreach (KeyData? kv in Configuration["FileFilters"])
                 {
-                    if (bool.TryParse(kv.Value, out bool allow) && !allow)
+                    if (bool.TryParse(kv.Value, out var allow) && !allow)
                     {
                         fileFilters.Add(kv.KeyName.ToLower());
                     }
@@ -282,10 +282,10 @@ class Program
 
                 // Build a list of activated files.
                 var activatedMasters = new HashSet<string>();
-                int gameFileIndex = 0;
+                var gameFileIndex = 0;
                 while (true)
                 {
-                    string gameFile = data["Game Files"]["GameFile" + gameFileIndex];
+                    var gameFile = data["Game Files"]["GameFile" + gameFileIndex];
                     if (string.IsNullOrEmpty(gameFile))
                     {
                         break;
@@ -333,13 +333,13 @@ class Program
                 // Go through and build a record list.
                 foreach (var sortedMaster in sortedMasters)
                 {
-                    string fullGameFilePath = Path.Combine(morrowindPath, "Data Files", $"{sortedMaster}");
-                    var lastWriteTime = File.GetLastWriteTime(fullGameFilePath);
+                    var fullGameFilePath = Path.Combine(morrowindPath, "Data Files", $"{sortedMaster}");
+                    DateTime lastWriteTime = File.GetLastWriteTime(fullGameFilePath);
                     Logger.WriteLine($"Parsing input file: {sortedMaster} @ {lastWriteTime}");
-                    TES3 file = TES3.TES3Load(fullGameFilePath, supportedMergeTags);
+                    var file = TES3.TES3Load(fullGameFilePath, supportedMergeTags);
                     mapTES3ToFileNames[file] = sortedMaster;
 
-                    foreach (var record in file.Records)
+                    foreach (TES3Lib.Base.Record? record in file.Records)
                     {
                         if (record == null)
                         {
@@ -351,16 +351,16 @@ class Program
                             continue;
                         }
 
-                        string editorId = record.GetEditorId().Replace("\0", string.Empty);
+                        var editorId = record.GetEditorId().Replace("\0", string.Empty);
                         if (string.IsNullOrEmpty(editorId))
                         {
                             continue;
                         }
 
                         // Check against object filters.
-                        bool allow = true;
-                        string lowerId = editorId.ToLower();
-                        foreach (var kv in objectIdFilters)
+                        var allow = true;
+                        var lowerId = editorId.ToLower();
+                        foreach (KeyValuePair<string, bool> kv in objectIdFilters)
                         {
                             try
                             {
@@ -384,7 +384,7 @@ class Program
                             recordOverwriteMap[record.Name] = new Dictionary<string, List<TES3Lib.Base.Record>>();
                         }
 
-                        var map = recordOverwriteMap[record.Name];
+                        Dictionary<string, List<TES3Lib.Base.Record>>? map = recordOverwriteMap[record.Name];
                         if (!map.ContainsKey(editorId))
                         {
                             map[editorId] = new List<TES3Lib.Base.Record>();
@@ -405,7 +405,7 @@ class Program
             }
 
             // Go through and build merged objects.
-            if (!bool.TryParse(Configuration["General"]["DumpMergedRecordsToLog"], out bool dumpMergedRecordsToLog))
+            if (!bool.TryParse(Configuration["General"]["DumpMergedRecordsToLog"], out var dumpMergedRecordsToLog))
             {
                 dumpMergedRecordsToLog = false;
             }
@@ -413,14 +413,14 @@ class Program
             var usedMasters = new HashSet<string>();
             foreach (var recordType in recordOverwriteMap.Keys)
             {
-                var recordsMap = recordOverwriteMap[recordType];
-                foreach (string id in recordsMap.Keys)
+                Dictionary<string, List<TES3Lib.Base.Record>>? recordsMap = recordOverwriteMap[recordType];
+                foreach (var id in recordsMap.Keys)
                 {
-                    var records = recordsMap[id];
+                    List<TES3Lib.Base.Record>? records = recordsMap[id];
                     if (records.Count > 2)
                     {
-                        var firstRecord = records[0];
-                        var lastRecord = records.Last();
+                        TES3Lib.Base.Record? firstRecord = records[0];
+                        TES3Lib.Base.Record? lastRecord = records.Last();
                         var firstMaster = mapTES3ToFileNames[recordMasters[firstRecord]];
                         var lastMaster = mapTES3ToFileNames[recordMasters[lastRecord]];
 
@@ -428,9 +428,9 @@ class Program
 
                         var lastSerialized = lastRecord.GetRawLoadedBytes();
                         TES3Lib.Base.Record newRecord = Activator.CreateInstance(lastRecord.GetType(), new object[] { lastSerialized }) as TES3Lib.Base.Record ?? throw new Exception("Could not create activator instance.");
-                        for (int i = records.Count - 2; i > 0; i--)
+                        for (var i = records.Count - 2; i > 0; i--)
                         {
-                            var record = records[i];
+                            TES3Lib.Base.Record? record = records[i];
                             var master = mapTES3ToFileNames[recordMasters[record]];
                             try
                             {
@@ -442,17 +442,21 @@ class Program
                             catch (Exception e)
                             {
 
-                                var masterListArray = GetFilteredLoadList(sortedMasters, localUsedMasters);
+                                List<string>? masterListArray = GetFilteredLoadList(sortedMasters, localUsedMasters);
                                 masterListArray.Add(master);
                                 var masterList = string.Join(", ", masterListArray);
                                 WriteToLogAndConsole($"Failed to merge {firstRecord.Name} record '{id}' from mods: {masterList}");
-                                foreach (var r in records)
+                                foreach (TES3Lib.Base.Record? r in records)
                                 {
                                     WriteToLogAndConsole($">> {mapTES3ToFileNames[recordMasters[r]]}: {BitConverter.ToString(r.GetRawLoadedBytes()).Replace("-", "")}");
                                 }
 
                                 WriteToLogAndConsole(e.Message);
-                                if (e.StackTrace != null) WriteToLogAndConsole(e.StackTrace);
+                                if (e.StackTrace != null)
+                                {
+                                    WriteToLogAndConsole(e.StackTrace);
+                                }
+
                                 ShowCompletionPrompt();
                                 return;
                             }
@@ -466,12 +470,12 @@ class Program
                                 Console.WriteLine($"Merged {newRecord.Name} record: {id}");
                                 mergedObjects.Records.Add(newRecord);
 
-                                string masterList = string.Join(", ", GetFilteredLoadList(sortedMasters, localUsedMasters).ToArray());
+                                var masterList = string.Join(", ", GetFilteredLoadList(sortedMasters, localUsedMasters).ToArray());
                                 Logger.WriteLine($"Resolved conflicts for {firstRecord.Name} record '{id}' from mods: {masterList}");
 
                                 if (dumpMergedRecordsToLog)
                                 {
-                                    foreach (var record in records)
+                                    foreach (TES3Lib.Base.Record? record in records)
                                     {
                                         var master = mapTES3ToFileNames[recordMasters[record]];
                                         Logger.WriteLine($">> {master}: {BitConverter.ToString(record.GetRawLoadedBytes()).Replace("-", "")}");
@@ -479,7 +483,7 @@ class Program
                                     Logger.WriteLine($">> Merged Objects.esp: {BitConverter.ToString(newSerialized).Replace("-", "")}");
                                 }
 
-                                foreach (string master in localUsedMasters)
+                                foreach (var master in localUsedMasters)
                                 {
                                     usedMasters.Add(master);
                                 }
@@ -487,16 +491,20 @@ class Program
                         }
                         catch (Exception e)
                         {
-                            string masterList = string.Join(", ", GetFilteredLoadList(sortedMasters, localUsedMasters).ToArray());
+                            var masterList = string.Join(", ", GetFilteredLoadList(sortedMasters, localUsedMasters).ToArray());
                             WriteToLogAndConsole($"Could not resolve conflicts for {firstRecord.Name} record '{id}' from mods: {masterList}");
-                            foreach (var record in records)
+                            foreach (TES3Lib.Base.Record? record in records)
                             {
                                 var master = mapTES3ToFileNames[recordMasters[record]];
                                 WriteToLogAndConsole($">> {master}: {BitConverter.ToString(record.GetRawLoadedBytes()).Replace("-", "")}");
                             }
 
                             WriteToLogAndConsole(e.Message);
-                            if (e.StackTrace != null) WriteToLogAndConsole(e.StackTrace);
+                            if (e.StackTrace != null)
+                            {
+                                WriteToLogAndConsole(e.StackTrace);
+                            }
+
                             ShowCompletionPrompt();
                             return;
                         }
@@ -519,7 +527,7 @@ class Program
             {
                 if (usedMasters.Contains(gameFile))
                 {
-                    long size = new FileInfo(Path.Combine(morrowindPath, "Data Files", $"{gameFile}")).Length;
+                    var size = new FileInfo(Path.Combine(morrowindPath, "Data Files", $"{gameFile}")).Length;
                     mergedObjectsHeader.Masters.Add((new TES3Lib.Subrecords.TES3.MAST { Filename = $"{gameFile}\0" }, new TES3Lib.Subrecords.TES3.DATA { MasterDataSize = size }));
                 }
             }
@@ -545,7 +553,7 @@ class Program
 
     private static void ShowCompletionPrompt()
     {
-        if (Configuration != null && bool.TryParse(Configuration["General"]["PauseOnCompletion"], out bool pauseOnCompletion) && pauseOnCompletion)
+        if (Configuration != null && bool.TryParse(Configuration["General"]["PauseOnCompletion"], out var pauseOnCompletion) && pauseOnCompletion)
         {
             Console.WriteLine("Press any key to exit...");
             Console.ReadKey();

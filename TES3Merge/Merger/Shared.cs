@@ -1,9 +1,12 @@
 ﻿using System.Reflection;
+using static TES3Merge.RecordMerger;
 
 namespace TES3Merge.Merger;
 
 internal static class Shared
 {
+    static readonly PublicPropertyComparer BasicComparer = new();
+
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter")]
     internal static bool NoMerge(PropertyInfo property, object currentParam, object firstParam, object nextParam)
     {
@@ -12,9 +15,9 @@ internal static class Shared
 
     internal static bool MergeEffect(List<TES3Lib.Subrecords.Shared.Castable.ENAM> current, List<TES3Lib.Subrecords.Shared.Castable.ENAM>? first, List<TES3Lib.Subrecords.Shared.Castable.ENAM>? next, int index)
     {
-        var currentValue = current.ElementAtOrDefault(index);
-        var firstValue = first?.ElementAtOrDefault(index);
-        var nextValue = next?.ElementAtOrDefault(index);
+        TES3Lib.Subrecords.Shared.Castable.ENAM? currentValue = current.ElementAtOrDefault(index);
+        TES3Lib.Subrecords.Shared.Castable.ENAM? firstValue = first?.ElementAtOrDefault(index);
+        TES3Lib.Subrecords.Shared.Castable.ENAM? nextValue = next?.ElementAtOrDefault(index);
 
         // If we have values for everything...
         if (currentValue != null && firstValue != null && nextValue != null)
@@ -49,7 +52,7 @@ internal static class Shared
         var first = property.GetValue(firstParam) as List<TES3Lib.Subrecords.Shared.Castable.ENAM>;
         var next = property.GetValue(nextParam) as List<TES3Lib.Subrecords.Shared.Castable.ENAM>;
 
-        bool modified = false;
+        var modified = false;
 
         // Ensure that we have a current value.
         if (current == null)
@@ -71,12 +74,75 @@ internal static class Shared
         }
 
         // 
-        for (int i = 0; i < 8; i++)
+        for (var i = 0; i < 8; i++)
         {
             if (MergeEffect(current, first, next, i))
             {
                 modified = true;
             }
+        }
+
+        return modified;
+    }
+
+    internal static bool ItemsList(PropertyInfo property, object currentParam, object firstParam, object nextParam)
+    {
+        // Get the values as their correct type.
+        var current = property.GetValue(currentParam);
+        var first = property.GetValue(firstParam);
+        var next = property.GetValue(nextParam);
+
+        if (first is not List<TES3Lib.Subrecords.Shared.NPCO> firstAsEnumerable)
+        {
+            return false;
+        }
+        if (next is not List<TES3Lib.Subrecords.Shared.NPCO> nextAsEnumerable)
+        {
+            return false;
+        }
+        if (current is not List<TES3Lib.Subrecords.Shared.NPCO> currentAsEnumerable)
+        {
+            return false;
+        }
+        if (firstAsEnumerable == null || nextAsEnumerable == null)
+        {
+            return false;
+        }
+
+        var modified = false;
+
+        // Ensure that we have a current value.
+        if (currentAsEnumerable == null)
+        {
+            if (firstAsEnumerable != null)
+            {
+                currentAsEnumerable = new List<TES3Lib.Subrecords.Shared.NPCO>(firstAsEnumerable);
+                property.SetValue(currentParam, currentAsEnumerable);
+            }
+            else if (nextAsEnumerable != null)
+            {
+                currentAsEnumerable = new List<TES3Lib.Subrecords.Shared.NPCO>(nextAsEnumerable);
+                property.SetValue(currentParam, currentAsEnumerable);
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        // inclusive list merge - rf
+        IEnumerable<object>? inclusiveValue = currentAsEnumerable
+            .Union(nextAsEnumerable, BasicComparer)
+            .Union(firstAsEnumerable, BasicComparer)
+            .Distinct(BasicComparer);
+
+        if (!inclusiveValue.SequenceEqual(firstAsEnumerable, BasicComparer))
+        {
+            var inclusiveValueAsList = inclusiveValue
+                .Cast<TES3Lib.Subrecords.Shared.NPCO>()
+                .ToList();
+            property.SetValue(currentParam, inclusiveValueAsList);
+            modified = true;
         }
 
         return modified;
