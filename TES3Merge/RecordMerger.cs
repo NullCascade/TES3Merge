@@ -47,11 +47,13 @@ internal static class RecordMerger
         MergePropertyFunctionMapper[typeof(List<(TES3Lib.Base.IAIPackage, TES3Lib.Subrecords.NPC_.CNDT)>)] = Merger.Shared.NoMerge;
 
         MergePropertyFunctionMapper[typeof(List<TES3Lib.Subrecords.Shared.Castable.ENAM>)] = Merger.Shared.EffectList;
+        //MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.Shared.SCRI)] = Merger.Shared.SCRI;
 
         MergePropertyFunctionMapper[typeof(TES3Lib.Base.Subrecord)] = MergePropertySubrecord;
         MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.CLAS.CLDT)] = Merger.CLAS.CLDT;
         MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.FACT.FADT)] = Merger.FACT.FADT;
         MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.NPC_.NPDT)] = Merger.NPC_.NPDT;
+
     }
 
     public static Func<object, object, object, bool>? GetTypeMergeFunction(Type? type)
@@ -130,15 +132,22 @@ internal static class RecordMerger
             var currentValue = current != null ? property.GetValue(current) : null;
             var firstValue = first != null ? property.GetValue(first) : null;
             var nextValue = next != null ? property.GetValue(next) : null;
+
             if (firstValue == null && currentValue == null && nextValue != null)
             {
-                property.SetValue(current, nextValue);
+                property.SetValue(current, nextValue); //???
                 modified = true;
                 continue;
             }
             else if (firstValue != null && nextValue == null)
             {
-                property.SetValue(current, null);
+                // dbg
+                // Console.WriteLine($"*? {(current as TES3Lib.Base.Record).GetEditorId()} {property.Name} - firstValue is not null - nextValue is");
+
+                // if the base value is not null, but some plugin later in the load order does set the value to null
+                // then I want to retain the latest value
+                //property.SetValue(current, null); // this is wrong: it uses values lower in the load order... 
+                property.SetValue(current, currentValue);
                 modified = true;
                 continue;
             }

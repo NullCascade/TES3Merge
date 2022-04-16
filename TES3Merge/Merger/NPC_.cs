@@ -48,6 +48,7 @@ internal static class NPC_
             modified = true;
         }
 
+        // element-wise merge
         if (current.Skills != null && next.Skills != null)
         {
             if (current.Skills.SequenceEqual(next.Skills))
