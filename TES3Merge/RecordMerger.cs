@@ -46,7 +46,6 @@ internal static class RecordMerger
         MergePropertyFunctionMapper[typeof(List<(TES3Lib.Base.IAIPackage, TES3Lib.Subrecords.CREA.CNDT)>)] = Merger.Shared.NoMerge;
         MergePropertyFunctionMapper[typeof(List<(TES3Lib.Base.IAIPackage, TES3Lib.Subrecords.NPC_.CNDT)>)] = Merger.Shared.NoMerge;
 
-        //MergePropertyFunctionMapper[typeof(List<TES3Lib.Subrecords.Shared.NPCO>)] = Merger.Shared.ItemsList;
         MergePropertyFunctionMapper[typeof(List<TES3Lib.Subrecords.Shared.Castable.ENAM>)] = Merger.Shared.EffectList;
 
         MergePropertyFunctionMapper[typeof(TES3Lib.Base.Subrecord)] = MergePropertySubrecord;
