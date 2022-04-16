@@ -348,3 +348,4 @@ healthchecksdb
 # Backup folder for Package Reference Convert tool in Visual Studio 2017
 MigrationBackup/
 /TES3Merge.Tests/Plugins/*.json
+TES3Merge/Properties/launchSettings.json

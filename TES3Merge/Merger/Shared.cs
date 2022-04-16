@@ -130,10 +130,10 @@ internal static class Shared
             }
         }
 
-        // inclusive list merge - rf
-        IEnumerable<object>? inclusiveValue = currentAsEnumerable
+        // inclusive list merge
+        IEnumerable<object>? inclusiveValue = firstAsEnumerable
+            .Union(currentAsEnumerable, BasicComparer)
             .Union(nextAsEnumerable, BasicComparer)
-            .Union(firstAsEnumerable, BasicComparer)
             .Distinct(BasicComparer);
 
         if (!inclusiveValue.SequenceEqual(firstAsEnumerable, BasicComparer))

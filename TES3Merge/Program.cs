@@ -1,6 +1,7 @@
 ﻿using IniParser;
 using IniParser.Model;
 using Microsoft.Win32;
+using System.CommandLine;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -75,7 +76,22 @@ class Program
         Console.WriteLine(Message);
     }
 
-    static void Main(string[] args)
+    // main entry point to parse commandline options
+    static async Task Main(string[] args)
+    {
+        var option = new Option<bool>(new[] { "--inclusive-list", "-i" }, "Merge lists inclusively per element (implemented for List<NPCO>)");
+        var rootCommand = new RootCommand
+        {
+            option
+        };
+
+        rootCommand.SetHandler((bool inclusiveListMerge) => { Run(inclusiveListMerge); }, option);
+        await rootCommand.InvokeAsync(args);
+    }
+
+
+    // main command to run
+    static void Run(bool inclusiveListMerge)
     {
 #if DEBUG
         //Console.WriteLine("Press any key to continue...");
@@ -402,6 +418,12 @@ class Program
                 WriteToLogAndConsole("No potential record merges found. Aborting.");
                 ShowCompletionPrompt();
                 return;
+            }
+
+            // commandline arguments
+            if (inclusiveListMerge)
+            {
+                RecordMerger.MergePropertyFunctionMapper[typeof(List<TES3Lib.Subrecords.Shared.NPCO>)] = Merger.Shared.ItemsList;
             }
 
             // Go through and build merged objects.
