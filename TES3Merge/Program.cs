@@ -357,7 +357,7 @@ class Program
 
                     foreach (TES3Lib.Base.Record? record in file.Records)
                     {
-                        if (record == null)
+                        if (record is null)
                         {
                             continue;
                         }
@@ -474,7 +474,8 @@ class Program
                                 }
 
                                 WriteToLogAndConsole(e.Message);
-                                if (e.StackTrace != null)
+
+                                if (e.StackTrace is not null)
                                 {
                                     WriteToLogAndConsole(e.StackTrace);
                                 }
@@ -522,7 +523,8 @@ class Program
                             }
 
                             WriteToLogAndConsole(e.Message);
-                            if (e.StackTrace != null)
+
+                            if (e.StackTrace is not null)
                             {
                                 WriteToLogAndConsole(e.StackTrace);
                             }
@@ -575,7 +577,7 @@ class Program
 
     private static void ShowCompletionPrompt()
     {
-        if (Configuration != null && bool.TryParse(Configuration["General"]["PauseOnCompletion"], out var pauseOnCompletion) && pauseOnCompletion)
+        if (Configuration is not null && bool.TryParse(Configuration["General"]["PauseOnCompletion"], out var pauseOnCompletion) && pauseOnCompletion)
         {
             Console.WriteLine("Press any key to exit...");
             Console.ReadKey();

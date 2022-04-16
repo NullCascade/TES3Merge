@@ -42,7 +42,7 @@ internal static class NPC_
         }
 
         // Ensure that we always have skills, in case that we change the autocalc flag.
-        if (current.Skills == null && next.Skills != null)
+        if (current.Skills is null && next.Skills is not null)
         {
             current.Skills = next.Skills;
             modified = true;

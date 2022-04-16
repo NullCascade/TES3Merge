@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace TES3Merge.Tests;
@@ -14,20 +15,19 @@ internal static class Utility
 
     internal static object? GetPropertyValue(object src, string property)
     {
-        if (src == null) throw new ArgumentException("Value cannot be null.", nameof(src));
-        if (property == null) throw new ArgumentException("Value cannot be null.", nameof(property));
+        if (src is null) throw new ArgumentException("Value cannot be null.", nameof(src));
+        if (property is null) throw new ArgumentException("Value cannot be null.", nameof(property));
 
-        if (property.Contains('.'))//complex type nested
+        if (property.Contains('.')) //complex type nested
         {
             var temp = property.Split(new char[] { '.' }, 2);
             var value = GetPropertyValue(src, temp[0]);
-            if (value == null) return null;
+            if (value is null) return null;
             return GetPropertyValue(value, temp[1]);
         }
         else
         {
-            var prop = src.GetType().GetProperty(property);
-            return prop?.GetValue(src, null);
+            return src.GetType().GetProperty(property)?.GetValue(src, null);
         }
     }
 }

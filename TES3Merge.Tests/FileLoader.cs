@@ -15,6 +15,7 @@ internal static class FileLoader
     /// </summary>
     static readonly List<string> testedRecords = new(new string[] {
             "ALCH",
+            "CREA",
         });
 
     /// <summary>
@@ -43,7 +44,7 @@ internal static class FileLoader
     internal static TES3Lib.Base.Record? FindRecord(string pluginName, string id)
     {
         var plugin = GetPlugin(pluginName);
-        if (plugin == null)
+        if (plugin is null)
         {
             return null;
         }

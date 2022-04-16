@@ -9,11 +9,11 @@ internal static class RecordMerger
     {
         public override bool Equals(object? a, object? b)
         {
-            if (a == null && b == null)
+            if (a is null && b is null)
             {
                 return true;
             }
-            else if (a == null || b == null)
+            else if (a is null || b is null)
             {
                 return false;
             }
@@ -32,8 +32,8 @@ internal static class RecordMerger
         }
     }
 
-    public static Dictionary<Type, Func<object, object, object, bool>> MergeTypeFunctionMapper = new();
-    public static Dictionary<Type, Func<PropertyInfo, object, object, object, bool>> MergePropertyFunctionMapper = new();
+    public static readonly Dictionary<Type, Func<object, object, object, bool>> MergeTypeFunctionMapper = new();
+    public static readonly Dictionary<Type, Func<PropertyInfo, object, object, object, bool>> MergePropertyFunctionMapper = new();
 
     static readonly PublicPropertyComparer BasicComparer = new();
 
@@ -58,7 +58,7 @@ internal static class RecordMerger
 
     public static Func<object, object, object, bool>? GetTypeMergeFunction(Type? type)
     {
-        while (type != null)
+        while (type is not null)
         {
             if (MergeTypeFunctionMapper.TryGetValue(type, out Func<object, object, object, bool>? func))
             {
@@ -73,7 +73,7 @@ internal static class RecordMerger
 
     public static Func<PropertyInfo, object, object, object, bool> GetPropertyMergeFunction(Type? type)
     {
-        while (type != null)
+        while (type is not null)
         {
             if (MergePropertyFunctionMapper.TryGetValue(type, out Func<PropertyInfo, object, object, object, bool>? func))
             {
@@ -95,7 +95,7 @@ internal static class RecordMerger
 
         // Figure out what merge function we will use.
         Func<object, object, object, bool>? mergeFunction = GetTypeMergeFunction(current.GetType());
-        if (mergeFunction == null)
+        if (mergeFunction is null)
         {
             return false;
         }
@@ -118,7 +118,7 @@ internal static class RecordMerger
 
     public static bool MergeAllProperties(object? current, object? first, object? next)
     {
-        if (next == null)
+        if (next is null)
         {
             return false;
         }
@@ -129,17 +129,16 @@ internal static class RecordMerger
         foreach (PropertyInfo property in properties)
         {
             // Handle null cases.
-            var currentValue = current != null ? property.GetValue(current) : null;
-            var firstValue = first != null ? property.GetValue(first) : null;
-            var nextValue = next != null ? property.GetValue(next) : null;
-
-            if (firstValue == null && currentValue == null && nextValue != null)
+            var currentValue = current is not null ? property.GetValue(current) : null;
+            var firstValue = first is not null ? property.GetValue(first) : null;
+            var nextValue = next is not null ? property.GetValue(next) : null;
+            if (firstValue is null && currentValue is null && nextValue is not null)
             {
                 property.SetValue(current, nextValue); //???
                 modified = true;
                 continue;
             }
-            else if (firstValue != null && nextValue == null)
+            else if (firstValue is not null && nextValue is null)
             {
                 // dbg
                 // Console.WriteLine($"*? {(current as TES3Lib.Base.Record).GetEditorId()} {property.Name} - firstValue is not null - nextValue is");
@@ -196,23 +195,20 @@ internal static class RecordMerger
 
     static bool MergePropertyBase(PropertyInfo property, object currentParam, object firstParam, object nextParam)
     {
-        var currentValue = currentParam != null ? property.GetValue(currentParam) : null;
-        var firstValue = firstParam != null ? property.GetValue(firstParam) : null;
-        var nextValue = nextParam != null ? property.GetValue(nextParam) : null;
+        var currentValue = currentParam is not null ? property.GetValue(currentParam) : null;
+        var firstValue = firstParam is not null ? property.GetValue(firstParam) : null;
+        var nextValue = nextParam is not null ? property.GetValue(nextParam) : null;
 
         // Handle collections.
         if (property.PropertyType.IsNonStringEnumerable())
         {
-            IEnumerable<object>? currentAsEnumerable = (currentValue as IEnumerable)?.Cast<object>()!;
-            IEnumerable<object>? firstAsEnumerable = (firstValue as IEnumerable)?.Cast<object>()!;
-            IEnumerable<object>? nextAsEnumerable = (nextValue as IEnumerable)?.Cast<object>()!;
+            var currentAsEnumerable = (currentValue as IEnumerable)?.Cast<object>()!;
+            var firstAsEnumerable = (firstValue as IEnumerable)?.Cast<object>()!;
+            var nextAsEnumerable = (nextValue as IEnumerable)?.Cast<object>()!;
 
-            var currentIsUnmodified = currentValue != null && firstValue != null
-                ? currentAsEnumerable.SequenceEqual(firstAsEnumerable, BasicComparer)
-                : currentValue == firstValue;
-            var nextIsUnmodified = nextValue != null && firstValue != null
-                ? nextAsEnumerable.SequenceEqual(firstAsEnumerable, BasicComparer)
-                : nextValue == firstValue;
+            bool currentIsUnmodified = currentValue is not null && firstValue is not null ? currentAsEnumerable.SequenceEqual(firstAsEnumerable, BasicComparer) : currentValue == firstValue;
+            bool nextIsUnmodified = nextValue is not null && firstValue is not null ? nextAsEnumerable.SequenceEqual(firstAsEnumerable, BasicComparer) : nextValue == firstValue;
+
             if (currentIsUnmodified && !nextIsUnmodified)
             {
                 property.SetValue(currentParam, nextValue);
@@ -221,8 +217,9 @@ internal static class RecordMerger
         }
         else
         {
-            var currentIsUnmodified = currentValue != null ? currentValue.Equals(firstValue) : firstValue == null;
-            var nextIsModified = !(nextValue != null ? nextValue.Equals(firstValue) : firstValue == null);
+            bool currentIsUnmodified = currentValue is not null ? currentValue.Equals(firstValue) : firstValue is null;
+            bool nextIsModified = !(nextValue is not null ? nextValue.Equals(firstValue) : firstValue is null);
+
             if (currentIsUnmodified && nextIsModified)
             {
                 property.SetValue(currentParam, nextValue);
@@ -236,19 +233,19 @@ internal static class RecordMerger
     static bool MergePropertySubrecord(PropertyInfo property, object currentParam, object firstParam, object nextParam)
     {
         // Get the values as their correct type.
-        var currentValue = currentParam != null ? property.GetValue(currentParam) : null;
-        var firstValue = firstParam != null ? property.GetValue(firstParam) : null;
-        var nextValue = nextParam != null ? property.GetValue(nextParam) : null;
+        var currentValue = currentParam is not null ? property.GetValue(currentParam) : null;
+        var firstValue = firstParam is not null ? property.GetValue(firstParam) : null;
+        var nextValue = nextParam is not null ? property.GetValue(nextParam) : null;
 
         var modified = true;
 
         // Handle null cases.
-        if (firstValue == null && currentValue == null && nextValue != null)
+        if (firstValue is null && currentValue is null && nextValue is not null)
         {
             property.SetValue(currentParam, nextValue);
             modified = true;
         }
-        else if (firstValue != null && nextValue == null)
+        else if (firstValue is not null && nextValue is null)
         {
             property.SetValue(currentParam, null);
             modified = true;
