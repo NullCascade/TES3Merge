@@ -10,9 +10,13 @@ internal static class RecordMerger
         public override bool Equals(object? a, object? b)
         {
             if (a is null && b is null)
+            {
                 return true;
+            }
             else if (a is null || b is null)
+            {
                 return false;
+            }
 
             if (a.GetType().GetType().FullName == "System.RuntimeType")
             {
@@ -31,7 +35,7 @@ internal static class RecordMerger
     public static readonly Dictionary<Type, Func<object, object, object, bool>> MergeTypeFunctionMapper = new();
     public static readonly Dictionary<Type, Func<PropertyInfo, object, object, object, bool>> MergePropertyFunctionMapper = new();
 
-    readonly static PublicPropertyComparer BasicComparer = new();
+    static readonly PublicPropertyComparer BasicComparer = new();
 
     static RecordMerger()
     {
@@ -41,11 +45,15 @@ internal static class RecordMerger
         // Define property merge behaviors.
         MergePropertyFunctionMapper[typeof(List<(TES3Lib.Base.IAIPackage, TES3Lib.Subrecords.CREA.CNDT)>)] = Merger.Shared.NoMerge;
         MergePropertyFunctionMapper[typeof(List<(TES3Lib.Base.IAIPackage, TES3Lib.Subrecords.NPC_.CNDT)>)] = Merger.Shared.NoMerge;
+
         MergePropertyFunctionMapper[typeof(List<TES3Lib.Subrecords.Shared.Castable.ENAM>)] = Merger.Shared.EffectList;
+        //MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.Shared.SCRI)] = Merger.Shared.SCRI;
+
         MergePropertyFunctionMapper[typeof(TES3Lib.Base.Subrecord)] = MergePropertySubrecord;
         MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.CLAS.CLDT)] = Merger.CLAS.CLDT;
         MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.FACT.FADT)] = Merger.FACT.FADT;
         MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.NPC_.NPDT)] = Merger.NPC_.NPDT;
+
     }
 
     public static Func<object, object, object, bool>? GetTypeMergeFunction(Type? type)
@@ -86,7 +94,7 @@ internal static class RecordMerger
         }
 
         // Figure out what merge function we will use.
-        var mergeFunction = GetTypeMergeFunction(current.GetType());
+        Func<object, object, object, bool>? mergeFunction = GetTypeMergeFunction(current.GetType());
         if (mergeFunction is null)
         {
             return false;
@@ -104,7 +112,7 @@ internal static class RecordMerger
         }
 
         // Figure out what merge function we will use.
-        var mergeFunction = GetPropertyMergeFunction(property.PropertyType);
+        Func<PropertyInfo, object, object, object, bool>? mergeFunction = GetPropertyMergeFunction(property.PropertyType);
         return mergeFunction(property, current, first, next);
     }
 
@@ -117,7 +125,7 @@ internal static class RecordMerger
 
         var modified = false;
 
-        var properties = next.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly).OrderBy(x => x.MetadataToken).ToList()!;
+        List<PropertyInfo>? properties = next.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly).OrderBy(x => x.MetadataToken).ToList()!;
         foreach (PropertyInfo property in properties)
         {
             // Handle null cases.
@@ -126,13 +134,19 @@ internal static class RecordMerger
             var nextValue = next is not null ? property.GetValue(next) : null;
             if (firstValue is null && currentValue is null && nextValue is not null)
             {
-                property.SetValue(current, nextValue);
+                property.SetValue(current, nextValue); //???
                 modified = true;
                 continue;
             }
             else if (firstValue is not null && nextValue is null)
             {
-                property.SetValue(current, null);
+                // dbg
+                // Console.WriteLine($"*? {(current as TES3Lib.Base.Record).GetEditorId()} {property.Name} - firstValue is not null - nextValue is");
+
+                // if the base value is not null, but some plugin later in the load order does set the value to null
+                // then I want to retain the latest value
+                //property.SetValue(current, null); // this is wrong: it uses values lower in the load order... 
+                property.SetValue(current, currentValue);
                 modified = true;
                 continue;
             }
@@ -150,12 +164,12 @@ internal static class RecordMerger
     static bool MergeTypeRecord(object currentParam, object firstParam, object nextParam)
     {
         // Get the values as their correct type.
-        var current = currentParam as TES3Lib.Base.Record ?? throw new ArgumentException("Current record is of incorrect type.");
-        var first = firstParam as TES3Lib.Base.Record ?? throw new ArgumentException("First record is of incorrect type.");
-        var next = nextParam as TES3Lib.Base.Record ?? throw new ArgumentException("Next record is of incorrect type.");
+        TES3Lib.Base.Record? current = currentParam as TES3Lib.Base.Record ?? throw new ArgumentException("Current record is of incorrect type.");
+        TES3Lib.Base.Record? first = firstParam as TES3Lib.Base.Record ?? throw new ArgumentException("First record is of incorrect type.");
+        TES3Lib.Base.Record? next = nextParam as TES3Lib.Base.Record ?? throw new ArgumentException("Next record is of incorrect type.");
 
         // Store modified state.
-        bool modified = false;
+        var modified = false;
 
         // Ensure that the record type hasn't changed.
         if (!first.Name.Equals(next.Name))
@@ -194,6 +208,7 @@ internal static class RecordMerger
 
             bool currentIsUnmodified = currentValue is not null && firstValue is not null ? currentAsEnumerable.SequenceEqual(firstAsEnumerable, BasicComparer) : currentValue == firstValue;
             bool nextIsUnmodified = nextValue is not null && firstValue is not null ? nextAsEnumerable.SequenceEqual(firstAsEnumerable, BasicComparer) : nextValue == firstValue;
+
             if (currentIsUnmodified && !nextIsUnmodified)
             {
                 property.SetValue(currentParam, nextValue);
@@ -204,6 +219,7 @@ internal static class RecordMerger
         {
             bool currentIsUnmodified = currentValue is not null ? currentValue.Equals(firstValue) : firstValue is null;
             bool nextIsModified = !(nextValue is not null ? nextValue.Equals(firstValue) : firstValue is null);
+
             if (currentIsUnmodified && nextIsModified)
             {
                 property.SetValue(currentParam, nextValue);
@@ -221,7 +237,7 @@ internal static class RecordMerger
         var firstValue = firstParam is not null ? property.GetValue(firstParam) : null;
         var nextValue = nextParam is not null ? property.GetValue(nextParam) : null;
 
-        bool modified = true;
+        var modified = true;
 
         // Handle null cases.
         if (firstValue is null && currentValue is null && nextValue is not null)
@@ -247,11 +263,11 @@ internal static class RecordMerger
 
     public static bool MergeNamedProperties(in string[] propertyNames, object current, object first, object next)
     {
-        bool modified = false;
+        var modified = false;
 
         foreach (var propertyName in propertyNames)
         {
-            var subProperty = current.GetType().GetProperty(propertyName) ?? throw new Exception($"Property '{propertyName}' does not exist for type {current.GetType().FullName}.");
+            PropertyInfo? subProperty = current.GetType().GetProperty(propertyName) ?? throw new Exception($"Property '{propertyName}' does not exist for type {current.GetType().FullName}.");
             if (Merge(subProperty, current, first, next))
             {
                 modified = true;
