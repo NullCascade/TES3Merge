@@ -79,19 +79,35 @@ class Program
     // main entry point to parse commandline options
     static async Task Main(string[] args)
     {
-        var option = new Option<bool>(new[] { "--inclusive-list", "-i" }, "Merge lists inclusively per element (implemented for List<NPCO>)");
-        var rootCommand = new RootCommand
+        var inclusiveListsOption = new Option<bool>(
+            new[] { "--inclusive-list", "-i" },
+            "Merge lists inclusively per element (implemented for List<NPCO>)"
+            );
+        var basePluginsOption = new Option<string[]>(
+            new[] { "--base", "-b" },
+            "Include a list of fallback esp names to treat as base instead of the Morrowind masters"
+            )
         {
-            option
+            AllowMultipleArgumentsPerToken = true,
+            Arity = ArgumentArity.OneOrMore
+        };
+        var rootCommand = new RootCommand()
+        {
+            inclusiveListsOption,
+            basePluginsOption
         };
 
-        rootCommand.SetHandler((bool inclusiveListMerge) => { Run(inclusiveListMerge); }, option);
+        rootCommand.SetHandler((bool inclusiveListMerge, string[] basePlugins) =>
+        {
+            Run(inclusiveListMerge, basePlugins);
+        }, inclusiveListsOption, basePluginsOption);
+
         await rootCommand.InvokeAsync(args);
     }
 
 
     // main command to run
-    static void Run(bool inclusiveListMerge)
+    static void Run(bool inclusiveListMerge, string[] basePlugins)
     {
 #if DEBUG
         //Console.WriteLine("Press any key to continue...");
@@ -251,7 +267,10 @@ class Program
             var sortedMasters = new List<string>();
             var mapTES3ToFileNames = new Dictionary<TES3, string>();
             var recordMasters = new Dictionary<TES3Lib.Base.Record, TES3>();
+            var sortedBasePlugins = new List<string>();
+
             Console.WriteLine("Parsing content files...");
+
             {
                 // Try to get INI information.
                 IniData data;
@@ -346,6 +365,20 @@ class Program
                     }
                 }
 
+                // get alternative base plugin
+                if (basePlugins is not null && basePlugins.Any())
+                {
+                    Console.WriteLine("Using override base masters: ");
+                    foreach (var item in sortedMasters)
+                    {
+                        if (basePlugins.Select(x => x.ToLower()).Contains(item.ToLower()))
+                        {
+                            sortedBasePlugins.Add(item);
+                            Console.WriteLine($"\t{item}");
+                        }
+                    }
+                }
+
                 // Go through and build a record list.
                 foreach (var sortedMaster in sortedMasters)
                 {
@@ -431,29 +464,60 @@ class Program
             {
                 dumpMergedRecordsToLog = false;
             }
+
             Console.WriteLine("Building merges...");
             var usedMasters = new HashSet<string>();
+
             foreach (var recordType in recordOverwriteMap.Keys)
             {
                 Dictionary<string, List<TES3Lib.Base.Record>>? recordsMap = recordOverwriteMap[recordType];
                 foreach (var id in recordsMap.Keys)
                 {
-                    List<TES3Lib.Base.Record>? records = recordsMap[id];
-                    if (records.Count > 2)
+                    var recordDict = recordsMap[id].ToDictionary(x => mapTES3ToFileNames[recordMasters[x]]);
+                    // if any base masters
+                    if (sortedBasePlugins.Any() && recordDict.Count > 2)
                     {
-                        TES3Lib.Base.Record? firstRecord = records[0];
-                        TES3Lib.Base.Record? lastRecord = records.Last();
-                        var firstMaster = mapTES3ToFileNames[recordMasters[firstRecord]];
-                        var lastMaster = mapTES3ToFileNames[recordMasters[lastRecord]];
+                        var idx = 0;
+                        // remove plugins lower than the highest base master
+                        for (var i = 0; i < recordDict.Count; i++)
+                        {
+                            var m = recordDict.Keys.ToList()[i];
+                            TES3Lib.Base.Record? r = recordDict[m];
+
+                            if (sortedBasePlugins.Contains(m))
+                            {
+                                idx = i;
+                            }
+                        }
+
+                        if (idx != 0)
+                        {
+                            recordDict = recordDict
+                                .TakeLast(recordDict.Count - idx)
+                                .ToDictionary(k => k.Key, v => v.Value);
+                        }
+
+                    }
+
+                    if (recordDict.Count > 2)
+                    {
+                        // highest priority master
+                        var lastMaster = recordDict.Last().Key;
+                        TES3Lib.Base.Record? lastRecord = recordDict[lastMaster];
+                        // base master
+                        var firstMaster = recordDict.First().Key;
+                        TES3Lib.Base.Record? firstRecord = recordDict[firstMaster];
 
                         var localUsedMasters = new HashSet<string>() { firstMaster, lastMaster };
 
                         var lastSerialized = lastRecord.GetRawLoadedBytes();
                         TES3Lib.Base.Record newRecord = Activator.CreateInstance(lastRecord.GetType(), new object[] { lastSerialized }) as TES3Lib.Base.Record ?? throw new Exception("Could not create activator instance.");
-                        for (var i = records.Count - 2; i > 0; i--)
+
+                        for (var i = recordDict.Count - 2; i > 0; i--)
                         {
-                            TES3Lib.Base.Record? record = records[i];
-                            var master = mapTES3ToFileNames[recordMasters[record]];
+                            var master = recordDict.Keys.ToList()[i];
+                            TES3Lib.Base.Record? record = recordDict[master];
+
                             try
                             {
                                 if (RecordMerger.Merge(newRecord, firstRecord, record))
@@ -468,9 +532,9 @@ class Program
                                 masterListArray.Add(master);
                                 var masterList = string.Join(", ", masterListArray);
                                 WriteToLogAndConsole($"Failed to merge {firstRecord.Name} record '{id}' from mods: {masterList}");
-                                foreach (TES3Lib.Base.Record? r in records)
+                                foreach ((var m, TES3Lib.Base.Record r) in recordDict)
                                 {
-                                    WriteToLogAndConsole($">> {mapTES3ToFileNames[recordMasters[r]]}: {BitConverter.ToString(r.GetRawLoadedBytes()).Replace("-", "")}");
+                                    WriteToLogAndConsole($">> {m}: {BitConverter.ToString(r.GetRawLoadedBytes()).Replace("-", "")}");
                                 }
 
                                 WriteToLogAndConsole(e.Message);
@@ -498,9 +562,8 @@ class Program
 
                                 if (dumpMergedRecordsToLog)
                                 {
-                                    foreach (TES3Lib.Base.Record? record in records)
+                                    foreach ((var master, TES3Lib.Base.Record record) in recordDict)
                                     {
-                                        var master = mapTES3ToFileNames[recordMasters[record]];
                                         Logger.WriteLine($">> {master}: {BitConverter.ToString(record.GetRawLoadedBytes()).Replace("-", "")}");
                                     }
                                     Logger.WriteLine($">> Merged Objects.esp: {BitConverter.ToString(newSerialized).Replace("-", "")}");
@@ -516,9 +579,8 @@ class Program
                         {
                             var masterList = string.Join(", ", GetFilteredLoadList(sortedMasters, localUsedMasters).ToArray());
                             WriteToLogAndConsole($"Could not resolve conflicts for {firstRecord.Name} record '{id}' from mods: {masterList}");
-                            foreach (TES3Lib.Base.Record? record in records)
+                            foreach ((var master, TES3Lib.Base.Record record) in recordDict)
                             {
-                                var master = mapTES3ToFileNames[recordMasters[record]];
                                 WriteToLogAndConsole($">> {master}: {BitConverter.ToString(record.GetRawLoadedBytes()).Replace("-", "")}");
                             }
 
