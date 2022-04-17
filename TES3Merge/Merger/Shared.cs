@@ -54,12 +54,32 @@ internal static class Shared
 
         var modified = false;
 
+        // remove this for now until refactor
         // Handle null cases.
-        if (!current.NullableSequenceEqual(next) && next is not null)
+        //if (!current.NullableSequenceEqual(next) && next is not null)
+        //{
+        //    current = new List<TES3Lib.Subrecords.Shared.Castable.ENAM>(next);
+        //    property.SetValue(currentParam, current);
+        //    modified = true;
+        //}
+
+        // Ensure that we have a current value.
+        if (current == null)
         {
-            current = new List<TES3Lib.Subrecords.Shared.Castable.ENAM>(next);
-            property.SetValue(currentParam, current);
-            modified = true;
+            if (first != null)
+            {
+                current = new List<TES3Lib.Subrecords.Shared.Castable.ENAM>(first);
+                property.SetValue(currentParam, current);
+            }
+            else if (next != null)
+            {
+                current = new List<TES3Lib.Subrecords.Shared.Castable.ENAM>(next);
+                property.SetValue(currentParam, current);
+            }
+            else
+            {
+                return false;
+            }
         }
 
         // 
