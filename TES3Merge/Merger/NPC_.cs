@@ -134,8 +134,8 @@ internal static class NPC_
         {
             // only merge one wander package
             var currentValue = current.FirstOrDefault(x => x.AIPackage.GetType() == typeof(AI_W)).AIPackage as AI_W;
-            var firstValue = first?.FirstOrDefault(x => x.GetType() == typeof(AI_W)).AIPackage as AI_W;
-            var nextValue = next?.FirstOrDefault(x => x.GetType() == typeof(AI_W)).AIPackage as AI_W;
+            var firstValue = first?.FirstOrDefault(x => x.AIPackage.GetType() == typeof(AI_W)).AIPackage as AI_W;
+            var nextValue = next?.FirstOrDefault(x => x.AIPackage.GetType() == typeof(AI_W)).AIPackage as AI_W;
 
             // TODO remove multiple wander packages?
 
