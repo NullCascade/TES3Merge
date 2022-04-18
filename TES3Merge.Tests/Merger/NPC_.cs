@@ -25,31 +25,6 @@ public class NPC_ : RecordTest<TES3Lib.Records.NPC_>
         _logger = _host.Services.GetRequiredService<ILogger<NPC_>>();
     }
 
-    internal override void LogRecordsAIPackages(TES3Lib.Records.NPC_ merged, params string[] plugins)
-    {
-        foreach (var parent in plugins)
-        {
-            var plugin = RecordCache[parent];
-            _logger.LogInformation("{Plugin} : {Count} ({Parent})", plugin, plugin.AIPackages?.Count, parent);
-            LogRecordsEnumerable(plugin.AIPackages?.Select(x => x.AIPackage));
-        }
-        _logger.LogInformation("{MergedObjectsPluginName} : {Count}", MergedObjectsPluginName, merged.AIPackages?.Count);
-        LogRecordsEnumerable(merged.AIPackages?.Select(x => x.AIPackage));
-    }
-
-
-    internal override void LogRecordsInventory(TES3Lib.Records.NPC_ merged, params string[] plugins)
-    {
-        foreach (var parent in plugins)
-        {
-            var plugin = RecordCache[parent];
-            _logger.LogInformation("{Plugin} : {Count} ({Parent})", plugin, plugin.NPCO?.Count, parent);
-            LogRecordsEnumerable(plugin.NPCO);
-        }
-        _logger.LogInformation("{MergedObjectsPluginName} : {Count}", MergedObjectsPluginName, merged.NPCO?.Count);
-        LogRecordsEnumerable(merged.NPCO);
-    }
-
     [TestMethod]
     public void EditorId()
     {
@@ -92,20 +67,36 @@ public class NPC_ : RecordTest<TES3Lib.Records.NPC_>
     {
         LogRecordsInventory(MergedDefault, AddedMergeMasters);
 
-        // Ensure we have the right number
-        Assert.IsNotNull(MergedDefault.NPCO);
-        Assert.IsNotNull(GetCached("merge_edit_all.esp").NPCO);
-        Assert.IsNotNull(GetCached("merge_add_effects.esp").NPCO);
+        // this is the load order
+        var merge_base = GetCached("merge_base.esp").NPCO;
+        var merge_edit_all = GetCached("merge_edit_all.esp").NPCO;
+        var merge_add_effects = GetCached("merge_add_effects.esp").NPCO;
+        var merge_minor_tweaks = GetCached("merge_minor_tweaks.esp").NPCO;
 
-        // make 
+        // Ensure not null
+        Assert.IsNotNull(merge_base);
+        Assert.IsNotNull(merge_edit_all);
+        Assert.IsNotNull(merge_add_effects);
+        Assert.IsNotNull(merge_minor_tweaks);
+        Assert.IsNotNull(MergedDefault.AIPackages);
 
-
-        // make sure we merged the wander package correctly
-
+        // TODO
         // make sure all the rest is inclusively merged
 
         // make sure all the rest is non-inclusively merged
 
+
+        void LogRecordsInventory(TES3Lib.Records.NPC_ merged, params string[] plugins)
+        {
+            foreach (var parent in plugins)
+            {
+                var plugin = RecordCache[parent];
+                _logger.LogInformation("{Plugin} : {Count} ({Parent})", plugin, plugin.NPCO?.Count, parent);
+                LogRecordsEnumerable(plugin.NPCO);
+            }
+            _logger.LogInformation("{MergedObjectsPluginName} : {Count}", MergedObjectsPluginName, merged.NPCO?.Count);
+            LogRecordsEnumerable(merged.NPCO);
+        }
     }
 
     [TestMethod]
@@ -127,7 +118,6 @@ public class NPC_ : RecordTest<TES3Lib.Records.NPC_>
         Assert.IsNotNull(MergedDefault.AIPackages);
 
         // wander packages are merged
-        // TODO check values
         // distance is taken from merge_add_effects
         var distanceMerged = (MergedDefault.AIPackages.First().AIPackage as AI_W)?.Distance;
         var distanceCorrect = (merge_add_effects.First().AIPackage as AI_W)?.Distance;
@@ -144,5 +134,17 @@ public class NPC_ : RecordTest<TES3Lib.Records.NPC_>
 
         // or inclusively merged
         // TODO tests
+
+        void LogRecordsAIPackages(TES3Lib.Records.NPC_ merged, params string[] plugins)
+        {
+            foreach (var parent in plugins)
+            {
+                var plugin = RecordCache[parent];
+                _logger.LogInformation("{Plugin} : {Count} ({Parent})", plugin, plugin.AIPackages?.Count, parent);
+                LogRecordsEnumerable(plugin.AIPackages?.Select(x => x.AIPackage));
+            }
+            _logger.LogInformation("{MergedObjectsPluginName} : {Count}", MergedObjectsPluginName, merged.AIPackages?.Count);
+            LogRecordsEnumerable(merged.AIPackages?.Select(x => x.AIPackage));
+        }
     }
 }

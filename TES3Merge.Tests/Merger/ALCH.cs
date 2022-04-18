@@ -27,18 +27,6 @@ public class ALCH : RecordTest<TES3Lib.Records.ALCH>
         _logger = _host.Services.GetRequiredService<ILogger<ALCH>>();
     }
 
-    internal override void LogRecordsEffects(TES3Lib.Records.ALCH merged, params string[] plugins)
-    {
-        foreach (var parent in plugins)
-        {
-            var plugin = RecordCache[parent];
-            _logger.LogInformation("{Plugin} : {Count} ({Parent})", plugin, plugin.ENAM?.Count, parent);
-            LogRecordsEnumerable(plugin.ENAM);
-        }
-        _logger.LogInformation("{MergedObjectsPluginName} : {Count}", MergedObjectsPluginName, merged.ENAM?.Count);
-        LogRecordsEnumerable(merged.ENAM);
-    }
-
     [TestMethod]
     public void EditorId()
     {
@@ -119,5 +107,17 @@ public class ALCH : RecordTest<TES3Lib.Records.ALCH>
 
         // Ensure that we carried over the right second effect.
         Assert.AreEqual(MergedDefault.ENAM[1], GetCached("merge_add_effects.esp").ENAM[1]);
+
+        void LogRecordsEffects(TES3Lib.Records.ALCH merged, params string[] plugins)
+        {
+            foreach (var parent in plugins)
+            {
+                var plugin = RecordCache[parent];
+                _logger.LogInformation("{Plugin} : {Count} ({Parent})", plugin, plugin.ENAM?.Count, parent);
+                LogRecordsEnumerable(plugin.ENAM);
+            }
+            _logger.LogInformation("{MergedObjectsPluginName} : {Count}", MergedObjectsPluginName, merged.ENAM?.Count);
+            LogRecordsEnumerable(merged.ENAM);
+        }
     }
 }

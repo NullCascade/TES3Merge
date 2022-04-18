@@ -33,11 +33,11 @@ internal static class NPC_
     public static bool NPDT(PropertyInfo property, object currentParam, object firstParam, object nextParam)
     {
         // Get the values as their correct type.
-        TES3Lib.Subrecords.NPC_.NPDT? current = property.GetValue(currentParam) as TES3Lib.Subrecords.NPC_.NPDT
+        var current = property.GetValue(currentParam) as TES3Lib.Subrecords.NPC_.NPDT
             ?? throw new ArgumentException("Current record is of incorrect type.");
-        TES3Lib.Subrecords.NPC_.NPDT? first = property.GetValue(firstParam) as TES3Lib.Subrecords.NPC_.NPDT
+        var first = property.GetValue(firstParam) as TES3Lib.Subrecords.NPC_.NPDT
             ?? throw new ArgumentException("First record is of incorrect type.");
-        TES3Lib.Subrecords.NPC_.NPDT? next = property.GetValue(nextParam) as TES3Lib.Subrecords.NPC_.NPDT
+        var next = property.GetValue(nextParam) as TES3Lib.Subrecords.NPC_.NPDT
             ?? throw new ArgumentException("Next record is of incorrect type.");
 
         var modified = false;
@@ -86,11 +86,11 @@ internal static class NPC_
     internal static bool AIPackage(PropertyInfo property, object currentParam, object firstParam, object nextParam)
     {
         // Get the values as their correct type.
-        List<(IAIPackage AIPackage, TES3Lib.Subrecords.NPC_.CNDT CNDT)>? current = property.GetValue(currentParam) as List<(IAIPackage AIPackage, TES3Lib.Subrecords.NPC_.CNDT CNDT)>
+        var current = property.GetValue(currentParam) as List<(IAIPackage AIPackage, TES3Lib.Subrecords.NPC_.CNDT CNDT)>
             ?? throw new ArgumentException("Current record is of incorrect type.");
-        List<(IAIPackage AIPackage, TES3Lib.Subrecords.NPC_.CNDT CNDT)>? first = property.GetValue(firstParam) as List<(IAIPackage AIPackage, TES3Lib.Subrecords.NPC_.CNDT CNDT)>
+        var first = property.GetValue(firstParam) as List<(IAIPackage AIPackage, TES3Lib.Subrecords.NPC_.CNDT CNDT)>
             ?? throw new ArgumentException("First record is of incorrect type.");
-        List<(IAIPackage AIPackage, TES3Lib.Subrecords.NPC_.CNDT CNDT)>? next = property.GetValue(nextParam) as List<(IAIPackage AIPackage, TES3Lib.Subrecords.NPC_.CNDT CNDT)>
+        var next = property.GetValue(nextParam) as List<(IAIPackage AIPackage, TES3Lib.Subrecords.NPC_.CNDT CNDT)>
             ?? throw new ArgumentException("Next record is of incorrect type.");
 
         var modified = false;
@@ -116,7 +116,7 @@ internal static class NPC_
 
         if (first == null)
         {
-            throw new ArgumentNullException(nameof(first));
+            throw new ArgumentNullException();
         }
 
         // for now we only merge the wander package

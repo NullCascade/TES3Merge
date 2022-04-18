@@ -22,8 +22,7 @@ public abstract class RecordTest<T> where T : TES3Lib.Base.Record
             .MinimumLevel.Debug()
             .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
             .Enrich.FromLogContext()
-            .WriteTo.Console(outputTemplate:
-        "[{Level:u3}] {Message:lj}{NewLine}{Exception}")
+            .WriteTo.Console(outputTemplate: "[{Level:u3}] {Message:lj}{NewLine}{Exception}")
             .CreateLogger();
 
         var hostBuilder = Host.CreateDefaultBuilder().UseSerilog();
@@ -82,19 +81,6 @@ public abstract class RecordTest<T> where T : TES3Lib.Base.Record
     internal void LogRecordValue(T record, string property, string plugin = Utility.MergedObjectsPluginName)
     {
         _logger.LogInformation("{plugin} : {PropertyValue}", plugin, Utility.GetPropertyValue(record, property));
-    }
-
-    internal virtual void LogRecordsEffects(T merged, params string[] plugins)
-    {
-        throw new NotImplementedException();
-    }
-    internal virtual void LogRecordsAIPackages(T merged, params string[] plugins)
-    {
-        throw new NotImplementedException();
-    }
-    internal virtual void LogRecordsInventory(T merged, params string[] plugins)
-    {
-        throw new NotImplementedException();
     }
 
     internal void LogRecords(string property, T merged, params string[] plugins)
