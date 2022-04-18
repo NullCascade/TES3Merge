@@ -8,6 +8,7 @@
     <PackageProjectUrl>https://github.com/NullCascade/TES3Merge</PackageProjectUrl>
     <Version>0.9.1</Version>
 	<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+	<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
   </PropertyGroup>
 
   <ItemGroup>
