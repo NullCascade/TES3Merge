@@ -38,11 +38,10 @@ internal static class RecordMerger
         MergeTypeFunctionMapper[typeof(TES3Lib.Base.Record)] = MergeTypeRecord;
 
         // Define property merge behaviors.
-        MergePropertyFunctionMapper[typeof(List<(TES3Lib.Base.IAIPackage, TES3Lib.Subrecords.CREA.CNDT)>)] = Merger.Shared.NoMerge;
-        MergePropertyFunctionMapper[typeof(List<(TES3Lib.Base.IAIPackage, TES3Lib.Subrecords.NPC_.CNDT)>)] = Merger.Shared.NoMerge;
+        MergePropertyFunctionMapper[typeof(List<(IAIPackage, TES3Lib.Subrecords.CREA.CNDT)>)] = Merger.CREA.AIPackage;
+        MergePropertyFunctionMapper[typeof(List<(IAIPackage, TES3Lib.Subrecords.NPC_.CNDT)>)] = Merger.NPC_.AIPackage;
 
         MergePropertyFunctionMapper[typeof(List<TES3Lib.Subrecords.Shared.Castable.ENAM>)] = Merger.Shared.EffectList;
-        RecordMerger.MergePropertyFunctionMapper[typeof(List<(IAIPackage AIPackage, TES3Lib.Subrecords.NPC_.CNDT CNDT)>)] = Merger.NPC_.AIPackage;
 
         MergePropertyFunctionMapper[typeof(TES3Lib.Base.Subrecord)] = MergePropertySubrecord;
         MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.CLAS.CLDT)] = Merger.CLAS.CLDT;
@@ -55,7 +54,7 @@ internal static class RecordMerger
     {
         while (type is not null)
         {
-            if (MergeTypeFunctionMapper.TryGetValue(type, out Func<object, object, object, bool>? func))
+            if (MergeTypeFunctionMapper.TryGetValue(type, out var func))
             {
                 return func;
             }
@@ -70,7 +69,7 @@ internal static class RecordMerger
     {
         while (type is not null)
         {
-            if (MergePropertyFunctionMapper.TryGetValue(type, out Func<PropertyInfo, object, object, object, bool>? func))
+            if (MergePropertyFunctionMapper.TryGetValue(type, out var func))
             {
                 return func;
             }
@@ -89,7 +88,7 @@ internal static class RecordMerger
         }
 
         // Figure out what merge function we will use.
-        Func<object, object, object, bool>? mergeFunction = GetTypeMergeFunction(current.GetType());
+        var mergeFunction = GetTypeMergeFunction(current.GetType());
         return mergeFunction is not null && mergeFunction(current, first, next);
     }
 
@@ -102,7 +101,7 @@ internal static class RecordMerger
         }
 
         // Figure out what merge function we will use.
-        Func<PropertyInfo, object, object, object, bool>? mergeFunction = GetPropertyMergeFunction(property.PropertyType);
+        var mergeFunction = GetPropertyMergeFunction(property.PropertyType);
         return mergeFunction(property, current, first, next);
     }
 
@@ -115,8 +114,8 @@ internal static class RecordMerger
 
         var modified = false;
 
-        List<PropertyInfo>? properties = next.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly).OrderBy(x => x.MetadataToken).ToList()!;
-        foreach (PropertyInfo property in properties)
+        var properties = next.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly).OrderBy(x => x.MetadataToken).ToList()!;
+        foreach (var property in properties)
         {
             // Handle null cases.
             var currentValue = current is not null ? property.GetValue(current) : null;
@@ -151,9 +150,9 @@ internal static class RecordMerger
     private static bool MergeTypeRecord(object currentParam, object firstParam, object nextParam)
     {
         // Get the values as their correct type.
-        TES3Lib.Base.Record? current = currentParam as TES3Lib.Base.Record ?? throw new ArgumentException("Current record is of incorrect type.");
-        TES3Lib.Base.Record? first = firstParam as TES3Lib.Base.Record ?? throw new ArgumentException("First record is of incorrect type.");
-        TES3Lib.Base.Record? next = nextParam as TES3Lib.Base.Record ?? throw new ArgumentException("Next record is of incorrect type.");
+        var current = currentParam as TES3Lib.Base.Record ?? throw new ArgumentException("Current record is of incorrect type.");
+        var first = firstParam as TES3Lib.Base.Record ?? throw new ArgumentException("First record is of incorrect type.");
+        var next = nextParam as TES3Lib.Base.Record ?? throw new ArgumentException("Next record is of incorrect type.");
 
         // Store modified state.
         var modified = false;
@@ -189,9 +188,9 @@ internal static class RecordMerger
         // Handle collections.
         if (property.PropertyType.IsNonStringEnumerable())
         {
-            IEnumerable<object>? currentAsEnumerable = (currentValue as IEnumerable)?.Cast<object>()!;
-            IEnumerable<object>? firstAsEnumerable = (firstValue as IEnumerable)?.Cast<object>()!;
-            IEnumerable<object>? nextAsEnumerable = (nextValue as IEnumerable)?.Cast<object>()!;
+            var currentAsEnumerable = (currentValue as IEnumerable)?.Cast<object>()!;
+            var firstAsEnumerable = (firstValue as IEnumerable)?.Cast<object>()!;
+            var nextAsEnumerable = (nextValue as IEnumerable)?.Cast<object>()!;
 
             var currentIsUnmodified = currentValue is not null && firstValue is not null ? currentAsEnumerable.SequenceEqual(firstAsEnumerable, BasicComparer) : currentValue == firstValue;
             var nextIsUnmodified = nextValue is not null && firstValue is not null ? nextAsEnumerable.SequenceEqual(firstAsEnumerable, BasicComparer) : nextValue == firstValue;
@@ -254,7 +253,7 @@ internal static class RecordMerger
 
         foreach (var propertyName in propertyNames)
         {
-            PropertyInfo? subProperty = current.GetType().GetProperty(propertyName) ?? throw new Exception($"Property '{propertyName}' does not exist for type {current.GetType().FullName}.");
+            var subProperty = current.GetType().GetProperty(propertyName) ?? throw new Exception($"Property '{propertyName}' does not exist for type {current.GetType().FullName}.");
             if (Merge(subProperty, current, first, next))
             {
                 modified = true;

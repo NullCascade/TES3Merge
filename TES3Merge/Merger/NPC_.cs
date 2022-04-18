@@ -1,13 +1,11 @@
 ﻿using System.Reflection;
 using TES3Lib.Base;
 using TES3Lib.Subrecords.Shared;
-using static TES3Merge.RecordMerger;
 
 namespace TES3Merge.Merger;
 
 internal static class NPC_
 {
-    private static readonly PublicPropertyComparer BasicComparer = new();
     private static readonly string[] NPCDataBasicProperties = {
         "Agility",
         "Disposition",
@@ -116,7 +114,7 @@ internal static class NPC_
 
         if (first == null)
         {
-            throw new ArgumentNullException();
+            throw new NullReferenceException(nameof(first));
         }
 
         // for now we only merge the wander package
