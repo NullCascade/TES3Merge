@@ -1,31 +1,32 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Serilog;
+using Serilog.Events;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using TES3Lib.Base;
 using static TES3Merge.Tests.FileLoader;
 
 namespace TES3Merge.Tests.Merger;
 
 public abstract class RecordTest<T> where T : TES3Lib.Base.Record
 {
-    protected ILogger _logger;
+    protected Microsoft.Extensions.Logging.ILogger _logger;
     protected IHost _host;
 
     public RecordTest()
     {
-        var hostBuilder = Host.CreateDefaultBuilder()
-            .ConfigureLogging((builderContext, loggingBuilder) =>
-            {
-                loggingBuilder.AddSimpleConsole(options =>
-                {
-                    options.IncludeScopes = true;
-                    options.SingleLine = true;
-                    //options.TimestampFormat = "hh:mm:ss ";
-                });
-            });
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+            .Enrich.FromLogContext()
+            .WriteTo.Console(outputTemplate:
+        "[{Level:u3}] {Message:lj}{NewLine}{Exception}")
+            .CreateLogger();
+
+        var hostBuilder = Host.CreateDefaultBuilder().UseSerilog();
 
         _host = hostBuilder.Build();
         _logger = _host.Services.GetRequiredService<ILogger<RecordTest<T>>>();
@@ -105,42 +106,18 @@ public abstract class RecordTest<T> where T : TES3Lib.Base.Record
         LogRecordValue(merged, property);
     }
 
-    internal void LogEffects(List<TES3Lib.Subrecords.Shared.Castable.ENAM>? effects)
+    internal void LogRecordsEnumerable(IEnumerable? items)
     {
-        if (effects is null)
+        if (items is null)
         {
             return;
         }
 
-        foreach (var effect in effects)
+        foreach (var item in items)
         {
-            _logger.LogInformation($"  - Effect: {effect.MagicEffect}; Skill: {effect.Skill}; Attribute: {effect.Attribute}; Magnitude: {effect.Magnitude}; Duration: {effect.Duration}");
+            _logger.LogInformation("  - {Name}: {@Item}", item.GetType().Name, item);
         }
     }
-    internal void LogAIPackages(List<(IAIPackage AIPackage, TES3Lib.Subrecords.NPC_.CNDT CNDT)>? packages)
-    {
-        if (packages is null)
-        {
-            return;
-        }
 
-        foreach (var item in packages.Select(x => x.AIPackage))
-        {
-            _logger.LogInformation("  - {Name}: {Item}", item.GetType().Name, item);
-        }
-    }
-    internal void LogNPCO(List<TES3Lib.Subrecords.Shared.NPCO>? objects)
-    {
-        if (objects is null)
-        {
-            return;
-        }
-
-        foreach (var item in objects)
-        {
-            _logger.LogInformation("  - {Name}: {Item}", item.GetType().Name, item);
-            //_logger.LogInformation($"  - {item.GetType().Name}: {item.ItemId}; Count: {item.Count}");
-        }
-    }
     #endregion
 }

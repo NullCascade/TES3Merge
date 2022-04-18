@@ -33,10 +33,10 @@ public class ALCH : RecordTest<TES3Lib.Records.ALCH>
         {
             var plugin = RecordCache[parent];
             _logger.LogInformation("{Plugin} : {Count} ({Parent})", plugin, plugin.ENAM?.Count, parent);
-            LogEffects(plugin.ENAM);
+            LogRecordsEnumerable(plugin.ENAM);
         }
         _logger.LogInformation("{MergedObjectsPluginName} : {Count}", MergedObjectsPluginName, merged.ENAM?.Count);
-        LogEffects(merged.ENAM);
+        LogRecordsEnumerable(merged.ENAM);
     }
 
     [TestMethod]

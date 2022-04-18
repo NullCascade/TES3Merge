@@ -31,10 +31,10 @@ public class NPC_ : RecordTest<TES3Lib.Records.NPC_>
         {
             var plugin = RecordCache[parent];
             _logger.LogInformation("{Plugin} : {Count} ({Parent})", plugin, plugin.AIPackages?.Count, parent);
-            LogAIPackages(plugin.AIPackages);
+            LogRecordsEnumerable(plugin.AIPackages?.Select(x => x.AIPackage));
         }
         _logger.LogInformation("{MergedObjectsPluginName} : {Count}", MergedObjectsPluginName, merged.AIPackages?.Count);
-        LogAIPackages(merged.AIPackages);
+        LogRecordsEnumerable(merged.AIPackages?.Select(x => x.AIPackage));
     }
 
 
@@ -44,10 +44,10 @@ public class NPC_ : RecordTest<TES3Lib.Records.NPC_>
         {
             var plugin = RecordCache[parent];
             _logger.LogInformation("{Plugin} : {Count} ({Parent})", plugin, plugin.NPCO?.Count, parent);
-            LogNPCO(plugin.NPCO);
+            LogRecordsEnumerable(plugin.NPCO);
         }
         _logger.LogInformation("{MergedObjectsPluginName} : {Count}", MergedObjectsPluginName, merged.NPCO?.Count);
-        LogNPCO(merged.NPCO);
+        LogRecordsEnumerable(merged.NPCO);
     }
 
     [TestMethod]
