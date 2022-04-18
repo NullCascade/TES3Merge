@@ -13,7 +13,7 @@ internal static class Shared
         return false;
     }
 
-    internal static bool MergeEffect(List<TES3Lib.Subrecords.Shared.Castable.ENAM>? current, List<TES3Lib.Subrecords.Shared.Castable.ENAM>? first, List<TES3Lib.Subrecords.Shared.Castable.ENAM>? next, int index)
+    internal static bool MergeEffect(List<TES3Lib.Subrecords.Shared.Castable.ENAM> current, List<TES3Lib.Subrecords.Shared.Castable.ENAM>? first, List<TES3Lib.Subrecords.Shared.Castable.ENAM>? next, int index)
     {
         TES3Lib.Subrecords.Shared.Castable.ENAM? currentValue = current.ElementAtOrDefault(index);
         TES3Lib.Subrecords.Shared.Castable.ENAM? firstValue = first?.ElementAtOrDefault(index);
@@ -97,19 +97,15 @@ internal static class Shared
     internal static bool ItemsList(PropertyInfo property, object currentParam, object firstParam, object nextParam)
     {
         // Get the values as their correct type.
-        var current = property.GetValue(currentParam);
-        var first = property.GetValue(firstParam);
-        var next = property.GetValue(nextParam);
-
-        if (first is not List<TES3Lib.Subrecords.Shared.NPCO> firstAsEnumerable)
+        if (property.GetValue(firstParam) is not List<TES3Lib.Subrecords.Shared.NPCO> firstAsEnumerable)
         {
             return false;
         }
-        if (next is not List<TES3Lib.Subrecords.Shared.NPCO> nextAsEnumerable)
+        if (property.GetValue(nextParam) is not List<TES3Lib.Subrecords.Shared.NPCO> nextAsEnumerable)
         {
             return false;
         }
-        if (current is not List<TES3Lib.Subrecords.Shared.NPCO> currentAsEnumerable)
+        if (property.GetValue(currentParam) is not List<TES3Lib.Subrecords.Shared.NPCO> currentAsEnumerable)
         {
             return false;
         }
@@ -137,6 +133,11 @@ internal static class Shared
             {
                 return false;
             }
+        }
+
+        if (firstAsEnumerable == null)
+        {
+            throw new ArgumentNullException(nameof(firstAsEnumerable));
         }
 
         // inclusive list merge

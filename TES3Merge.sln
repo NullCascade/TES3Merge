@@ -13,9 +13,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TES3Merge", "TES3Merge\TES3
 		{1BC5CBBB-E155-4D9A-BC55-6FE75109C1B9} = {1BC5CBBB-E155-4D9A-BC55-6FE75109C1B9}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TES3Merge.Tests", "TES3Merge.Tests\TES3Merge.Tests.csproj", "{5F6DDA09-33B6-4FAC-AC34-5FABBFA6D0F6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TES3Merge.Tests", "TES3Merge.Tests\TES3Merge.Tests.csproj", "{5F6DDA09-33B6-4FAC-AC34-5FABBFA6D0F6}"
 	ProjectSection(ProjectDependencies) = postProject
 		{5E35B4F8-4150-41D8-B78C-64ED0EF8871E} = {5E35B4F8-4150-41D8-B78C-64ED0EF8871E}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{64D6AD8F-D337-411B-A5D9-0A2F2FDA811E}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
 Global
