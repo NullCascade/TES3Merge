@@ -54,13 +54,17 @@ internal static class NPC_
         }
 
         // element-wise merge
-        if (current.Skills != null && next.Skills != null)
+        if (current.Skills is not null && next.Skills is not null)
         {
             if (current.Skills.SequenceEqual(next.Skills))
             {
                 return modified;
             }
-
+            if (first.Skills is null)
+            {
+                first.Skills = next.Skills;
+                modified = true;
+            }
             // TODO length check
 
             for (var i = 0; i < current.Skills.Length; i++)
