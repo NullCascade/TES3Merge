@@ -3,6 +3,7 @@ using IniParser.Model;
 using Microsoft.Win32;
 using System.Runtime.InteropServices;
 using System.Text;
+using TES3Merge.BSA;
 
 namespace TES3Merge
 {

@@ -8,7 +8,7 @@ using static TES3Merge.Util;
 
 namespace TES3Merge.Commands
 {
-    // todo make this a proper commamd?
+    // TODO make this a proper commamd?
     internal static class VerifyCommand
     {
         /// <summary>
@@ -54,13 +54,13 @@ namespace TES3Merge.Commands
                 // Go through and build a record list.
                 var reportDict = new ConcurrentDictionary<string, Dictionary<string, List<string>>>();
                 WriteToLogAndConsole($"Parsing plugins ... ");
-                // make Parallel
                 //foreach (var sortedMaster in sortedMasters)
                 Parallel.ForEach(sortedMasters, sortedMaster =>
                 {
                     // this can be enabled actually
                     if (Path.GetExtension(sortedMaster) == ".esm")
                     {
+                        //continue;
                         return;
                     }
 
@@ -123,7 +123,10 @@ namespace TES3Merge.Commands
 
                         //reportDict.Add(x =>  sortedMaster, map);
                     }
-                });
+                }
+                );
+
+                // TODO sort by load order for printing
 
                 // pretty print
                 WriteToLogAndConsole($"\n------------------------------------");

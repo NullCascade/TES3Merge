@@ -1,6 +1,6 @@
 ﻿using TES3Merge.Extensions;
 
-namespace TES3Merge;
+namespace TES3Merge.BSA;
 
 public struct BSAHeader
 {
