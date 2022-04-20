@@ -8,14 +8,15 @@ internal static class FileLoader
     /// <summary>
     /// A map of loaded plugins. This is lazy-filled as requested.
     /// </summary>
-    readonly static Dictionary<string, TES3Lib.TES3> LoadedPlugins = new();
+    private static readonly Dictionary<string, TES3Lib.TES3> LoadedPlugins = new();
 
     /// <summary>
     /// A filter for all the types we will load. This optimizes loading so we don't load records we will never test.
     /// </summary>
-    static readonly List<string> testedRecords = new(new string[] {
+    private static readonly List<string> testedRecords = new(new string[] {
             "ALCH",
             "CREA",
+            "NPC_",
         });
 
     /// <summary>
@@ -43,11 +44,7 @@ internal static class FileLoader
     /// <returns>The found record, or null if the plugin could not be loaded or if the record does not exist.</returns>
     internal static TES3Lib.Base.Record? FindRecord(string pluginName, string id)
     {
-        var plugin = GetPlugin(pluginName);
-        if (plugin is null)
-        {
-            return null;
-        }
-        return plugin.FindRecord(id);
+        TES3Lib.TES3? plugin = GetPlugin(pluginName);
+        return plugin is null ? null : plugin.FindRecord(id);
     }
 }

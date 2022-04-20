@@ -1,5 +1,10 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Serilog;
+using Serilog.Events;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using static TES3Merge.Tests.FileLoader;
@@ -8,6 +13,24 @@ namespace TES3Merge.Tests.Merger;
 
 public abstract class RecordTest<T> where T : TES3Lib.Base.Record
 {
+    protected Microsoft.Extensions.Logging.ILogger _logger;
+    protected IHost _host;
+
+    public RecordTest()
+    {
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+            .Enrich.FromLogContext()
+            .WriteTo.Console(outputTemplate: "[{Level:u3}] {Message:lj}{NewLine}{Exception}")
+            .CreateLogger();
+
+        var hostBuilder = Host.CreateDefaultBuilder().UseSerilog();
+
+        _host = hostBuilder.Build();
+        _logger = _host.Services.GetRequiredService<ILogger<RecordTest<T>>>();
+    }
+
     #region Record Management
     internal static Dictionary<string, T> RecordCache = new();
 
@@ -30,7 +53,9 @@ public abstract class RecordTest<T> where T : TES3Lib.Base.Record
         List<T> records = new();
         foreach (var parent in parents)
         {
-            var record = RecordCache.ContainsKey(parent.Path) ? RecordCache[parent.Path] : parent.FindRecord(objectId) as T ?? throw new Exception($"Parent file {parent.Path} does not have record {objectId}.");
+            var record = RecordCache.ContainsKey(parent.Path)
+                ? RecordCache[parent.Path]
+                : parent.FindRecord(objectId) as T ?? throw new Exception($"Parent file {parent.Path} does not have record {objectId}.");
             records.Add(record);
             RecordCache[parent.Path] = record;
         }
@@ -39,7 +64,7 @@ public abstract class RecordTest<T> where T : TES3Lib.Base.Record
         var first = records.First();
         var last = records.Last();
         var merged = Activator.CreateInstance(last.GetType(), new object[] { last.SerializeRecord() }) as T ?? throw new Exception("Could not create record.");
-        for (int i = records.Count - 2; i > 0; i--)
+        for (var i = records.Count - 2; i > 0; i--)
         {
             RecordMerger.Merge(merged, first, records[i]);
         }
@@ -48,22 +73,17 @@ public abstract class RecordTest<T> where T : TES3Lib.Base.Record
     #endregion
 
     #region Logging
-    internal static void LogRecordValue(string property, string plugin)
+    internal void LogRecordValue(string property, string plugin)
     {
         LogRecordValue(GetCached(plugin), property, plugin);
     }
 
-    internal static void LogRecordValue(T record, string property, string plugin = Utility.MergedObjectsPluginName)
+    internal void LogRecordValue(T record, string property, string plugin = Utility.MergedObjectsPluginName)
     {
-        Logger.LogMessage($"{plugin} : {Utility.GetPropertyValue(record, property)}");
+        _logger.LogInformation("{plugin} : {PropertyValue}", plugin, Utility.GetPropertyValue(record, property));
     }
 
-    internal virtual void LogRecordsEffects(T merged, params string[] plugins)
-    {
-        throw new NotImplementedException();
-    }
-
-    internal static void LogRecords(string property, T merged, params string[] plugins)
+    internal void LogRecords(string property, T merged, params string[] plugins)
     {
         foreach (var plugin in plugins)
         {
@@ -72,14 +92,18 @@ public abstract class RecordTest<T> where T : TES3Lib.Base.Record
         LogRecordValue(merged, property);
     }
 
-    internal static void LogEffects(List<TES3Lib.Subrecords.Shared.Castable.ENAM>? effects)
+    internal void LogRecordsEnumerable(IEnumerable? items)
     {
-        if (effects is null) return;
-
-        foreach (var effect in effects)
+        if (items is null)
         {
-            Logger.LogMessage($"  - Effect: {effect.MagicEffect}; Skill: {effect.Skill}; Attribute: {effect.Attribute}; Magnitude: {effect.Magnitude}; Duration: {effect.Duration}");
+            return;
+        }
+
+        foreach (var item in items)
+        {
+            _logger.LogInformation("  - {Name}: {@Item}", item.GetType().Name, item);
         }
     }
+
     #endregion
 }
