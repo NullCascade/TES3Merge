@@ -2,7 +2,7 @@
 using TES3Lib;
 using static TES3Merge.Util;
 
-namespace TES3Merge;
+namespace TES3Merge.Commands;
 
 internal static class MergeCommand
 {

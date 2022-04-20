@@ -6,7 +6,7 @@ using TES3Lib;
 using TES3Lib.Base;
 using static TES3Merge.Util;
 
-namespace TES3Merge
+namespace TES3Merge.Commands
 {
     // todo make this a proper commamd?
     internal static class VerifyCommand

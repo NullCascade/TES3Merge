@@ -1,5 +1,6 @@
 ﻿using System.CommandLine;
 using System.Reflection;
+using TES3Merge.Commands;
 using static TES3Merge.Util;
 
 namespace TES3Merge;
