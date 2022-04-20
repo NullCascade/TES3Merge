@@ -29,8 +29,8 @@ public class ALCH : RecordTest<TES3Lib.Records.ALCH>
     {
         foreach (var parent in plugins)
         {
-            var plugin = RecordCache[parent];
-            Logger.LogMessage($"{plugin} : {plugin.ENAM?.Count}");
+            TES3Lib.Records.ALCH? plugin = RecordCache[parent];
+            Logger.LogMessage($"{plugin} : {plugin.ENAM?.Count} ({parent})");
             LogEffects(plugin.ENAM);
         }
         Logger.LogMessage($"{MergedObjectsPluginName} : {merged.ENAM?.Count}");
@@ -102,6 +102,7 @@ public class ALCH : RecordTest<TES3Lib.Records.ALCH>
         Assert.IsNotNull(MergedDefault.ENAM);
         Assert.IsNotNull(GetCached("merge_edit_all.esp").ENAM);
         Assert.IsNotNull(GetCached("merge_add_effects.esp").ENAM);
+
         Assert.AreEqual(MergedDefault.ENAM.Count, GetCached("merge_add_effects.esp").ENAM.Count);
 
         // Make sure we ended up with the right first effect.
