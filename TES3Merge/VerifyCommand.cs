@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Collections.Concurrent;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using TES3Lib;
@@ -23,6 +24,7 @@ namespace TES3Merge
             try
 #endif
             {
+                using var ssw = new ScopedStopwatch();
                 LoadConfig();
                 ArgumentNullException.ThrowIfNull(Configuration);
 
@@ -45,16 +47,21 @@ namespace TES3Merge
                 }
 
                 // get all physical and bsa files
-                var (fileMap, extensionToFolderMap) = Util.GetFileMap(morrowindPath);
+                var fileMap = GetFileMap(morrowindPath);
+                var extensionToFolderMap = GetExtensionMap(fileMap);
+
 
                 // Go through and build a record list.
-                var reportDict = new Dictionary<string, Dictionary<string, List<string>>>();
+                var reportDict = new ConcurrentDictionary<string, Dictionary<string, List<string>>>();
                 WriteToLogAndConsole($"Parsing plugins ... ");
-                foreach (var sortedMaster in sortedMasters)
+                // make Parallel
+                //foreach (var sortedMaster in sortedMasters)
+                Parallel.ForEach(sortedMasters, sortedMaster =>
                 {
+                    // this can be enabled actually
                     if (Path.GetExtension(sortedMaster) == ".esm")
                     {
-                        continue;
+                        return;
                     }
 
                     var map = new Dictionary<string, List<string>>();
@@ -111,9 +118,12 @@ namespace TES3Merge
 
                     if (map.Count > 0)
                     {
-                        reportDict.Add(sortedMaster, map);
+                        reportDict.AddOrUpdate(sortedMaster, map, (key, oldValue) => map);
+
+
+                        //reportDict.Add(x =>  sortedMaster, map);
                     }
-                }
+                });
 
                 // pretty print
                 WriteToLogAndConsole($"\n------------------------------------");
@@ -138,9 +148,6 @@ namespace TES3Merge
                     using var fs = new FileStream(reportPath, FileMode.Create);
                     JsonSerializer.Serialize(fs, reportDict, new JsonSerializerOptions() { WriteIndented = true });
                 }
-
-                // done
-                ShowCompletionPrompt();
             }
 #if DEBUG == false
             catch (Exception e)
@@ -149,9 +156,11 @@ namespace TES3Merge
                 Logger.WriteLine("An unhandled exception has occurred. Traceback:");
                 Logger.WriteLine(e.Message);
                 Logger.WriteLine(e.StackTrace);
-                ShowCompletionPrompt();
+                
             }
 #endif
+
+            ShowCompletionPrompt();
         }
 
         /// <summary>

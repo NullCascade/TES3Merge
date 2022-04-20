@@ -46,7 +46,7 @@ namespace TES3Merge
         /// Get a map of all physical files and bsa assets in the given directory
         /// </summary>
         /// <returns></returns>
-        internal static (ILookup<string, string> fileMap, Dictionary<string, List<string>> extensionToFolderMap) GetFileMap(string morrowindPath)
+        internal static ILookup<string, string> GetFileMap(string morrowindPath)
         {
             // map all files in Data Files
             WriteToLogAndConsole($"Generating file list ... ");
@@ -54,7 +54,7 @@ namespace TES3Merge
                 ".css", ".lua", ".pdf", ".jpg", ".ini", ".md", ".mohidden", ".docx",
                 ".7z",".rtf", ".log", ".psd", ".ods", ".csv", ".pkl", ".bak",
                 ".luacheckrc", ".luacompleterc", ".cells", ".data", ".espf", ".esmf", ".dll"};
-            var excludedFolders = new List<string>() { "docs", "distantland", "mwse", "extras", "mash" };
+
 
             var dataFiles = Path.Combine(morrowindPath, "Data Files");
             var physicalFiles = Directory
@@ -65,10 +65,14 @@ namespace TES3Merge
 
 
             // TODO don't parse the ini twice
+            // get Bsa files from ini
             {
                 // Try to get INI information.
-                IniData data;
-                var activatedBsas = new HashSet<string>();
+                IniData? data = null;
+                var activatedBsas = new HashSet<string>
+                {
+                    "Morrowind.bsa"
+                };
                 try
                 {
                     var parser = new FileIniDataParser();
@@ -89,32 +93,33 @@ namespace TES3Merge
                         // If the first pass fails, be more forgiving, but let the user know their INI has issues.
                         Console.WriteLine("WARNING: Issues were found with your Morrowind.ini file. See TES3Merge.log for details.");
                         Logger.WriteLine($"WARNING: Could not parse Morrowind.ini with initial pass. Error: {firstTry.Message}");
-
-
-                        // Build a list of activated files.
-                        var bsaIdx = 0;
-                        while (true)
-                        {
-                            var archive = data["Archives"]["Archive " + bsaIdx];
-                            if (string.IsNullOrEmpty(archive))
-                            {
-                                break;
-                            }
-
-                            // Add to masters list.
-                            activatedBsas.Add(archive);
-                            bsaIdx++;
-                        }
                     }
                     catch (Exception secondTry)
                     {
                         Console.WriteLine("ERROR: Unrecoverable issues were found with your Morrowind.ini file. See TES3Merge.log for details.");
                         Logger.WriteLine($"ERROR: Could not parse Morrowind.ini with second pass. Error: {secondTry.Message}");
 
-                        activatedBsas = null;
                         // do nothing and load all bsas
                         //ShowCompletionPrompt();
                         //return null;
+                    }
+                }
+
+                // Build a list of activated files.
+                if (data != null)
+                {
+                    var bsaIdx = 0;
+                    while (true)
+                    {
+                        var archive = data["Archives"]["Archive " + bsaIdx];
+                        if (string.IsNullOrEmpty(archive))
+                        {
+                            break;
+                        }
+
+                        // Add to masters list.
+                        activatedBsas.Add(archive);
+                        bsaIdx++;
                     }
                 }
 
@@ -139,6 +144,19 @@ namespace TES3Merge
 
             var fileMap = physicalFiles.ToLookup(p => Path.GetExtension(p), p => p);
 
+            return fileMap;
+        }
+
+        /// <summary>
+        /// Generates a extension to folder map of the modded game
+        /// </summary>
+        /// <param name="fileMap"></param>
+        /// <returns></returns>
+        internal static Dictionary<string, List<string>> GetExtensionMap(ILookup<string, string> fileMap)
+        {
+            var excludedFolders = new List<string>() { "docs", "distantland", "mwse", "extras", "mash" };
+
+            // generate the extensionMap
             var extensionToFolderMap = new Dictionary<string, List<string>>();
             foreach (var grouping in fileMap)
             {
@@ -179,7 +197,7 @@ namespace TES3Merge
                 }
             }
 
-            return (fileMap, extensionToFolderMap);
+            return extensionToFolderMap;
         }
 
         /// <summary>

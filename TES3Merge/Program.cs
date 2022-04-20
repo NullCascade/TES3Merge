@@ -25,9 +25,4 @@ internal class Program
 
         await rootCommand.InvokeAsync(args);
     }
-
-
-
-
-
 }

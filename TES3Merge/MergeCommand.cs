@@ -19,6 +19,7 @@ internal static class MergeCommand
         try
 #endif
         {
+            using var ssw = new ScopedStopwatch();
             LoadConfig();
             ArgumentNullException.ThrowIfNull(Configuration);
 
@@ -275,7 +276,7 @@ internal static class MergeCommand
             mergedObjects.TES3Save(Path.Combine(morrowindPath, "Data Files", "Merged Objects.esp"));
             Logger.WriteLine($"Wrote {mergedObjects.Records.Count - 1} merged objects.");
 
-            ShowCompletionPrompt();
+
         }
 #if DEBUG == false
         catch (Exception e)
@@ -284,8 +285,9 @@ internal static class MergeCommand
             Logger.WriteLine("An unhandled exception has occurred. Traceback:");
             Logger.WriteLine(e.Message);
             Logger.WriteLine(e.StackTrace);
-            ShowCompletionPrompt();
         }
 #endif
+
+        ShowCompletionPrompt();
     }
 }
