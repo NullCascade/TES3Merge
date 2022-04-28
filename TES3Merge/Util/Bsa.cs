@@ -15,7 +15,7 @@ public struct BSAFileInfo
     public uint offset;
 }
 
-public struct HashRecord
+public struct BSAHashRecord
 {
     public uint value1;
     public uint value2;
@@ -23,7 +23,7 @@ public struct HashRecord
 
 public class BSARecord
 {
-    public BSARecord(string name, BSAFileInfo fileInfo, HashRecord hash)
+    public BSARecord(string name, BSAFileInfo fileInfo, BSAHashRecord hash)
     {
         Name = name;
         FileInfo = fileInfo;
@@ -32,7 +32,7 @@ public class BSARecord
 
     public string Name;
     public BSAFileInfo FileInfo;
-    public HashRecord Hash;
+    public BSAHashRecord Hash;
 }
 
 public class BSAFile
@@ -68,7 +68,7 @@ public static class BsaParser
         var fileNames = new List<string>();
         for (var i = 1; i < header.numFiles + 1; i++)
         {
-            uint len = 0;
+            uint len;
             // last filename hack
             if (i != header.numFiles)
             {
@@ -86,10 +86,10 @@ public static class BsaParser
             fileNames.Add(s);
         }
 
-        var fileHashes = new List<HashRecord>();
+        var fileHashes = new List<BSAHashRecord>();
         for (var i = 0; i < header.numFiles; i++)
         {
-            fileHashes.Add(stream.ReadStruct<HashRecord>());
+            fileHashes.Add(stream.ReadStruct<BSAHashRecord>());
         }
 
         var files = new List<BSARecord>();

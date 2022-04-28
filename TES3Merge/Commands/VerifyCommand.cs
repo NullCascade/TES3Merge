@@ -15,9 +15,8 @@ namespace TES3Merge.Commands
         /// Verifies all active esps in the current Morrowind directory
         /// Parses all enabled records of the plugin and checks paths if the file exists
         /// </summary>
-        /// <param name="verify"></param>
         /// <exception cref="Exception"></exception>
-        internal static void Verify(bool verify)
+        internal static void Verify()
         {
             // Main execution attempt.
 #if DEBUG == false
