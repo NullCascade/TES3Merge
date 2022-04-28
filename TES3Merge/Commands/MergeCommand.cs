@@ -47,9 +47,6 @@ internal static class MergeCommand
             // get merge tags
             var (supportedMergeTags, objectIdFilters) = GetMergeTags();
 
-            // Get the game file list from the ini file.
-            Console.WriteLine("Parsing content files...");
-
             // get all loaded plugins
             var sortedMasters = GetSortedMasters(morrowindPath);
             if (sortedMasters is null)
