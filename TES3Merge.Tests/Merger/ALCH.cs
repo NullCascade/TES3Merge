@@ -1,5 +1,6 @@
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
 using static TES3Merge.Tests.Utility;
 
 namespace TES3Merge.Tests.Merger;
@@ -14,27 +15,16 @@ public class ALCH : RecordTest<TES3Lib.Records.ALCH>
 {
     internal TES3Lib.Records.ALCH MergedDefault;
     internal TES3Lib.Records.ALCH p_fortify_intelligence_c;
-
-    static readonly string[] BasicMergeMasters = new string[] { "merge_base.esp", "merge_edit_all.esp", "merge_minor_tweaks.esp" };
-    static readonly string[] AddedEffectsMergeMasters = new string[] { "merge_base.esp", "merge_edit_all.esp", "merge_add_effects.esp", "merge_minor_tweaks.esp" };
-    static readonly string[] RealWorldTestMasters = new string[] { "Morrowind.esm", "BTB's Game Improvements (Necro Edit) Tweaked.esp", "AOF Potions Recolored.esp", "ST_Alchemy_Balance_Sri_1.4.esp" };
+    private static readonly string[] BasicMergeMasters = new string[] { "merge_base.esp", "merge_edit_all.esp", "merge_minor_tweaks.esp" };
+    private static readonly string[] AddedEffectsMergeMasters = new string[] { "merge_base.esp", "merge_edit_all.esp", "merge_add_effects.esp", "merge_minor_tweaks.esp" };
+    private static readonly string[] RealWorldTestMasters = new string[] { "Morrowind.esm", "BTB's Game Improvements (Necro Edit) Tweaked.esp", "AOF Potions Recolored.esp", "ST_Alchemy_Balance_Sri_1.4.esp" };
 
     public ALCH()
     {
         MergedDefault = CreateMergedRecord("merge_alchemy", AddedEffectsMergeMasters);
         p_fortify_intelligence_c = CreateMergedRecord("p_fortify_intelligence_c", RealWorldTestMasters);
-    }
 
-    internal override void LogRecordsEffects(TES3Lib.Records.ALCH merged, params string[] plugins)
-    {
-        foreach (var parent in plugins)
-        {
-            TES3Lib.Records.ALCH? plugin = RecordCache[parent];
-            Logger.LogMessage($"{plugin} : {plugin.ENAM?.Count} ({parent})");
-            LogEffects(plugin.ENAM);
-        }
-        Logger.LogMessage($"{MergedObjectsPluginName} : {merged.ENAM?.Count}");
-        LogEffects(merged.ENAM);
+        _logger = _host.Services.GetRequiredService<ILogger<ALCH>>();
     }
 
     [TestMethod]
@@ -117,5 +107,17 @@ public class ALCH : RecordTest<TES3Lib.Records.ALCH>
 
         // Ensure that we carried over the right second effect.
         Assert.AreEqual(MergedDefault.ENAM[1], GetCached("merge_add_effects.esp").ENAM[1]);
+
+        void LogRecordsEffects(TES3Lib.Records.ALCH merged, params string[] plugins)
+        {
+            foreach (var parent in plugins)
+            {
+                var plugin = RecordCache[parent];
+                _logger.LogInformation("{Plugin} : {Count} ({Parent})", plugin, plugin.ENAM?.Count, parent);
+                LogRecordsEnumerable(plugin.ENAM);
+            }
+            _logger.LogInformation("{MergedObjectsPluginName} : {Count}", MergedObjectsPluginName, merged.ENAM?.Count);
+            LogRecordsEnumerable(merged.ENAM);
+        }
     }
 }
