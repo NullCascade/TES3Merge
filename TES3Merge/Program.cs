@@ -12,21 +12,35 @@ internal class Program
     {
 
         var verifyCommand = new Command("verify", "Checks esps for missing file paths.") { };
+        {
+            verifyCommand.SetHandler(() =>
+            {
+                VerifyCommand.Verify();
+            });
+        }
 
-        var inclusive = new Option<bool>(new[] { "--inclusive-list", "-i" }, "Merge lists inclusively per element (implemented for List<NPCO>)");
+        var dummyCommand = new Command("dummy", "Creates a dummy esp with given masters.") { };
+        {
+            var inputPath = new Argument<string>("inputPath", () => "", "Input file path");
+            dummyCommand.AddArgument(inputPath);
+            dummyCommand.SetHandler((string p) =>
+            {
+                DummyCommand.Dummy(p);
+            }, inputPath);
+        }
+
         var rootCommand = new RootCommand
         {
             verifyCommand,
-            inclusive
+            dummyCommand,
         };
-        verifyCommand.SetHandler(() =>
-        {
-            VerifyCommand.Verify();
-        });
+        var inclusive = new Option<bool>(new[] { "--inclusive-list", "-i" }, "Merge lists inclusively per element (implemented for List<NPCO>)");
+        rootCommand.AddOption(inclusive);
         rootCommand.SetHandler((bool i) =>
         {
             MergeCommand.Merge(i);
         }, inclusive);
+
 
         var version = Assembly.GetExecutingAssembly().GetName().Version;
         Logger.WriteLine($"TES3Merge v{version}.");
