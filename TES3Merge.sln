@@ -13,10 +13,19 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TES3Merge", "TES3Merge\TES3
 		{1BC5CBBB-E155-4D9A-BC55-6FE75109C1B9} = {1BC5CBBB-E155-4D9A-BC55-6FE75109C1B9}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TES3Merge.Tests", "TES3Merge.Tests\TES3Merge.Tests.csproj", "{5F6DDA09-33B6-4FAC-AC34-5FABBFA6D0F6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TES3Merge.Tests", "TES3Merge.Tests\TES3Merge.Tests.csproj", "{5F6DDA09-33B6-4FAC-AC34-5FABBFA6D0F6}"
 	ProjectSection(ProjectDependencies) = postProject
 		{5E35B4F8-4150-41D8-B78C-64ED0EF8871E} = {5E35B4F8-4150-41D8-B78C-64ED0EF8871E}
 	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{64D6AD8F-D337-411B-A5D9-0A2F2FDA811E}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{95C57EC3-AAEB-493D-8FAC-D54AD18C5BFF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{491D16BA-EA9E-42AB-A2AC-455F22A9B4B2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,6 +52,11 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{EB6C834A-B58E-4BBF-8BC5-4DEE6A925B4B} = {491D16BA-EA9E-42AB-A2AC-455F22A9B4B2}
+		{1BC5CBBB-E155-4D9A-BC55-6FE75109C1B9} = {491D16BA-EA9E-42AB-A2AC-455F22A9B4B2}
+		{5F6DDA09-33B6-4FAC-AC34-5FABBFA6D0F6} = {95C57EC3-AAEB-493D-8FAC-D54AD18C5BFF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3535F6FB-C6C9-4C94-8B77-21E8B5E90365}

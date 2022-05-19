@@ -1,32 +1,12 @@
-name: .NET
+name: Publish
 
-on:
+on: 
   push:
-    branches: [ master, main ]
+    tags:
+    - '*'
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: true
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: '6.x'
-
-    - name: Restore dependencies
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --no-restore
-
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
-
-  build-win:
-    needs: [test]
+  publish-win:
     runs-on: windows-latest
 
     steps:
@@ -44,10 +24,9 @@ jobs:
     - uses: actions/upload-artifact@v3
       with:
         name: tes3merge-win
-        path: ./publish/win/TES3Merge.exe
+        path: publish/win/
 
-  build-linux:
-    needs: [test]
+  publish-linux:
     runs-on: ubuntu-latest
 
     steps:
@@ -64,5 +43,32 @@ jobs:
     
     - uses: actions/upload-artifact@v3
       with:
-        name: tes3merge-linux
-        path: ./publish/linux/TES3Merge
+        name: tes3merge-win
+        path: publish/linux/
+
+  release:
+    needs: [publish-win,publish-linux]
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    # Create assets
+    - name: Download artifacts
+      uses: actions/download-artifact@v2
+    # create zip
+    - run: sudo apt-get install zip -y
+    - run: mkdir -p ./publish
+    - run: ls -R
+    - run: zip -r ./publish/TES3Merge-win.zip "TES3Merge-win"
+    - run: zip -r ./publish/TES3Merge-linux.zip "TES3Merge-linux"
+
+    # RELEASE
+    - name: Release
+      uses: ncipollo/release-action@v1
+      with:
+        draft: true
+        generateReleaseNotes: true
+        artifacts: "./publish/*.zip"
+        token: ${{ secrets.GITHUB_TOKEN }}
