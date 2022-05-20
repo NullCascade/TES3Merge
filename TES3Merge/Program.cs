@@ -23,16 +23,21 @@ internal class Program
         };
         {
             var inclusiveOption = new Option<bool>(new[] { "--inclusive-list", "-i" }, "Merge lists inclusively per element (implemented for List<NPCO>)");
-            var recordsOption = new Option<IEnumerable<string>>(new[] { "--records", "-r" }, "Merge only specific records.")
+            var recordsOption = new Option<IEnumerable<string>>(new[] { "--records", "-r" }, "Merge only specified records.")
+            {
+                AllowMultipleArgumentsPerToken = true
+            };
+            var ignoreRecordsOption = new Option<IEnumerable<string>>(new[] { "--ignore-records", "--ir" }, "Ignore specified records.")
             {
                 AllowMultipleArgumentsPerToken = true
             };
             rootCommand.AddOption(inclusiveOption);
             rootCommand.AddOption(recordsOption);
-            rootCommand.SetHandler((bool i, IEnumerable<string> r) =>
+            rootCommand.AddOption(ignoreRecordsOption);
+            rootCommand.SetHandler((bool i, IEnumerable<string> r, IEnumerable<string> ir) =>
             {
-                MergeCommand.Run(i, r);
-            }, inclusiveOption, recordsOption);
+                MergeCommand.Run(i, r, ir);
+            }, inclusiveOption, recordsOption, ignoreRecordsOption);
         }
 
         var version = Assembly.GetExecutingAssembly().GetName().Version;

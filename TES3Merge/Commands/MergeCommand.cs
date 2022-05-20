@@ -25,13 +25,14 @@ internal static class MergeCommand
     /// </summary>
     /// <param name="inclusiveListMerge"></param>
     /// <param name="filterRecords"></param>
-    internal static void Run(bool inclusiveListMerge, IEnumerable<string> filterRecords)
+    /// <param name="ignoredRecords"></param>
+    internal static void Run(bool inclusiveListMerge, IEnumerable<string> filterRecords, IEnumerable<string> ignoredRecords)
     {
 #if DEBUG == false
         try
 #endif
         {
-            Merge(inclusiveListMerge, filterRecords);
+            Merge(inclusiveListMerge, filterRecords, ignoredRecords);
         }
 
 #if DEBUG == false
@@ -52,8 +53,10 @@ internal static class MergeCommand
     /// </summary>
     /// <param name="inclusiveListMerge"></param>
     /// <param name="filterRecords"></param>
+    /// <param name="ignoredRecords"></param>
+    /// <param name="fileName"></param>
     /// <exception cref="Exception"></exception>
-    internal static void Merge(bool inclusiveListMerge, IEnumerable<string> filterRecords, string fileName = "Merged Objects.esp")
+    internal static void Merge(bool inclusiveListMerge, IEnumerable<string>? filterRecords, IEnumerable<string>? ignoredRecords, string fileName = "Merged Objects.esp")
     {
         using var ssw = new ScopedStopwatch();
         LoadConfig();
@@ -85,8 +88,12 @@ internal static class MergeCommand
         if (filterRecords != null && filterRecords.Any())
         {
             supportedMergeTags = supportedMergeTags.Intersect(filterRecords).ToList();
-            WriteToLogAndConsole($"Supported record types: {string.Join(", ", supportedMergeTags)}");
         }
+        if (ignoredRecords != null && ignoredRecords.Any())
+        {
+            supportedMergeTags = supportedMergeTags.Except(ignoredRecords).ToList();
+        }
+        WriteToLogAndConsole($"Supported record types: {string.Join(", ", supportedMergeTags)}");
 
         // get all loaded plugins
         var sortedMasters = GetSortedMasters(morrowindPath);
