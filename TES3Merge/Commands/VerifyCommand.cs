@@ -1,4 +1,14 @@
-﻿using System.Collections.Concurrent;
+﻿/*
+ * TODO
+ * 
+ * check NIF paths for each esp
+ * 
+ * 
+ * 
+ * 
+ */
+
+using System.Collections.Concurrent;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -76,22 +86,22 @@ internal static class VerifyCommand
         //foreach (var sortedMaster in sortedMasters)
         Parallel.ForEach(sortedMasters, sortedMaster =>
         {
-                // this can be enabled actually
+            // this can be enabled actually
             if (Path.GetExtension(sortedMaster) == ".esm")
             {
-                    //continue;
+                //continue;
                 return;
             }
 
             var map = new Dictionary<string, List<string>>();
 
-                // go through all records
+            // go through all records
             WriteToLogAndConsole($"Parsing input file: {sortedMaster}");
             var fullGameFilePath = Path.Combine(morrowindPath, "Data Files", $"{sortedMaster}");
             var file = TES3.TES3Load(fullGameFilePath, supportedMergeTags);
             foreach (var record in file.Records)
             {
-                    #region checks
+                #region checks
 
                 if (record is null)
                 {
@@ -107,7 +117,7 @@ internal static class VerifyCommand
                     continue;
                 }
 
-                    // Check against object filters.
+                // Check against object filters.
                 var allow = true;
                 var lowerId = editorId.ToLower();
                 foreach (var kv in objectIdFilters)
@@ -129,23 +139,25 @@ internal static class VerifyCommand
                     continue;
                 }
 
-                    #endregion
+                #endregion
 
-                    // verify here
+                // verify here
                 GetPathsInRecord(record, map, fileMap, extensionToFolderMap);
             }
 
             if (map.Count > 0)
             {
                 reportDict.AddOrUpdate(sortedMaster, map, (key, oldValue) => map);
-
-
-                    //reportDict.Add(x =>  sortedMaster, map);
+                //reportDict.Add(x =>  sortedMaster, map);
             }
         }
         );
 
-        // TODO sort by load order for printing
+        // parse nifs (in esp?)
+
+        // TODO
+
+
 
         // pretty print
         WriteToLogAndConsole($"\n------------------------------------");

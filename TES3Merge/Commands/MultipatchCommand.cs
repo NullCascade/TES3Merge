@@ -1,4 +1,21 @@
-﻿using System.Collections.Concurrent;
+﻿/*
+ * TODO
+ * 
+ * pass-through del options from merge
+ * 
+ * implement:
+ * --cellnames
+	resolve conflicts with renamed external cells
+
+    --fogbug
+	fix interior cells with the fog bug
+         
+    --summons-persist
+	fixes summoned creatures crash by making them persistent
+ * 
+ */
+
+using System.Collections.Concurrent;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -36,8 +53,8 @@ internal static class MultipatchCommand
     }
 
     /// <summary>
+    /// tes3cmd multipatch
     /// Merge LEVI and LEVC
-    /// 
     /// </summary>
     /// <exception cref="Exception"></exception>
     private static void Multipatch()
@@ -47,5 +64,20 @@ internal static class MultipatchCommand
         MergeCommand.Merge(true, new List<string>() { "LEVI", "LEVC" });
 
         // TODO implement more multipatch merges
+        /* 
+         --cellnames
+	        resolve conflicts with renamed external cells
+
+         --fogbug
+	        fix interior cells with the fog bug
+         
+         --summons-persist
+	        fixes summoned creatures crash by making them persistent
+         
+         */
+
+
+
+
     }
 }

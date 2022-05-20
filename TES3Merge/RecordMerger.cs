@@ -45,6 +45,8 @@ internal static class RecordMerger
         MergePropertyFunctionMapper[typeof(List<(TES3Lib.Subrecords.LEVI.INAM INAM, TES3Lib.Subrecords.LEVI.INTV INTV)>)] = Merger.LEVI.ITEM;
         MergePropertyFunctionMapper[typeof(List<(TES3Lib.Subrecords.LEVC.CNAM CNAM, TES3Lib.Subrecords.LEVC.INTV INTV)>)] = Merger.LEVC.CRIT;
 
+        //MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.LEVI.DATA)] = Merger.Shared.NoMerge;
+
         MergePropertyFunctionMapper[typeof(List<TES3Lib.Subrecords.Shared.Castable.ENAM>)] = Merger.Shared.EffectList;
 
         MergePropertyFunctionMapper[typeof(TES3Lib.Base.Subrecord)] = MergePropertySubrecord;
@@ -135,7 +137,7 @@ internal static class RecordMerger
             else if (firstValue is not null && nextValue is null)
             {
                 // if the base value is not null, but some plugin later in the load order does set the value to null
-                // then I want to retain the latest value
+                // then retain the latest value
                 property.SetValue(current, currentValue);
                 modified = true;
                 continue;

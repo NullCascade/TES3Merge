@@ -21,32 +21,46 @@ internal static class LEVC
         }
     }
 
-    private static readonly CRITComparer BasicComparer = new();
+    private class KeyValuePairComparer : EqualityComparer<KeyValuePair<(CNAM, INTV INTV), int>>
+    {
+        public override bool Equals(KeyValuePair<(CNAM, INTV INTV), int> x, KeyValuePair<(CNAM, INTV INTV), int> y)
+        {
+            return CritComparer.Equals(x.Key, y.Key) && x.Value == y.Value;
+        }
+
+        public override int GetHashCode([DisallowNull] KeyValuePair<(CNAM, INTV INTV), int> obj)
+        {
+            return base.GetHashCode();
+        }
+    }
+
+    private static readonly CRITComparer CritComparer = new();
+    private static readonly KeyValuePairComparer kvpComparer = new();
 
     internal static bool CRIT(PropertyInfo property, object currentParam, object firstParam, object nextParam)
     {
         // Get the values as their correct type.
-        var currentAsEnumerable = property.GetValue(currentParam) as List<(CNAM CNAM, INTV INTV)>
+        var current = property.GetValue(currentParam) as List<(CNAM CNAM, INTV INTV)>
             ?? throw new ArgumentException("Current record is of incorrect type.");
-        var firstAsEnumerable = property.GetValue(firstParam) as List<(CNAM CNAM, INTV INTV)>
+        var first = property.GetValue(firstParam) as List<(CNAM CNAM, INTV INTV)>
             ?? throw new ArgumentException("First record is of incorrect type.");
-        var nextAsEnumerable = property.GetValue(nextParam) as List<(CNAM CNAM, INTV INTV)>
+        var next = property.GetValue(nextParam) as List<(CNAM CNAM, INTV INTV)>
             ?? throw new ArgumentException("Next record is of incorrect type.");
 
         var modified = false;
 
         // Ensure that we have a current value.
-        if (currentAsEnumerable == null)
+        if (current == null)
         {
-            if (firstAsEnumerable != null)
+            if (first != null)
             {
-                currentAsEnumerable = new List<(CNAM CNAM, INTV INTV)>(firstAsEnumerable);
-                property.SetValue(currentParam, currentAsEnumerable);
+                current = new List<(CNAM CNAM, INTV INTV)>(first);
+                property.SetValue(currentParam, current);
             }
-            else if (nextAsEnumerable != null)
+            else if (next != null)
             {
-                currentAsEnumerable = new List<(CNAM CNAM, INTV INTV)>(nextAsEnumerable);
-                property.SetValue(currentParam, currentAsEnumerable);
+                current = new List<(CNAM CNAM, INTV INTV)>(next);
+                property.SetValue(currentParam, current);
             }
             else
             {
@@ -54,22 +68,43 @@ internal static class LEVC
             }
         }
 
-        if (firstAsEnumerable == null)
+        if (first == null)
         {
-            throw new ArgumentNullException(nameof(firstAsEnumerable));
+            throw new ArgumentNullException(nameof(first));
         }
 
-        // inclusive list merge
-        var union = firstAsEnumerable
-            .Union(currentAsEnumerable, BasicComparer)
-            .Union(nextAsEnumerable, BasicComparer)
-            .Distinct(BasicComparer)
+        // minimal distinct inclusive list merge
+        // map occurences of items in each plugin
+        var fmap = first.ToLookup(x => x, CritComparer).ToDictionary(x => x.Key, y => y.Count());
+        var cmap = current.ToLookup(x => x, CritComparer).ToDictionary(x => x.Key, y => y.Count());
+        var nmap = next.ToLookup(x => x, CritComparer).ToDictionary(x => x.Key, y => y.Count());
+
+        // gather all
+        var map = fmap
+            .Union(cmap, kvpComparer)
+            .Union(nmap, kvpComparer)
+            .Distinct(kvpComparer)
+            .ToLookup(x => x.Key, CritComparer)
+            .ToDictionary(x => x.Key, y => y.Select(x => x.Value).Max());
+
+        // add by minimal count
+        var union = new List<(CNAM CNAM, INTV INTV)>();
+        foreach (var (item, cnt) in map)
+        {
+            for (var i = 0; i < cnt; i++)
+            {
+                union.Add(item);
+            }
+        }
+
+        // order
+        union = union
             .OrderBy(x => x.INTV.PCLevelOfPrevious)
             .ThenBy(x => x.CNAM.CreatureEditorId)
             .ToList();
 
         // compare to vanilla
-        if (!union.SequenceEqual(firstAsEnumerable))
+        if (!union.SequenceEqual(first))
         {
             property.SetValue(currentParam, union);
             modified = true;

@@ -23,32 +23,46 @@ internal static class LEVI
         }
     }
 
-    private static readonly ITEMComparer BasicComparer = new();
+    private class KeyValuePairComparer : EqualityComparer<KeyValuePair<(INAM, INTV INTV), int>>
+    {
+        public override bool Equals(KeyValuePair<(INAM, INTV INTV), int> x, KeyValuePair<(INAM, INTV INTV), int> y)
+        {
+            return ItemComparer.Equals(x.Key, y.Key) && x.Value == y.Value;
+        }
+
+        public override int GetHashCode([DisallowNull] KeyValuePair<(INAM, INTV INTV), int> obj)
+        {
+            return base.GetHashCode();
+        }
+    }
+
+    private static readonly ITEMComparer ItemComparer = new();
+    private static readonly KeyValuePairComparer kvpComparer = new();
 
     internal static bool ITEM(PropertyInfo property, object currentParam, object firstParam, object nextParam)
     {
         // Get the values as their correct type.
-        var currentAsEnumerable = property.GetValue(currentParam) as List<(INAM INAM, INTV INTV)>
+        var current = property.GetValue(currentParam) as List<(INAM INAM, INTV INTV)>
             ?? throw new ArgumentException("Current record is of incorrect type.");
-        var firstAsEnumerable = property.GetValue(firstParam) as List<(INAM INAM, INTV INTV)>
+        var first = property.GetValue(firstParam) as List<(INAM INAM, INTV INTV)>
             ?? throw new ArgumentException("First record is of incorrect type.");
-        var nextAsEnumerable = property.GetValue(nextParam) as List<(INAM INAM, INTV INTV)>
+        var next = property.GetValue(nextParam) as List<(INAM INAM, INTV INTV)>
             ?? throw new ArgumentException("Next record is of incorrect type.");
 
         var modified = false;
 
         // Ensure that we have a current value.
-        if (currentAsEnumerable == null)
+        if (current == null)
         {
-            if (firstAsEnumerable != null)
+            if (first != null)
             {
-                currentAsEnumerable = new List<(INAM INAM, INTV INTV)>(firstAsEnumerable);
-                property.SetValue(currentParam, currentAsEnumerable);
+                current = new List<(INAM INAM, INTV INTV)>(first);
+                property.SetValue(currentParam, current);
             }
-            else if (nextAsEnumerable != null)
+            else if (next != null)
             {
-                currentAsEnumerable = new List<(INAM INAM, INTV INTV)>(nextAsEnumerable);
-                property.SetValue(currentParam, currentAsEnumerable);
+                current = new List<(INAM INAM, INTV INTV)>(next);
+                property.SetValue(currentParam, current);
             }
             else
             {
@@ -56,25 +70,82 @@ internal static class LEVI
             }
         }
 
-        if (firstAsEnumerable == null)
+        if (first == null)
         {
-            throw new ArgumentNullException(nameof(firstAsEnumerable));
+            throw new ArgumentNullException(nameof(first));
         }
 
-        // inclusive list merge
-        var union = firstAsEnumerable
-            .Union(currentAsEnumerable, BasicComparer)
-            .Union(nextAsEnumerable, BasicComparer)
-            .Distinct(BasicComparer)
+        /*
+         * some special cases:
+         * 
+         * 1) chance
+         * 2) list flags
+         * mod A sets chance_none to 75 and changes the list to only one item
+         * mod B keeps chance_none at 50 but adds more items
+         * 
+         * naive outcome:
+         * chance 75 but a lot of items
+         * 
+         * desired outcome:
+         * priority -> needs community rules
+         * -> but retain the naive merge by default
+         * 
+         * 2) handle duplicate items
+         * mod A,B and C all have different lists but keep one item from vanilla 
+         * mod D adds one item 10 times
+         * 
+         * desired outcome: minimal distinct items
+         * 
+         */
+
+        // minimal distinct inclusive list merge
+        // map occurences of items in each plugin
+        var fmap = first.ToLookup(x => x, ItemComparer).ToDictionary(x => x.Key, y => y.Count());
+        var cmap = current.ToLookup(x => x, ItemComparer).ToDictionary(x => x.Key, y => y.Count());
+        var nmap = next.ToLookup(x => x, ItemComparer).ToDictionary(x => x.Key, y => y.Count());
+
+        // gather all
+        var map = fmap
+            .Union(cmap, kvpComparer)
+            .Union(nmap, kvpComparer)
+            .Distinct(kvpComparer)
+            .ToLookup(x => x.Key, ItemComparer)
+            .ToDictionary(x => x.Key, y => y.Select(x => x.Value).Max());
+
+        // add by minimal count
+        var union = new List<(INAM INAM, INTV INTV)>();
+        foreach (var (item, cnt) in map)
+        {
+            for (var i = 0; i < cnt; i++)
+            {
+                union.Add(item);
+            }
+        }
+
+        // order
+        union = union
             .OrderBy(x => x.INTV.PCLevelOfPrevious)
-            .ThenBy(x => x.Item1.ItemEditorId)
+            .ThenBy(x => x.INAM.ItemEditorId)
             .ToList();
 
-        // strategy: last guy wins for List Flags
-        // strategy: last guy wins for "Chance_None"
+        // naive distinct union
+        //var union = first
+        //    .Union(current, BasicComparer)
+        //    .Union(next, BasicComparer)
+        //    .OrderBy(x => x.INTV.PCLevelOfPrevious)
+        //    .ThenBy(x => x.Item1.ItemEditorId)
+        //    .ToList();
+
+        if (currentParam is TES3Lib.Records.LEVI l)
+        {
+            if (l.NAME.EditorId == "random_pearl\0")
+            {
+
+            }
+        }
 
         // compare to vanilla
-        if (!union.SequenceEqual(firstAsEnumerable))
+        if (!union.SequenceEqual(first))
         {
             property.SetValue(currentParam, union);
             modified = true;
@@ -85,5 +156,8 @@ internal static class LEVI
         }
 
         return modified;
+
+
+
     }
 }

@@ -1,4 +1,18 @@
-﻿using System.Text.RegularExpressions;
+﻿/*
+ * TODO
+ * 
+ * from tes3cmd
+ * This option has the following sub-options which can be used to remove
+ creatures and items (by exact id match) from all leveled lists in
+ which they occur:
+
+ --delete-creature*|--dc* <creature-id>
+ --delete-item*|--di* <item-id>
+ * 
+ * 
+ */
+
+using System.Text.RegularExpressions;
 using TES3Lib;
 using static TES3Merge.Util;
 
@@ -39,7 +53,7 @@ internal static class MergeCommand
     /// <param name="inclusiveListMerge"></param>
     /// <param name="filterRecords"></param>
     /// <exception cref="Exception"></exception>
-    internal static void Merge(bool inclusiveListMerge, IEnumerable<string> filterRecords)
+    internal static void Merge(bool inclusiveListMerge, IEnumerable<string> filterRecords, string fileName = "Merged Objects.esp")
     {
         using var ssw = new ScopedStopwatch();
         LoadConfig();
@@ -244,7 +258,7 @@ internal static class MergeCommand
                                 var master = mapTES3ToFileNames[recordMasters[record]];
                                 Logger.WriteLine($">> {master}: {BitConverter.ToString(record.GetRawLoadedBytes()).Replace("-", "")}");
                             }
-                            Logger.WriteLine($">> Merged Objects.esp: {BitConverter.ToString(newSerialized).Replace("-", "")}");
+                            Logger.WriteLine($">> {fileName}: {BitConverter.ToString(newSerialized).Replace("-", "")}");
                         }
 
                         foreach (var master in localUsedMasters)
@@ -285,7 +299,7 @@ internal static class MergeCommand
         }
 
         // Add the necessary masters.
-        Logger.WriteLine("Saving Merged Objects.esp ...");
+        Logger.WriteLine($"Saving {fileName} ...");
         mergedObjectsHeader.Masters = new List<(TES3Lib.Subrecords.TES3.MAST MAST, TES3Lib.Subrecords.TES3.DATA DATA)>();
         foreach (var gameFile in GetFilteredLoadList(sortedMasters, usedMasters))
         {
@@ -298,7 +312,7 @@ internal static class MergeCommand
 
         // Save out the merged objects file.
         mergedObjectsHeader.HEDR.NumRecords = mergedObjects.Records.Count - 1;
-        mergedObjects.TES3Save(Path.Combine(morrowindPath, "Data Files", "Merged Objects.esp"));
+        mergedObjects.TES3Save(Path.Combine(morrowindPath, "Data Files", fileName));
         Logger.WriteLine($"Wrote {mergedObjects.Records.Count - 1} merged objects.");
     }
 }

@@ -12,6 +12,7 @@ internal class Program
     {
         var verifyCommand = new Command("verify", "Checks esps for missing file paths.") { };
         verifyCommand.SetHandler(() => VerifyCommand.Run());
+
         var multipatchCommand = new Command("multipatch", "Alias for merging LEVI and LEVC.") { };
         multipatchCommand.SetHandler(() => MultipatchCommand.Run());
 
