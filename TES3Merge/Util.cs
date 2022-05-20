@@ -323,8 +323,8 @@ namespace TES3Merge
                         //"INFO",
                         "INGR",
                         //"LAND",
-                        //"LEVC",
-                        //"LEVI",
+                        "LEVC",
+                        "LEVI",
                         "LIGH",
                         "LOCK",
                         //"LTEX",
@@ -354,7 +354,6 @@ namespace TES3Merge
                     supportedMergeTags.Remove(recordTypeConfig.KeyName);
                 }
             }
-            WriteToLogAndConsole($"Supported record types: {string.Join(", ", supportedMergeTags)}");
 
             // Make sure we're going to merge something.
             if (supportedMergeTags.Count == 0)
