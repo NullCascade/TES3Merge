@@ -61,7 +61,7 @@ internal static class MultipatchCommand
     {
         using var ssw = new ScopedStopwatch();
 
-        MergeCommand.Merge(true, new List<string>() { "LEVI", "LEVC" });
+        MergeCommand.Merge(true, new List<string>() { "LEVI", "LEVC" }, "multipatch.esp");
 
         // TODO implement more multipatch merges
         /* 
