@@ -36,24 +36,30 @@ internal static class RecordMerger
     {
         // Define type merge behaviors.
         MergeTypeFunctionMapper[typeof(TES3Lib.Base.Record)] = MergeTypeRecord;
+        MergePropertyFunctionMapper[typeof(TES3Lib.Base.Subrecord)] = MergePropertySubrecord;
 
-        // Define property merge behaviors.
-        MergePropertyFunctionMapper[typeof(List<(IAIPackage, TES3Lib.Subrecords.CREA.CNDT)>)] = Merger.CREA.AIPackage;
-        MergePropertyFunctionMapper[typeof(List<(IAIPackage, TES3Lib.Subrecords.NPC_.CNDT)>)] = Merger.NPC_.AIPackage;
-
-
-        MergePropertyFunctionMapper[typeof(List<(TES3Lib.Subrecords.LEVI.INAM INAM, TES3Lib.Subrecords.LEVI.INTV INTV)>)] = Merger.LEVI.ITEM;
-        MergePropertyFunctionMapper[typeof(List<(TES3Lib.Subrecords.LEVC.CNAM CNAM, TES3Lib.Subrecords.LEVC.INTV INTV)>)] = Merger.LEVC.CRIT;
-
-        //MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.LEVI.DATA)] = Merger.Shared.NoMerge;
-
+        // Shared
         MergePropertyFunctionMapper[typeof(List<TES3Lib.Subrecords.Shared.Castable.ENAM>)] = Merger.Shared.EffectList;
 
-        MergePropertyFunctionMapper[typeof(TES3Lib.Base.Subrecord)] = MergePropertySubrecord;
-        MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.CLAS.CLDT)] = Merger.CLAS.CLDT;
-        MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.FACT.FADT)] = Merger.FACT.FADT;
+        // CREA
+        MergePropertyFunctionMapper[typeof(List<(IAIPackage, TES3Lib.Subrecords.CREA.CNDT)>)] = Merger.CREA.AIPackage;
+
+        // NPC_
+        MergePropertyFunctionMapper[typeof(List<(IAIPackage, TES3Lib.Subrecords.NPC_.CNDT)>)] = Merger.NPC_.AIPackage;
         MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.NPC_.NPDT)] = Merger.NPC_.NPDT;
 
+        // LEVI
+        MergePropertyFunctionMapper[typeof(List<(TES3Lib.Subrecords.LEVI.INAM INAM, TES3Lib.Subrecords.LEVI.INTV INTV)>)] = Merger.LEVI.ITEM;
+        //MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.LEVI.DATA)] = Merger.Shared.NoMerge;
+
+        // LEVC
+        MergePropertyFunctionMapper[typeof(List<(TES3Lib.Subrecords.LEVC.CNAM CNAM, TES3Lib.Subrecords.LEVC.INTV INTV)>)] = Merger.LEVC.CRIT;
+
+        // CLAS
+        MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.CLAS.CLDT)] = Merger.CLAS.CLDT;
+        
+        // FACT
+        MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.FACT.FADT)] = Merger.FACT.FADT;
     }
 
     public static Func<object, object, object, bool>? GetTypeMergeFunction(Type? type)
@@ -174,6 +180,14 @@ internal static class RecordMerger
         {
             current.Flags = next.Flags;
             modified = true;
+        }
+
+        // fixes summoned creatures crash by making them persistent
+        if (current is TES3Lib.Records.CREA creature
+            && TES3Merge.Merger.CREA.SummonedCreatures.Contains(creature.GetEditorId().TrimEnd('\0')) 
+            && !creature.Flags.Contains(TES3Lib.Enums.Flags.RecordFlag.Persistant))
+        {
+            creature.Flags.Add(TES3Lib.Enums.Flags.RecordFlag.Persistant);
         }
 
         // Generically merge all other properties.

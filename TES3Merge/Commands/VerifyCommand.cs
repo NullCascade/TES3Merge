@@ -213,7 +213,7 @@ internal static class VerifyCommand
             }
         }
 
-        if (recordDict.Count > 0)
+        if (recordDict.Count > 0 && record is not null)
         {
             var id = record.GetEditorId().TrimEnd('\0');
             map.Add(id, recordDict);

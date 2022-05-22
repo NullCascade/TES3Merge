@@ -6,8 +6,10 @@ namespace TES3Merge.Merger;
 
 internal static class CREA
 {
+    // TODO duplicated code. fix this with some interfaces or something
+
     /// <summary>
-    /// TODO duplicated code. fix this with some interfaces or something
+    /// Merger for the AIPackage list in CREA
     /// </summary>
     /// <param name="property"></param>
     /// <param name="currentParam"></param>
@@ -90,4 +92,32 @@ internal static class CREA
             return false;
         }
     }
+
+    // list of summoned creatures for multipatch
+    public static List<string> SummonedCreatures = new()
+    {
+        "centurion_fire_dead",
+        "wraith_sul_senipul",
+        "ancestor_ghost_summon",
+        "atronach_flame_summon",
+        "atronach_frost_summon",
+        "atronach_storm_summon",
+        "bonelord_summon",
+        "bonewalker_summon",
+        "bonewalker_greater_summ",
+        "centurion_sphere_summon",
+        "clannfear_summon",
+        "daedroth_summon",
+        "dremora_summon",
+        "golden saint_summon",
+        "hunger_summon",
+        "scamp_summon",
+        "skeleton_summon",
+        "ancestor_ghost_variner",
+        "fabricant_summon",
+        "bm_bear_black_summon",
+        "bm_wolf_grey_summon",
+        "bm_wolf_bone_summon"
+    };
+
 }
