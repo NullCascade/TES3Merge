@@ -128,22 +128,6 @@ internal static class LEVI
             .ThenBy(x => x.INAM.ItemEditorId)
             .ToList();
 
-        // naive distinct union
-        //var union = first
-        //    .Union(current, BasicComparer)
-        //    .Union(next, BasicComparer)
-        //    .OrderBy(x => x.INTV.PCLevelOfPrevious)
-        //    .ThenBy(x => x.Item1.ItemEditorId)
-        //    .ToList();
-
-        if (currentParam is TES3Lib.Records.LEVI l)
-        {
-            if (l.NAME.EditorId == "random_pearl\0")
-            {
-
-            }
-        }
-
         // compare to vanilla
         if (!union.SequenceEqual(first))
         {
