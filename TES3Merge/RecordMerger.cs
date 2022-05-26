@@ -36,6 +36,11 @@ internal static class RecordMerger
     {
         // Define type merge behaviors.
         MergeTypeFunctionMapper[typeof(TES3Lib.Base.Record)] = MergeTypeRecord;
+
+        MergeTypeFunctionMapper[typeof(TES3Lib.Records.CELL)] = Merger.CELL.Merge;
+
+
+        // Define property merge behaviors.
         MergePropertyFunctionMapper[typeof(TES3Lib.Base.Subrecord)] = MergePropertySubrecord;
 
         // Shared
@@ -57,7 +62,7 @@ internal static class RecordMerger
 
         // CLAS
         MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.CLAS.CLDT)] = Merger.CLAS.CLDT;
-        
+
         // FACT
         MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.FACT.FADT)] = Merger.FACT.FADT;
     }
@@ -188,86 +193,6 @@ internal static class RecordMerger
             modified = true;
         }
 
-        // TODO make these patches optional
-
-        // fixes summoned creatures crash by making them persistent
-        /*
-
-        Summoned creatures persists (--summons-persist)
-
-        There is a bug in Morrowind that can cause the game to crash if you leave a
-        cell where an NPC has summoned a creature. The simple workaround is to flag
-        summoned creatures as persistent. The Morrowind Patch Project implements
-        this fix, however other mods coming later in the load order often revert it.
-        This option to the multipatch ensures that known summoned creatures are
-        flagged as persistent. The Morrowind Code Patch also fixes this bug, making
-        this feature redundant.
-
-        */
-        if (current is TES3Lib.Records.CREA creature
-            && TES3Merge.Merger.CREA.SummonedCreatures.Contains(creature.GetEditorId().TrimEnd('\0')) 
-            && !creature.Flags.Contains(TES3Lib.Enums.Flags.RecordFlag.Persistant))
-        {
-            creature.Flags.Add(TES3Lib.Enums.Flags.RecordFlag.Persistant);
-            modified = true;
-        }
-
-
-        /*
-
-        Fog Bug Patch (--fogbug)
-
-        Some video cards are affected by how Morrowind handles a fog density setting
-        of zero in interior cells with the result that the interior is pitch black,
-        except for some light sources, and no amount of light, night-eye, or gamma
-        setting will make the interior visible. This is known as the "fog bug".
-
-        This option creates a patch that fixes all fogbugged cells in your active
-        plugins by setting the fog density of those cells to a non-zero value.
-        
-        Cell Name Patch (--cellnames)
-
-        Creates a patch to ensure renamed cells are not accidentally reverted to
-        their original name.
-
-        This solves the following plugin conflict that causes bugs:
-        * Master A names external CELL (1, 1) as: "".
-        * Plugin B renames CELL (1, 1) to: "My City".
-        * Plugin C modifies CELL (1, 1), using the original name "", reverting
-            renaming done by plugin B.
-        * References in plugin B (such as in scripts) that refer to "My City" break.
-
-        This option works by scanning your currently active plugin load order for
-        cell name reversions like those in the above example, and ensures whenever
-        possible that cell renaming is properly maintained.
-
-        */
-        if (current is TES3Lib.Records.CELL cell)
-        {
-            // only check interior cells for fogbug
-            if (cell.DATA.Flags.Contains(TES3Lib.Enums.Flags.CellFlag.IsInteriorCell) && !cell.DATA.Flags.Contains(TES3Lib.Enums.Flags.CellFlag.BehaveLikeExterior))
-            {
-                // TODO Fog Density in DATA
-                if (cell.AMBI.FogDensity == 0f)
-                {
-                    cell.AMBI.FogDensity = 0.1f;
-                    modified = true;
-                }
-            }
-            
-            // only check exterior cells for rename reversion problem
-            if (!cell.DATA.Flags.Contains(TES3Lib.Enums.Flags.CellFlag.IsInteriorCell))
-            {
-                // var nam = cell.NAME.Name;
-                //var coords = (cell.DATA.GridX, cell.DATA.GridY);
-
-                
-
-
-                //modified = true;
-            }
-        }
-        
         return modified;
     }
 

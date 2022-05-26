@@ -14,6 +14,7 @@
 
 using System.Text.RegularExpressions;
 using TES3Lib;
+using TES3Lib.Base;
 using static TES3Merge.Util;
 
 namespace TES3Merge.Commands;
@@ -26,10 +27,16 @@ internal static class MergeCommand
     /// <param name="inclusiveListMerge"></param>
     /// <param name="filterRecords"></param>
     /// <param name="ignoredRecords"></param>
-    internal static void Run(bool inclusiveListMerge, IEnumerable<string> filterRecords, IEnumerable<string> ignoredRecords)
+    internal static void Run(
+        bool inclusiveListMerge,
+        IEnumerable<string> filterRecords,
+        IEnumerable<string> ignoredRecords)
     {
 #if DEBUG == false
         try
+#else
+        //Console.WriteLine("Press any button to continue...");
+        //Console.ReadLine();
 #endif
         {
             Merge(inclusiveListMerge, filterRecords, ignoredRecords);
@@ -176,7 +183,6 @@ internal static class MergeCommand
         if (recordMasters.Count == 0)
         {
             WriteToLogAndConsole("No potential record merges found. Aborting.");
-            ShowCompletionPrompt();
             return;
         }
 
@@ -198,27 +204,66 @@ internal static class MergeCommand
             var recordsMap = recordOverwriteMap[recordType];
             foreach (var id in recordsMap.Keys)
             {
-                var records = recordsMap[id];
-                if (records.Count <= 2)
-                {
-                    continue;
-                }
-                var firstRecord = records[0];
-                var lastRecord = records.Last();
-                var firstMaster = mapTES3ToFileNames[recordMasters[firstRecord]];
-                var lastMaster = mapTES3ToFileNames[recordMasters[lastRecord]];
+                MergeAndPatchRecords(id, recordsMap[id]);
+            }
+        }
 
-                var localUsedMasters = new HashSet<string>() { firstMaster, lastMaster };
+        // Did we even merge anything?
+        if (usedMasters.Count == 0)
+        {
+            WriteToLogAndConsole("No merges were deemed necessary. Aborting.");
+            return;
+        }
 
-                var lastSerialized = lastRecord.GetRawLoadedBytes();
-                var newRecord = Activator.CreateInstance(lastRecord.GetType(), new object[] { lastSerialized }) as TES3Lib.Base.Record ?? throw new Exception("Could not create activator instance.");
+        // Add the necessary masters.
+        Logger.WriteLine($"Saving {fileName} ...");
+        mergedObjectsHeader.Masters = new List<(TES3Lib.Subrecords.TES3.MAST MAST, TES3Lib.Subrecords.TES3.DATA DATA)>();
+        foreach (var gameFile in GetFilteredLoadList(sortedMasters, usedMasters))
+        {
+            if (usedMasters.Contains(gameFile))
+            {
+                var size = new FileInfo(Path.Combine(morrowindPath, "Data Files", $"{gameFile}")).Length;
+                mergedObjectsHeader.Masters.Add((new TES3Lib.Subrecords.TES3.MAST { Filename = $"{gameFile}\0" }, new TES3Lib.Subrecords.TES3.DATA { MasterDataSize = size }));
+            }
+        }
+
+        // Save out the merged objects file.
+        mergedObjectsHeader.HEDR.NumRecords = mergedObjects.Records.Count - 1;
+
+        // mergedObjects.TES3Save(Path.Combine(morrowindPath, "Data Files", fileName));
+        using var fs = new FileStream(Path.Combine(morrowindPath, "Data Files", fileName), FileMode.Create, FileAccess.ReadWrite);
+        foreach (var record in mergedObjects.Records)
+        {
+            var serializedRecord = record is TES3Lib.Records.CELL cell ? cell.SerializeRecordForMerge() : record.SerializeRecord();
+            fs.Write(serializedRecord, 0, serializedRecord.Length);
+        }
+        Logger.WriteLine($"Wrote {mergedObjects.Records.Count - 1} merged objects.");
+
+
+        // Local functions
+        void MergeAndPatchRecords(string id, List<Record> records)
+        {
+            var firstRecord = records.First();
+            var lastRecord = records.Last();
+            var firstMaster = mapTES3ToFileNames[recordMasters[firstRecord]];
+            var lastMaster = mapTES3ToFileNames[recordMasters[lastRecord]];
+            var localUsedMasters = new HashSet<string>() { firstMaster, lastMaster };
+            var lastSerialized = lastRecord.GetRawLoadedBytes();
+            var newRecord = Activator.CreateInstance(lastRecord.GetType(), new object[] { lastSerialized }) as TES3Lib.Base.Record ?? throw new Exception("Could not create activator instance.");
+
+            // merge
+            var isAnythingChanged = false;
+            if (records.Count > 2)
+            {
                 for (var i = records.Count - 2; i > 0; i--)
                 {
                     var record = records[i];
                     var master = mapTES3ToFileNames[recordMasters[record]];
                     try
                     {
-                        if (RecordMerger.Merge(newRecord, firstRecord, record))
+                        var result = RecordMerger.Merge(newRecord, firstRecord, record);
+                        isAnythingChanged = result || isAnythingChanged;
+                        if (isAnythingChanged)
                         {
                             localUsedMasters.Add(master);
                         }
@@ -242,84 +287,125 @@ internal static class MergeCommand
                             WriteToLogAndConsole(e.StackTrace);
                         }
 
-                        ShowCompletionPrompt();
                         return;
                     }
                 }
-
-                try
-                {
-                    var newSerialized = newRecord.SerializeRecord();
-                    if (!lastSerialized.SequenceEqual(newSerialized))
-                    {
-                        Console.WriteLine($"Merged {newRecord.Name} record: {id}");
-                        mergedObjects.Records.Add(newRecord);
-
-                        var masterList = string.Join(", ", GetFilteredLoadList(sortedMasters, localUsedMasters).ToArray());
-                        Logger.WriteLine($"Resolved conflicts for {firstRecord.Name} record '{id}' from mods: {masterList}");
-
-                        if (dumpMergedRecordsToLog)
-                        {
-                            foreach (var record in records)
-                            {
-                                var master = mapTES3ToFileNames[recordMasters[record]];
-                                Logger.WriteLine($">> {master}: {BitConverter.ToString(record.GetRawLoadedBytes()).Replace("-", "")}");
-                            }
-                            Logger.WriteLine($">> {fileName}: {BitConverter.ToString(newSerialized).Replace("-", "")}");
-                        }
-
-                        foreach (var master in localUsedMasters)
-                        {
-                            usedMasters.Add(master);
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    var masterList = string.Join(", ", GetFilteredLoadList(sortedMasters, localUsedMasters).ToArray());
-                    WriteToLogAndConsole($"Could not resolve conflicts for {firstRecord.Name} record '{id}' from mods: {masterList}");
-                    foreach (var record in records)
-                    {
-                        var master = mapTES3ToFileNames[recordMasters[record]];
-                        WriteToLogAndConsole($">> {master}: {BitConverter.ToString(record.GetRawLoadedBytes()).Replace("-", "")}");
-                    }
-
-                    WriteToLogAndConsole(e.Message);
-
-                    if (e.StackTrace is not null)
-                    {
-                        WriteToLogAndConsole(e.StackTrace);
-                    }
-
-                    ShowCompletionPrompt();
-                    return;
-                }
             }
-        }
 
-        // Did we even merge anything?
-        if (usedMasters.Count == 0)
-        {
-            WriteToLogAndConsole("No merges were deemed necessary. Aborting.");
-            ShowCompletionPrompt();
-            return;
-        }
+            // TODO make these patches optional
+            isAnythingChanged = isAnythingChanged || Patch(newRecord);
 
-        // Add the necessary masters.
-        Logger.WriteLine($"Saving {fileName} ...");
-        mergedObjectsHeader.Masters = new List<(TES3Lib.Subrecords.TES3.MAST MAST, TES3Lib.Subrecords.TES3.DATA DATA)>();
-        foreach (var gameFile in GetFilteredLoadList(sortedMasters, usedMasters))
-        {
-            if (usedMasters.Contains(gameFile))
+            // if anything merged or patched
+            // add to merged objects.esp
+            try
             {
-                var size = new FileInfo(Path.Combine(morrowindPath, "Data Files", $"{gameFile}")).Length;
-                mergedObjectsHeader.Masters.Add((new TES3Lib.Subrecords.TES3.MAST { Filename = $"{gameFile}\0" }, new TES3Lib.Subrecords.TES3.DATA { MasterDataSize = size }));
+                var newSerialized = newRecord is TES3Lib.Records.CELL cell ? cell.SerializeRecordForMerge() : newRecord.SerializeRecord();
+
+#if DEBUG
+                //if (!lastSerialized.SequenceEqual(newSerialized) && !isAnythingChanged)
+                //{
+                //    WriteToLogAndConsole($"Serialization error for {firstRecord.Name} record '{id}'");
+                //}
+#endif
+
+                if (!lastSerialized.SequenceEqual(newSerialized) && isAnythingChanged)
+                {
+                    WriteToLogAndConsole($"Merged {newRecord.Name} record: {id}");
+                    mergedObjects.Records.Add(newRecord);
+
+                    var masterList = string.Join(", ", GetFilteredLoadList(sortedMasters, localUsedMasters).ToArray());
+                    Logger.WriteLine($"Resolved conflicts for {firstRecord.Name} record '{id}' from mods: {masterList}");
+
+                    if (dumpMergedRecordsToLog)
+                    {
+                        foreach (var record in records)
+                        {
+                            var master = mapTES3ToFileNames[recordMasters[record]];
+                            Logger.WriteLine($">> {master}: {BitConverter.ToString(record.GetRawLoadedBytes()).Replace("-", "")}");
+                        }
+                        Logger.WriteLine($">> {fileName}: {BitConverter.ToString(newSerialized).Replace("-", "")}");
+                    }
+
+                    foreach (var master in localUsedMasters)
+                    {
+                        usedMasters.Add(master);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                var masterList = string.Join(", ", GetFilteredLoadList(sortedMasters, localUsedMasters).ToArray());
+                WriteToLogAndConsole($"Could not resolve conflicts for {firstRecord.Name} record '{id}' from mods: {masterList}");
+                foreach (var record in records)
+                {
+                    var master = mapTES3ToFileNames[recordMasters[record]];
+                    WriteToLogAndConsole($">> {master}: {BitConverter.ToString(record.GetRawLoadedBytes()).Replace("-", "")}");
+                }
+
+                WriteToLogAndConsole(e.Message);
+
+                if (e.StackTrace is not null)
+                {
+                    WriteToLogAndConsole(e.StackTrace);
+                }
+
+                return;
+            }
+        }
+    }
+
+    private static bool Patch(Record newRecord)
+    {
+        var result = false;
+
+        /*
+        fixes summoned creatures crash by making them persistent
+        Summoned creatures persists (--summons-persist)
+
+        There is a bug in Morrowind that can cause the game to crash if you leave a
+        cell where an NPC has summoned a creature. The simple workaround is to flag
+        summoned creatures as persistent. The Morrowind Patch Project implements
+        this fix, however other mods coming later in the load order often revert it.
+        This option to the multipatch ensures that known summoned creatures are
+        flagged as persistent. The Morrowind Code Patch also fixes this bug, making
+        this feature redundant.
+        */
+
+        if (newRecord is TES3Lib.Records.CREA creature
+            && TES3Merge.Merger.CREA.SummonedCreatures.Contains(creature.GetEditorId().TrimEnd('\0').ToLower())
+            && !creature.Flags.Contains(TES3Lib.Enums.Flags.RecordFlag.Persistant))
+        {
+            creature.Flags.Add(TES3Lib.Enums.Flags.RecordFlag.Persistant);
+            result = true;
+        }
+
+        /*
+
+        Fog Bug Patch (--fogbug)
+
+        Some video cards are affected by how Morrowind handles a fog density setting
+        of zero in interior cells with the result that the interior is pitch black,
+        except for some light sources, and no amount of light, night-eye, or gamma
+        setting will make the interior visible. This is known as the "fog bug".
+
+        This option creates a patch that fixes all fogbugged cells in your active
+        plugins by setting the fog density of those cells to a non-zero value.
+         */
+        if (newRecord is TES3Lib.Records.CELL cell)
+        {
+            // only check interior cells for fogbug
+            if (cell.DATA.Flags.Contains(TES3Lib.Enums.Flags.CellFlag.IsInteriorCell)
+                && !cell.DATA.Flags.Contains(TES3Lib.Enums.Flags.CellFlag.BehaveLikeExterior))
+            {
+                // TODO Fog Density in DATA
+                if (cell.AMBI is not null && cell.AMBI.FogDensity == 0f)
+                {
+                    cell.AMBI.FogDensity = 0.1f;
+                    result = true;
+                }
             }
         }
 
-        // Save out the merged objects file.
-        mergedObjectsHeader.HEDR.NumRecords = mergedObjects.Records.Count - 1;
-        mergedObjects.TES3Save(Path.Combine(morrowindPath, "Data Files", fileName));
-        Logger.WriteLine($"Wrote {mergedObjects.Records.Count - 1} merged objects.");
+        return result;
     }
 }

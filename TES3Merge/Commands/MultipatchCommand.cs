@@ -34,6 +34,9 @@ internal static class MultipatchCommand
     {
 #if DEBUG == false
         try
+#else
+        //Console.WriteLine("Press any button to continue...");
+        //Console.ReadLine();
 #endif
         {
             Multipatch();
@@ -61,7 +64,7 @@ internal static class MultipatchCommand
     {
         using var ssw = new ScopedStopwatch();
 
-        MergeCommand.Merge(true, new List<string>() { "LEVI", "LEVC" }, null, "multipatch.esp");
+        MergeCommand.Merge(true, new List<string>() { "LEVI", "LEVC", "CREA", "CELL" }, null, "multipatch.esp");
 
         // TODO implement more multipatch merges
         /* 

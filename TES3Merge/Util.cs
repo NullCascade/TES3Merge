@@ -309,7 +309,7 @@ namespace TES3Merge
                         "BODY",
                         "BOOK",
                         "BSGN",
-                        //"CELL",
+                        "CELL",
                         "CLAS",
                         "CLOT",
                         "CONT",
