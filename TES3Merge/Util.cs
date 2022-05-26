@@ -7,6 +7,16 @@ using TES3Merge.BSA;
 
 namespace TES3Merge
 {
+    [Flags]
+    public enum EPatch
+    {
+        None = 0,
+        Fogbug = 1,
+        Cellnames = 2,
+        Summons = 4,
+        All = 8,
+    }
+
     internal static class Util
     {
         public static StreamWriter Logger = new("TES3Merge.log", false)

@@ -9,6 +9,8 @@
  */
 
 using System.Collections.Concurrent;
+using System.CommandLine;
+using System.CommandLine.Invocation;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -18,7 +20,18 @@ using static TES3Merge.Util;
 
 namespace TES3Merge.Commands;
 
-internal static class VerifyCommand
+public class VerifyCommand : Command
+{
+    private new const string Description = "Checks esps for missing file paths";
+    private new const string Name = "verify";
+
+    public VerifyCommand() : base(Name, Description)
+    {
+        this.SetHandler(() => VerifyAction.Run());
+    }
+}
+
+internal static class VerifyAction
 {
     /// <summary>
     /// Main command wrapper

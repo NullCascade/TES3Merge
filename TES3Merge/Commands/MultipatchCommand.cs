@@ -16,6 +16,8 @@
  */
 
 using System.Collections.Concurrent;
+using System.CommandLine;
+using System.CommandLine.Invocation;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -25,7 +27,18 @@ using static TES3Merge.Util;
 
 namespace TES3Merge.Commands;
 
-internal static class MultipatchCommand
+public class MultipatchCommand : Command
+{
+    private new const string Description = "Create a multipatch that merges levelled lists and fixes various other bugs";
+    private new const string Name = "multipatch";
+
+    public MultipatchCommand() : base(Name, Description)
+    {
+        this.SetHandler(() => MultipatchAction.Run());
+    }
+}
+
+internal static class MultipatchAction
 {
     /// <summary>
     /// Main command wrapper
@@ -64,23 +77,14 @@ internal static class MultipatchCommand
     {
         using var ssw = new ScopedStopwatch();
 
-        MergeCommand.Merge(true, new List<string>() { "LEVI", "LEVC", "CREA", "CELL" }, null, "multipatch.esp");
-
-        // TODO implement more multipatch merges
-        /* 
-         --cellnames
-	        resolve conflicts with renamed external cells
-
-         --fogbug
-	        fix interior cells with the fog bug
-         
-         --summons-persist
-	        fixes summoned creatures crash by making them persistent
-         
-         */
-
-
-
-
+        MergeAction.Merge(
+            new MergeAction.Settings(
+                true,
+                new List<string>() { "LEVI", "LEVC", "CREA", "CELL" },
+                null,
+                EPatch.All,
+                false,
+                true,
+                "multipatch.esp"));
     }
 }

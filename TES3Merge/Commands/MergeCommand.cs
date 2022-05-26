@@ -12,25 +12,98 @@
  * 
  */
 
+using System.CommandLine;
+using System.CommandLine.Invocation;
 using System.Text.RegularExpressions;
 using TES3Lib;
 using TES3Lib.Base;
+using TES3Merge.Merger;
 using static TES3Merge.Util;
 
 namespace TES3Merge.Commands;
 
-internal static class MergeCommand
+public class MergeCommand : RootCommand
 {
+    public MergeCommand() : base()
+    {
+        var inclusiveOption = new Option<bool>(new[] { "--inclusive", "-i" }, "Merge lists inclusively per element (implemented for List<NPCO>).");
+
+        var noMastersOption = new Option<bool>(new[] { "--no-masters", }, "Do not add masters to the merged esp.");
+
+        var recordsOption = new Option<IEnumerable<string>>(new[] { "--records", "-r" }, "Merge only specified records.")
+        {
+            AllowMultipleArgumentsPerToken = true
+        };
+        var ignoreRecordsOption = new Option<IEnumerable<string>>(new[] { "--ir", "--ignore-records" }, "Ignore specified records.")
+        {
+            AllowMultipleArgumentsPerToken = true
+        };
+
+        var patchesOption = new Option<EPatch[]>(new[] { "--patches", "-p" }, @"Apply any of the following patches: <none fogbug summons cellnames all> Default is None.
+
+fogbug: This option creates a patch that fixes all fogbugged cells in your active plugins by setting the fog density of those cells to a non-zero value.
+
+summons: This option to the multipatch ensures that known summoned creatures are flagged as persistent. 
+
+cellnames: Creates a patch to ensure renamed cells are not accidentally reverted to their original name.
+
+all: Apply all patches.
+
+")
+        {
+            AllowMultipleArgumentsPerToken = true
+        };
+
+        AddOption(inclusiveOption);
+        AddOption(noMastersOption);
+        AddOption(recordsOption);
+        AddOption(ignoreRecordsOption);
+        AddOption(patchesOption);
+
+        this.SetHandler((bool i, IEnumerable<string> r, IEnumerable<string> ir, EPatch[]? patchesList, bool noMasters) =>
+        {
+            var patches = EPatch.None;
+            if (patchesList is not null)
+            {
+                foreach (var item in patchesList)
+                {
+                    patches |= item;
+                }
+            }
+
+            MergeAction.Run(new MergeAction.Settings(i, r, ir, patches, noMasters));
+        }, inclusiveOption, recordsOption, ignoreRecordsOption, patchesOption, noMastersOption);
+    }
+}
+
+internal static class MergeAction
+{
+    /// <summary>
+    /// Merge Settings
+    /// </summary>
+    /// <param name="InclusiveListMerge"></param>
+    /// <param name="FilterRecords"></param>
+    /// <param name="IgnoredRecords"></param>
+    /// <param name="Patches"></param>
+    /// <param name="NoMasters"></param>
+    /// <param name="NoObjects"></param>
+    /// <param name="FileName"></param>
+    public record Settings(
+        bool InclusiveListMerge,
+        IEnumerable<string>? FilterRecords,
+        IEnumerable<string>? IgnoredRecords = null,
+        EPatch Patches = EPatch.None,
+        bool NoMasters = false,
+        bool NoObjects = false,
+        string FileName = "Merged Objects.esp"
+        );
+
+
     /// <summary>
     /// Main command wrapper
     /// </summary>
-    /// <param name="inclusiveListMerge"></param>
-    /// <param name="filterRecords"></param>
-    /// <param name="ignoredRecords"></param>
-    internal static void Run(
-        bool inclusiveListMerge,
-        IEnumerable<string> filterRecords,
-        IEnumerable<string> ignoredRecords)
+    /// <param name="settings"></param>
+    internal static void Run(Settings settings)
     {
 #if DEBUG == false
         try
@@ -39,7 +112,7 @@ internal static class MergeCommand
         //Console.ReadLine();
 #endif
         {
-            Merge(inclusiveListMerge, filterRecords, ignoredRecords);
+            Merge(settings);
         }
 
 #if DEBUG == false
@@ -58,12 +131,9 @@ internal static class MergeCommand
     /// <summary>
     /// Merge specified records
     /// </summary>
-    /// <param name="inclusiveListMerge"></param>
-    /// <param name="filterRecords"></param>
-    /// <param name="ignoredRecords"></param>
-    /// <param name="fileName"></param>
+    /// <param name="settings"></param>
     /// <exception cref="Exception"></exception>
-    internal static void Merge(bool inclusiveListMerge, IEnumerable<string>? filterRecords, IEnumerable<string>? ignoredRecords, string fileName = "Merged Objects.esp")
+    internal static void Merge(Settings settings)
     {
         using var ssw = new ScopedStopwatch();
         LoadConfig();
@@ -91,6 +161,8 @@ internal static class MergeCommand
         mergedObjects.Records.Add(mergedObjectsHeader);
 
         // get merge tags
+        var filterRecords = settings.FilterRecords;
+        var ignoredRecords = settings.IgnoredRecords;
         var (supportedMergeTags, objectIdFilters) = GetMergeTags();
         if (filterRecords != null && filterRecords.Any())
         {
@@ -187,9 +259,17 @@ internal static class MergeCommand
         }
 
         // commandline arguments
-        if (inclusiveListMerge)
+        if (settings.InclusiveListMerge)
         {
             RecordMerger.MergePropertyFunctionMapper[typeof(List<TES3Lib.Subrecords.Shared.NPCO>)] = Merger.Shared.ItemsList;
+        }
+        if (settings.NoObjects)
+        {
+            RecordMerger.MergePropertyFunctionMapper.Clear();
+            RecordMerger.MergePropertyFunctionMapper[typeof(Subrecord)] = Shared.NoMerge;
+
+            RecordMerger.MergePropertyFunctionMapper[typeof(List<(TES3Lib.Subrecords.LEVI.INAM INAM, TES3Lib.Subrecords.LEVI.INTV INTV)>)] = Merger.LEVI.ITEM;
+            RecordMerger.MergePropertyFunctionMapper[typeof(List<(TES3Lib.Subrecords.LEVC.CNAM CNAM, TES3Lib.Subrecords.LEVC.INTV INTV)>)] = Merger.LEVC.CRIT;
         }
 
         // Go through and build merged objects.
@@ -216,22 +296,26 @@ internal static class MergeCommand
         }
 
         // Add the necessary masters.
-        Logger.WriteLine($"Saving {fileName} ...");
+        Logger.WriteLine($"Saving {settings.FileName} ...");
         mergedObjectsHeader.Masters = new List<(TES3Lib.Subrecords.TES3.MAST MAST, TES3Lib.Subrecords.TES3.DATA DATA)>();
-        foreach (var gameFile in GetFilteredLoadList(sortedMasters, usedMasters))
+        if (!settings.NoMasters)
         {
-            if (usedMasters.Contains(gameFile))
+            foreach (var gameFile in GetFilteredLoadList(sortedMasters, usedMasters))
             {
-                var size = new FileInfo(Path.Combine(morrowindPath, "Data Files", $"{gameFile}")).Length;
-                mergedObjectsHeader.Masters.Add((new TES3Lib.Subrecords.TES3.MAST { Filename = $"{gameFile}\0" }, new TES3Lib.Subrecords.TES3.DATA { MasterDataSize = size }));
+                if (usedMasters.Contains(gameFile))
+                {
+                    var size = new FileInfo(Path.Combine(morrowindPath, "Data Files", $"{gameFile}")).Length;
+                    mergedObjectsHeader.Masters.Add((new TES3Lib.Subrecords.TES3.MAST { Filename = $"{gameFile}\0" }, new TES3Lib.Subrecords.TES3.DATA { MasterDataSize = size }));
+                }
             }
         }
+
 
         // Save out the merged objects file.
         mergedObjectsHeader.HEDR.NumRecords = mergedObjects.Records.Count - 1;
 
         // mergedObjects.TES3Save(Path.Combine(morrowindPath, "Data Files", fileName));
-        using var fs = new FileStream(Path.Combine(morrowindPath, "Data Files", fileName), FileMode.Create, FileAccess.ReadWrite);
+        using var fs = new FileStream(Path.Combine(morrowindPath, "Data Files", settings.FileName), FileMode.Create, FileAccess.ReadWrite);
         foreach (var record in mergedObjects.Records)
         {
             var serializedRecord = record is TES3Lib.Records.CELL cell ? cell.SerializeRecordForMerge() : record.SerializeRecord();
@@ -239,8 +323,9 @@ internal static class MergeCommand
         }
         Logger.WriteLine($"Wrote {mergedObjects.Records.Count - 1} merged objects.");
 
-
+        //
         // Local functions
+        //
         void MergeAndPatchRecords(string id, List<Record> records)
         {
             var firstRecord = records.First();
@@ -292,8 +377,10 @@ internal static class MergeCommand
                 }
             }
 
-            // TODO make these patches optional
-            isAnythingChanged = isAnythingChanged || Patch(newRecord);
+            if (settings.Patches != EPatch.None)
+            {
+                isAnythingChanged = isAnythingChanged || Patch(newRecord, settings.Patches);
+            }
 
             // if anything merged or patched
             // add to merged objects.esp
@@ -323,7 +410,7 @@ internal static class MergeCommand
                             var master = mapTES3ToFileNames[recordMasters[record]];
                             Logger.WriteLine($">> {master}: {BitConverter.ToString(record.GetRawLoadedBytes()).Replace("-", "")}");
                         }
-                        Logger.WriteLine($">> {fileName}: {BitConverter.ToString(newSerialized).Replace("-", "")}");
+                        Logger.WriteLine($">> {settings.FileName}: {BitConverter.ToString(newSerialized).Replace("-", "")}");
                     }
 
                     foreach (var master in localUsedMasters)
@@ -354,7 +441,13 @@ internal static class MergeCommand
         }
     }
 
-    private static bool Patch(Record newRecord)
+    /// <summary>
+    /// Apply given patches to the merged esp
+    /// </summary>
+    /// <param name="newRecord"></param>
+    /// <param name="patch"></param>
+    /// <returns></returns>
+    private static bool Patch(Record newRecord, EPatch patch)
     {
         var result = false;
 
@@ -371,18 +464,18 @@ internal static class MergeCommand
         this feature redundant.
         */
 
-        if (newRecord is TES3Lib.Records.CREA creature
+        if (patch.HasFlag(EPatch.Summons) || patch.HasFlag(EPatch.All))
+        {
+            if (newRecord is TES3Lib.Records.CREA creature
             && TES3Merge.Merger.CREA.SummonedCreatures.Contains(creature.GetEditorId().TrimEnd('\0').ToLower())
             && !creature.Flags.Contains(TES3Lib.Enums.Flags.RecordFlag.Persistant))
-        {
-            creature.Flags.Add(TES3Lib.Enums.Flags.RecordFlag.Persistant);
-            result = true;
+            {
+                creature.Flags.Add(TES3Lib.Enums.Flags.RecordFlag.Persistant);
+                result = true;
+            }
         }
 
         /*
-
-        Fog Bug Patch (--fogbug)
-
         Some video cards are affected by how Morrowind handles a fog density setting
         of zero in interior cells with the result that the interior is pitch black,
         except for some light sources, and no amount of light, night-eye, or gamma
@@ -391,20 +484,24 @@ internal static class MergeCommand
         This option creates a patch that fixes all fogbugged cells in your active
         plugins by setting the fog density of those cells to a non-zero value.
          */
-        if (newRecord is TES3Lib.Records.CELL cell)
+        if (patch.HasFlag(EPatch.Fogbug) || patch.HasFlag(EPatch.All))
         {
-            // only check interior cells for fogbug
-            if (cell.DATA.Flags.Contains(TES3Lib.Enums.Flags.CellFlag.IsInteriorCell)
-                && !cell.DATA.Flags.Contains(TES3Lib.Enums.Flags.CellFlag.BehaveLikeExterior))
+            if (newRecord is TES3Lib.Records.CELL cell)
             {
-                // TODO Fog Density in DATA
-                if (cell.AMBI is not null && cell.AMBI.FogDensity == 0f)
+                // only check interior cells for fogbug
+                if (cell.DATA.Flags.Contains(TES3Lib.Enums.Flags.CellFlag.IsInteriorCell)
+                    && !cell.DATA.Flags.Contains(TES3Lib.Enums.Flags.CellFlag.BehaveLikeExterior))
                 {
-                    cell.AMBI.FogDensity = 0.1f;
-                    result = true;
+                    // TODO Fog Density in DATA
+                    if (cell.AMBI is not null && cell.AMBI.FogDensity == 0f)
+                    {
+                        cell.AMBI.FogDensity = 0.1f;
+                        result = true;
+                    }
                 }
             }
         }
+
 
         return result;
     }

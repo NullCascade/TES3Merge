@@ -35,13 +35,13 @@ internal static class RecordMerger
     static RecordMerger()
     {
         // Define type merge behaviors.
-        MergeTypeFunctionMapper[typeof(TES3Lib.Base.Record)] = MergeTypeRecord;
+        MergeTypeFunctionMapper[typeof(Record)] = MergeTypeRecord;
 
         MergeTypeFunctionMapper[typeof(TES3Lib.Records.CELL)] = Merger.CELL.Merge;
 
 
         // Define property merge behaviors.
-        MergePropertyFunctionMapper[typeof(TES3Lib.Base.Subrecord)] = MergePropertySubrecord;
+        MergePropertyFunctionMapper[typeof(Subrecord)] = MergePropertySubrecord;
 
         // Shared
         MergePropertyFunctionMapper[typeof(List<TES3Lib.Subrecords.Shared.Castable.ENAM>)] = Merger.Shared.EffectList;
@@ -233,7 +233,7 @@ internal static class RecordMerger
         return false;
     }
 
-    private static bool MergePropertySubrecord(PropertyInfo property, object currentParam, object firstParam, object nextParam)
+    public static bool MergePropertySubrecord(PropertyInfo property, object currentParam, object firstParam, object nextParam)
     {
         // Get the values as their correct type.
         var currentValue = currentParam is not null ? property.GetValue(currentParam) : null;
