@@ -4,10 +4,9 @@ using TES3Lib.Subrecords.Shared;
 
 namespace TES3Merge.Merger;
 
+// TODO duplicated code. fix this with some interfaces or something
 internal static class CREA
 {
-    // TODO duplicated code. fix this with some interfaces or something
-
     /// <summary>
     /// Merger for the AIPackage list in CREA
     /// </summary>
@@ -93,7 +92,7 @@ internal static class CREA
         }
     }
 
-    // list of summoned creatures for multipatch
+    // list of summoned creatures for multipatch in lowercase!
     public static List<string> SummonedCreatures = new()
     {
         "centurion_fire_dead",

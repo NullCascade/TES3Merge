@@ -167,9 +167,9 @@ internal static class RecordMerger
     private static bool MergeTypeRecord(object currentParam, object firstParam, object nextParam)
     {
         // Get the values as their correct type.
-        var current = currentParam as TES3Lib.Base.Record ?? throw new ArgumentException("Current record is of incorrect type.");
-        var first = firstParam as TES3Lib.Base.Record ?? throw new ArgumentException("First record is of incorrect type.");
-        var next = nextParam as TES3Lib.Base.Record ?? throw new ArgumentException("Next record is of incorrect type.");
+        var current = currentParam as Record ?? throw new ArgumentException("Current record is of incorrect type.");
+        var first = firstParam as Record ?? throw new ArgumentException("First record is of incorrect type.");
+        var next = nextParam as Record ?? throw new ArgumentException("Next record is of incorrect type.");
 
         // Store modified state.
         var modified = false;
