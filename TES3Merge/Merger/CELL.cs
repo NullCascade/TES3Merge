@@ -1,15 +1,13 @@
-﻿using System.Reflection;
-
-namespace TES3Merge.Merger;
+﻿namespace TES3Merge.Merger;
 
 internal static class CELL
 {
     public static bool Merge(object currentParam, object firstParam, object nextParam)
     {
         // Get the values as their correct type.
-        var current = currentParam as TES3Lib.Base.Record ?? throw new ArgumentException("Current record is of incorrect type.");
-        var first = firstParam as TES3Lib.Base.Record ?? throw new ArgumentException("First record is of incorrect type.");
-        var next = nextParam as TES3Lib.Base.Record ?? throw new ArgumentException("Next record is of incorrect type.");
+        var current = currentParam as TES3Lib.Records.CELL ?? throw new ArgumentException("Current record is of incorrect type.");
+        var first = firstParam as TES3Lib.Records.CELL ?? throw new ArgumentException("First record is of incorrect type.");
+        var next = nextParam as TES3Lib.Records.CELL ?? throw new ArgumentException("Next record is of incorrect type.");
 
         // Store modified state.
         var modified = false;
@@ -51,15 +49,42 @@ internal static class CELL
             // only check exterior cells for rename reversion problem
             if (!cell.DATA.Flags.Contains(TES3Lib.Enums.Flags.CellFlag.IsInteriorCell))
             {
-                // var nam = cell.NAME.Name;
-                //var coords = (cell.DATA.GridX, cell.DATA.GridY);
+                var currentValue = current.NAME;
+                var firstValue = first.NAME;
+                var nextValue = next.NAME;
 
+                // Handle null cases.
+                if (firstValue is null && currentValue is null && nextValue is not null)
+                {
+                    current.NAME = nextValue;
+                    modified = true;
+                }
+                else if (firstValue is not null && nextValue is null)
+                {
+                    // dunno
+                    //current.NAME = currentValue;
+                    //modified = true;
+                }
+                //else
+                {
+                    var currentIsUnmodified = currentValue is not null ? currentValue.Equals(firstValue) : firstValue is null;
+                    var nextIsModified = !(nextValue is not null ? nextValue.Equals(firstValue) : firstValue is null);
 
-                //modified = true;
+                    if (currentIsUnmodified && nextIsModified)
+                    {
+                        if (!string.IsNullOrEmpty(nextValue?.EditorId)
+                            && !nextValue.EditorId.Equals("\0\0")
+                            && !nextValue.EditorId.Equals("\0"))
+                        {
+                            current.NAME = nextValue;
+                            //current.RGNN = null;
+                            //current.WHGT = null;
+                            modified = true;
+                        }
+                    }
+                }
             }
         }
-
-
 
         return modified;
     }

@@ -13,7 +13,6 @@
  */
 
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.Text.RegularExpressions;
 using TES3Lib;
 using TES3Lib.Base;
@@ -39,7 +38,7 @@ public class MergeCommand : RootCommand
             AllowMultipleArgumentsPerToken = true
         };
 
-        var patchesOption = new Option<EPatch[]>(new[] { "--patches", "-p" }, @"Apply any of the following patches: <none fogbug summons cellnames all> Default is None.
+        var patchesOption = new Option<EPatch[]>(new[] { "--patches", "-p" }, @"Apply any of the following patches: <none fogbug summons cellnames all>. If left empty, all patches are applied.
 
 fogbug: This option creates a patch that fixes all fogbugged cells in your active plugins by setting the fog density of those cells to a non-zero value.
 
@@ -60,10 +59,15 @@ all: Apply all patches.
         AddOption(ignoreRecordsOption);
         AddOption(patchesOption);
 
-        this.SetHandler((bool i, IEnumerable<string> r, IEnumerable<string> ir, EPatch[]? patchesList, bool noMasters) =>
+        this.SetHandler((bool i, IEnumerable<string> r, IEnumerable<string> ir, EPatch[] patchesList, bool noMasters) =>
         {
             var patches = EPatch.None;
-            if (patchesList is not null)
+
+            if (patchesList is null || !patchesList.Any())
+            {
+                patches = EPatch.All;
+            }
+            else
             {
                 foreach (var item in patchesList)
                 {
@@ -108,8 +112,8 @@ internal static class MergeAction
 #if DEBUG == false
         try
 #else
-        //Console.WriteLine("Press any button to continue...");
-        //Console.ReadLine();
+        Console.WriteLine("Press any button to continue...");
+        Console.ReadLine();
 #endif
         {
             Merge(settings);
@@ -495,7 +499,7 @@ internal static class MergeAction
                     // TODO Fog Density in DATA
                     if (cell.AMBI is not null && cell.AMBI.FogDensity == 0f)
                     {
-                        cell.AMBI.FogDensity = 0.1f;
+                        cell.AMBI.FogDensity = 0.01f;
                         result = true;
                     }
                 }

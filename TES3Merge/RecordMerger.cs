@@ -141,7 +141,7 @@ internal static class RecordMerger
 
             if (firstValue is null && currentValue is null && nextValue is not null)
             {
-                property.SetValue(current, nextValue); //???
+                property.SetValue(current, nextValue);
                 modified = true;
                 continue;
             }
@@ -149,6 +149,7 @@ internal static class RecordMerger
             {
                 // if the base value is not null, but some plugin later in the load order does set the value to null
                 // then retain the latest value
+                // TODO set null?
                 property.SetValue(current, currentValue);
                 modified = true;
                 continue;
