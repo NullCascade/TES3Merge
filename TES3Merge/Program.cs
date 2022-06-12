@@ -10,23 +10,11 @@ internal class Program
     // main entry point to parse commandline options
     private static async Task Main(string[] args)
     {
-
-        var verifyCommand = new Command("verify", "Checks esps for missing file paths.") { };
-
-        var inclusive = new Option<bool>(new[] { "--inclusive-list", "-i" }, "Merge lists inclusively per element (implemented for List<NPCO>)");
-        var rootCommand = new RootCommand
+        var rootCommand = new MergeCommand()
         {
-            verifyCommand,
-            inclusive
+            new MultipatchCommand(),
+            new VerifyCommand()
         };
-        verifyCommand.SetHandler(() =>
-        {
-            VerifyCommand.Verify();
-        });
-        rootCommand.SetHandler((bool i) =>
-        {
-            MergeCommand.Merge(i);
-        }, inclusive);
 
         var version = Assembly.GetExecutingAssembly().GetName().Version;
         Logger.WriteLine($"TES3Merge v{version}.");

@@ -7,6 +7,16 @@ using TES3Merge.BSA;
 
 namespace TES3Merge
 {
+    [Flags]
+    public enum EPatch
+    {
+        None = 0,
+        Fogbug = 1,
+        Cellnames = 2,
+        Summons = 4,
+        All = 8,
+    }
+
     internal static class Util
     {
         public static StreamWriter Logger = new("TES3Merge.log", false)
@@ -309,7 +319,7 @@ namespace TES3Merge
                         "BODY",
                         "BOOK",
                         "BSGN",
-                        //"CELL",
+                        "CELL",
                         "CLAS",
                         "CLOT",
                         "CONT",
@@ -323,8 +333,8 @@ namespace TES3Merge
                         //"INFO",
                         "INGR",
                         //"LAND",
-                        //"LEVC",
-                        //"LEVI",
+                        "LEVC",
+                        "LEVI",
                         "LIGH",
                         "LOCK",
                         //"LTEX",
@@ -354,7 +364,6 @@ namespace TES3Merge
                     supportedMergeTags.Remove(recordTypeConfig.KeyName);
                 }
             }
-            WriteToLogAndConsole($"Supported record types: {string.Join(", ", supportedMergeTags)}");
 
             // Make sure we're going to merge something.
             if (supportedMergeTags.Count == 0)

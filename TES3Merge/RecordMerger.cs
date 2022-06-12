@@ -35,19 +35,36 @@ internal static class RecordMerger
     static RecordMerger()
     {
         // Define type merge behaviors.
-        MergeTypeFunctionMapper[typeof(TES3Lib.Base.Record)] = MergeTypeRecord;
+        MergeTypeFunctionMapper[typeof(Record)] = MergeTypeRecord;
+
+        MergeTypeFunctionMapper[typeof(TES3Lib.Records.CELL)] = Merger.CELL.Merge;
+
 
         // Define property merge behaviors.
-        MergePropertyFunctionMapper[typeof(List<(IAIPackage, TES3Lib.Subrecords.CREA.CNDT)>)] = Merger.CREA.AIPackage;
-        MergePropertyFunctionMapper[typeof(List<(IAIPackage, TES3Lib.Subrecords.NPC_.CNDT)>)] = Merger.NPC_.AIPackage;
+        MergePropertyFunctionMapper[typeof(Subrecord)] = MergePropertySubrecord;
 
+        // Shared
         MergePropertyFunctionMapper[typeof(List<TES3Lib.Subrecords.Shared.Castable.ENAM>)] = Merger.Shared.EffectList;
 
-        MergePropertyFunctionMapper[typeof(TES3Lib.Base.Subrecord)] = MergePropertySubrecord;
-        MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.CLAS.CLDT)] = Merger.CLAS.CLDT;
-        MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.FACT.FADT)] = Merger.FACT.FADT;
+        // CREA
+        MergePropertyFunctionMapper[typeof(List<(IAIPackage, TES3Lib.Subrecords.CREA.CNDT)>)] = Merger.CREA.AIPackage;
+
+        // NPC_
+        MergePropertyFunctionMapper[typeof(List<(IAIPackage, TES3Lib.Subrecords.NPC_.CNDT)>)] = Merger.NPC_.AIPackage;
         MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.NPC_.NPDT)] = Merger.NPC_.NPDT;
 
+        // LEVI
+        MergePropertyFunctionMapper[typeof(List<(TES3Lib.Subrecords.LEVI.INAM INAM, TES3Lib.Subrecords.LEVI.INTV INTV)>)] = Merger.LEVI.ITEM;
+        //MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.LEVI.DATA)] = Merger.Shared.NoMerge;
+
+        // LEVC
+        MergePropertyFunctionMapper[typeof(List<(TES3Lib.Subrecords.LEVC.CNAM CNAM, TES3Lib.Subrecords.LEVC.INTV INTV)>)] = Merger.LEVC.CRIT;
+
+        // CLAS
+        MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.CLAS.CLDT)] = Merger.CLAS.CLDT;
+
+        // FACT
+        MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.FACT.FADT)] = Merger.FACT.FADT;
     }
 
     public static Func<object, object, object, bool>? GetTypeMergeFunction(Type? type)
@@ -124,14 +141,15 @@ internal static class RecordMerger
 
             if (firstValue is null && currentValue is null && nextValue is not null)
             {
-                property.SetValue(current, nextValue); //???
+                property.SetValue(current, nextValue);
                 modified = true;
                 continue;
             }
             else if (firstValue is not null && nextValue is null)
             {
                 // if the base value is not null, but some plugin later in the load order does set the value to null
-                // then I want to retain the latest value
+                // then retain the latest value
+                // TODO set null?
                 property.SetValue(current, currentValue);
                 modified = true;
                 continue;
@@ -150,9 +168,9 @@ internal static class RecordMerger
     private static bool MergeTypeRecord(object currentParam, object firstParam, object nextParam)
     {
         // Get the values as their correct type.
-        var current = currentParam as TES3Lib.Base.Record ?? throw new ArgumentException("Current record is of incorrect type.");
-        var first = firstParam as TES3Lib.Base.Record ?? throw new ArgumentException("First record is of incorrect type.");
-        var next = nextParam as TES3Lib.Base.Record ?? throw new ArgumentException("Next record is of incorrect type.");
+        var current = currentParam as Record ?? throw new ArgumentException("Current record is of incorrect type.");
+        var first = firstParam as Record ?? throw new ArgumentException("First record is of incorrect type.");
+        var next = nextParam as Record ?? throw new ArgumentException("Next record is of incorrect type.");
 
         // Store modified state.
         var modified = false;
@@ -216,7 +234,7 @@ internal static class RecordMerger
         return false;
     }
 
-    private static bool MergePropertySubrecord(PropertyInfo property, object currentParam, object firstParam, object nextParam)
+    public static bool MergePropertySubrecord(PropertyInfo property, object currentParam, object firstParam, object nextParam)
     {
         // Get the values as their correct type.
         var currentValue = currentParam is not null ? property.GetValue(currentParam) : null;

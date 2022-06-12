@@ -50,6 +50,9 @@
     <None Update="Plugins\BTB%27s Game Improvements %28Necro Edit%29 Tweaked.esp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Plugins\F&amp;F_base.esm">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Plugins\merge_add_effects.esp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

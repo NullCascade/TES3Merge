@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using TES3Lib.Base;
+using TES3Lib.Subrecords.NPC_;
 using TES3Lib.Subrecords.Shared;
 
 namespace TES3Merge.Merger;
@@ -31,11 +32,11 @@ internal static class NPC_
     public static bool NPDT(PropertyInfo property, object currentParam, object firstParam, object nextParam)
     {
         // Get the values as their correct type.
-        var current = property.GetValue(currentParam) as TES3Lib.Subrecords.NPC_.NPDT
+        var current = property.GetValue(currentParam) as NPDT
             ?? throw new ArgumentException("Current record is of incorrect type.");
-        var first = property.GetValue(firstParam) as TES3Lib.Subrecords.NPC_.NPDT
+        var first = property.GetValue(firstParam) as NPDT
             ?? throw new ArgumentException("First record is of incorrect type.");
-        var next = property.GetValue(nextParam) as TES3Lib.Subrecords.NPC_.NPDT
+        var next = property.GetValue(nextParam) as NPDT
             ?? throw new ArgumentException("Next record is of incorrect type.");
 
         var modified = false;
@@ -88,11 +89,11 @@ internal static class NPC_
     internal static bool AIPackage(PropertyInfo property, object currentParam, object firstParam, object nextParam)
     {
         // Get the values as their correct type.
-        var current = property.GetValue(currentParam) as List<(IAIPackage AIPackage, TES3Lib.Subrecords.NPC_.CNDT CNDT)>
+        var current = property.GetValue(currentParam) as List<(IAIPackage AIPackage, CNDT CNDT)>
             ?? throw new ArgumentException("Current record is of incorrect type.");
-        var first = property.GetValue(firstParam) as List<(IAIPackage AIPackage, TES3Lib.Subrecords.NPC_.CNDT CNDT)>
+        var first = property.GetValue(firstParam) as List<(IAIPackage AIPackage, CNDT CNDT)>
             ?? throw new ArgumentException("First record is of incorrect type.");
-        var next = property.GetValue(nextParam) as List<(IAIPackage AIPackage, TES3Lib.Subrecords.NPC_.CNDT CNDT)>
+        var next = property.GetValue(nextParam) as List<(IAIPackage AIPackage, CNDT CNDT)>
             ?? throw new ArgumentException("Next record is of incorrect type.");
 
         var modified = false;
@@ -102,12 +103,12 @@ internal static class NPC_
         {
             if (first != null)
             {
-                current = new List<(IAIPackage AIPackage, TES3Lib.Subrecords.NPC_.CNDT CNDT)>(first);
+                current = new List<(IAIPackage AIPackage, CNDT CNDT)>(first);
                 property.SetValue(currentParam, current);
             }
             else if (next != null)
             {
-                current = new List<(IAIPackage AIPackage, TES3Lib.Subrecords.NPC_.CNDT CNDT)>(next);
+                current = new List<(IAIPackage AIPackage, CNDT CNDT)>(next);
                 property.SetValue(currentParam, current);
             }
             else
@@ -130,9 +131,9 @@ internal static class NPC_
         return modified;
 
         static bool MergeWanderPackage(
-            List<(IAIPackage AIPackage, TES3Lib.Subrecords.NPC_.CNDT CNDT)> current,
-            List<(IAIPackage AIPackage, TES3Lib.Subrecords.NPC_.CNDT CNDT)>? first,
-            List<(IAIPackage AIPackage, TES3Lib.Subrecords.NPC_.CNDT CNDT)>? next)
+            List<(IAIPackage AIPackage, CNDT CNDT)> current,
+            List<(IAIPackage AIPackage, CNDT CNDT)>? first,
+            List<(IAIPackage AIPackage, CNDT CNDT)>? next)
         {
             // only merge one wander package
             var currentValue = current.FirstOrDefault(x => x.AIPackage.GetType() == typeof(AI_W)).AIPackage as AI_W;

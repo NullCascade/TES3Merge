@@ -349,3 +349,7 @@ healthchecksdb
 MigrationBackup/
 /TES3Merge.Tests/Plugins/*.json
 TES3Merge/Properties/launchSettings.json
+
+# VS Code and Rider
+.vscode/
+.idea/
