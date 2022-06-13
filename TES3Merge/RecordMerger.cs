@@ -55,10 +55,11 @@ internal static class RecordMerger
 
         // LEVI
         MergePropertyFunctionMapper[typeof(List<(TES3Lib.Subrecords.LEVI.INAM INAM, TES3Lib.Subrecords.LEVI.INTV INTV)>)] = Merger.LEVI.ITEM;
-        //MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.LEVI.DATA)] = Merger.Shared.NoMerge;
+        MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.LEVI.INDX)] = Merger.Shared.NoMerge;
 
         // LEVC
         MergePropertyFunctionMapper[typeof(List<(TES3Lib.Subrecords.LEVC.CNAM CNAM, TES3Lib.Subrecords.LEVC.INTV INTV)>)] = Merger.LEVC.CRIT;
+        MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.LEVC.INDX)] = Merger.Shared.NoMerge;
 
         // CLAS
         MergePropertyFunctionMapper[typeof(TES3Lib.Subrecords.CLAS.CLDT)] = Merger.CLAS.CLDT;

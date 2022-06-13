@@ -133,15 +133,12 @@ internal static class LEVI
         {
             property.SetValue(currentParam, union);
             modified = true;
-            if (currentParam is TES3Lib.Records.LEVI levi)
-            {
-                levi.INDX.ItemCount = union.Count;
-            }
+
+            // Update list count.
+            var levi = currentParam as TES3Lib.Records.LEVI ?? throw new ArgumentException("Object is not of expected type.");
+            levi.INDX.ItemCount = union.Count;
         }
 
         return modified;
-
-
-
     }
 }
