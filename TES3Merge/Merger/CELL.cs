@@ -59,28 +59,16 @@ internal static class CELL
                     current.NAME = nextValue;
                     modified = true;
                 }
-                else if (firstValue is not null && nextValue is null)
-                {
-                    // dunno
-                    //current.NAME = currentValue;
-                    //modified = true;
-                }
-                //else
-                {
-                    var currentIsUnmodified = currentValue is not null ? currentValue.Equals(firstValue) : firstValue is null;
-                    var nextIsModified = !(nextValue is not null ? nextValue.Equals(firstValue) : firstValue is null);
 
-                    if (currentIsUnmodified && nextIsModified)
+                var currentIsUnmodified = currentValue is not null ? currentValue.Equals(firstValue) : firstValue is null;
+                var nextIsModified = !(nextValue is not null ? nextValue.Equals(firstValue) : firstValue is null);
+
+                if (currentIsUnmodified && nextIsModified)
+                {
+                    if (!string.IsNullOrEmpty(nextValue?.EditorId.TrimEnd('\0')))
                     {
-                        if (!string.IsNullOrEmpty(nextValue?.EditorId)
-                            && !nextValue.EditorId.Equals("\0\0")
-                            && !nextValue.EditorId.Equals("\0"))
-                        {
-                            current.NAME = nextValue;
-                            //current.RGNN = null;
-                            //current.WHGT = null;
-                            modified = true;
-                        }
+                        current.NAME = nextValue;
+                        modified = true;
                     }
                 }
             }
@@ -88,5 +76,4 @@ internal static class CELL
 
         return modified;
     }
-
 }
