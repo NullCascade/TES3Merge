@@ -49,11 +49,11 @@ TES3Merge also contains a configuration file, [TES3Merge.ini](TES3Merge/TES3Merg
 
 ## Further Details
 
-For example, [Patch for Purists](https://www.nexusmods.com/morrowind/mods/45096/?) fixes the Expensive Skirt's name, while [Better Clothes](https://www.nexusmods.com/morrowind/mods/42262/?) provides alternative appearances. If you use the two mods together, the changes from one mod will be ignored. With object merging, the changes that both mods make can make it into the game. The following image demonstrates the resolved conflict:
+As an example, [Patch for Purists](https://www.nexusmods.com/morrowind/mods/45096/?) fixes the Expensive Skirt's name, while [Better Clothes](https://www.nexusmods.com/morrowind/mods/42262/?) provides alternative appearances. If you use the two mods together, the changes from one mod will be ignored. With object merging, the changes that both mods make can make it into the game. The following image demonstrates the resolved conflict:
 
 ![Example conflict resolution image](https://cdn.discordapp.com/attachments/381219559094616064/583192237450461187/unknown.png)
 
-Currently, TES3Merge supports the following record types: Activator, Alchemy, Apparatus, Armor, Birthsign, Body Part, Book, Cell, Class\*, Clothing, Container, Creature, Door, Enchantment, Game Setting, Ingredient, Leveled Creature, Leveled Item, Light, Lockpick, Magic Effect, Misc. Item, NPC, Probe, Race\*, Repair Tool, Skill, Sound, Sound Generator, Spell, Static, and Weapon. Types marked with a \* are incomplete merges, still favoring the last loader at all cost.
+Currently, TES3Merge supports the following record types: Activator, Alchemy, Apparatus, Armor, Birthsign, Body Part, Book, Cell, Class\*, Clothing, Container, Creature, Door, Enchantment, Game Setting, Ingredient, Leveled Creature, Leveled Item, Light, Lockpick, Magic Effect, Misc. Item, NPC, Probe, Race\*, Repair Tool, Skill, Sound, Sound Generator, Spell, Static, and Weapon. Types marked with a \* are incomplete merges, still favoring the last loader for parts it doesn't know how to merge.
 
 Merge rules respect the load order, with the first appearance of the record becoming the base for comparisons. If a later mod modifies the record, its changes will be preserved. Another mod after that will only have its changes made if they differ from the base record.
 
