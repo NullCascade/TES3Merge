@@ -39,7 +39,7 @@ jobs:
         dotnet-version: '6.x'
 
     - name: Publish
-      run: dotnet publish TES3Merge/TES3Merge.csproj -o publish/win -c Release -r win-x64 -p:PublishSingleFile=true --self-contained false
+      run: dotnet publish TES3Merge/TES3Merge.csproj -o publish/win -c Release -r win-x64 -p:PublishSingleFile=true --no-self-contained
     
     - uses: actions/upload-artifact@v3
       with:
@@ -60,7 +60,7 @@ jobs:
         dotnet-version: '6.x'
 
     - name: Publish
-      run: dotnet publish TES3Merge/TES3Merge.csproj -o publish/linux -c Release -r linux-x64 -p:PublishSingleFile=true --self-contained false
+      run: dotnet publish TES3Merge/TES3Merge.csproj -o publish/linux -c Release -r linux-x64 -p:PublishSingleFile=true --no-self-contained
     
     - uses: actions/upload-artifact@v3
       with:
@@ -81,7 +81,7 @@ jobs:
         dotnet-version: '6.x'
 
     - name: Publish
-      run: dotnet publish TES3Merge/TES3Merge.csproj -o publish/osx -c Release -r osx-x64 -p:PublishSingleFile=true --self-contained false
+      run: dotnet publish TES3Merge/TES3Merge.csproj -o publish/osx -c Release -r osx-x64 -p:PublishSingleFile=true --no-self-contained
     
     - uses: actions/upload-artifact@v3
       with:

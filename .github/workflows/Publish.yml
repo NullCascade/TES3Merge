@@ -22,11 +22,11 @@ jobs:
         dotnet-version: '6.x'
 
     - name: Publish
-      run: dotnet publish TES3Merge/TES3Merge.csproj -o publish/linux -c Release -r linux-x64 -p:PublishSingleFile=true --self-contained false
+      run: dotnet publish TES3Merge/TES3Merge.csproj -o publish/linux -c Release -r linux-x64 -p:PublishSingleFile=true --no-self-contained
     
     # create zip
     - run: ls -R
-    - run: zip -r TES3Merge-linux.zip publish/linux/TES3Merge publish/linux/TES3Merge.ini
+    - run: zip TES3Merge-linux.zip publish/linux/TES3Merge publish/linux/TES3Merge.ini
 
     # RELEASE
     - name: Release
@@ -54,7 +54,7 @@ jobs:
         dotnet-version: '6.x'
 
     - name: Publish
-      run: dotnet publish TES3Merge/TES3Merge.csproj -o publish/win -c Release -r win-x64 -p:PublishSingleFile=true --self-contained false
+      run: dotnet publish TES3Merge/TES3Merge.csproj -o publish/win -c Release -r win-x64 -p:PublishSingleFile=true --no-self-contained
 
     # create zip
     - run: dir
@@ -67,4 +67,36 @@ jobs:
       with:
         allowUpdates: true
         artifacts: "TES3Merge-win.zip"
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+
+  publish-osx:
+    needs: publish-linux
+    runs-on: macos-latest
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '6.x'
+
+    - name: Publish
+      run: dotnet publish TES3Merge/TES3Merge.csproj -o publish/osx -c Release -r osx-x64 -p:PublishSingleFile=true --no-self-contained
+    
+    # create zip
+    - run: ls -R
+    - run: zip TES3Merge-osx.zip publish/osx/TES3Merge publish/osx/TES3Merge.ini
+
+
+    # RELEASE
+    - name: Release
+      uses: ncipollo/release-action@v1
+      with:
+        allowUpdates: true
+        artifacts: "TES3Merge-osx.zip"
         token: ${{ secrets.GITHUB_TOKEN }}
