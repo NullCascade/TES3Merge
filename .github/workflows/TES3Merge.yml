@@ -1,4 +1,4 @@
-name: .NET
+name: Check_Build
 
 on:
   push:
@@ -66,3 +66,24 @@ jobs:
       with:
         name: tes3merge-linux
         path: ./publish/linux/TES3Merge
+
+  build-osx:
+    needs: [test]
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '6.x'
+
+    - name: Publish
+      run: dotnet publish TES3Merge/TES3Merge.csproj -o publish/osx -c Release -r osx-x64 -p:PublishSingleFile=true --self-contained false
+    
+    - uses: actions/upload-artifact@v3
+      with:
+        name: tes3merge-osx
+        path: ./publish/osx/TES3Merge

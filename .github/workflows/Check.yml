@@ -1,4 +1,4 @@
-name: Check
+name: FastCheck
 
 on:
   pull_request:

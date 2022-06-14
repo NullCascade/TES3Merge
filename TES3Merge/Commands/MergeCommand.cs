@@ -344,7 +344,7 @@ internal static class MergeAction
             var isAnythingChanged = false;
             if (records.Count <= 2 && firstRecord is not TES3Lib.Records.CELL)
             {
-                // do not merge execpt fix cellnames
+                // do not merge except fix cellnames
             }
             else
             {
