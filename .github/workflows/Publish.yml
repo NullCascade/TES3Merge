@@ -66,6 +66,8 @@ jobs:
       uses: ncipollo/release-action@v1
       with:
         allowUpdates: true
+        draft: true
+        generateReleaseNotes: true
         artifacts: "TES3Merge-win.zip"
         token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -98,5 +100,7 @@ jobs:
       uses: ncipollo/release-action@v1
       with:
         allowUpdates: true
+        draft: true
+        generateReleaseNotes: true
         artifacts: "TES3Merge-osx.zip"
         token: ${{ secrets.GITHUB_TOKEN }}
