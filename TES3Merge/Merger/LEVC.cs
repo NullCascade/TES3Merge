@@ -1,7 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Reflection;
-using TES3Lib.Base;
 using TES3Lib.Subrecords.LEVC;
 
 namespace TES3Merge.Merger;
@@ -111,6 +109,11 @@ internal static class LEVC
 
             // Update list count.
             var levc = currentParam as TES3Lib.Records.LEVC ?? throw new ArgumentException("Object is not of expected type.");
+
+            if (levc.INDX is null)
+            {
+                levc.INDX = new INDX();
+            }
             levc.INDX.CreatureCount = union.Count;
         }
 
