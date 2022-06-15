@@ -475,7 +475,7 @@ internal static class MergeAction
         if (patch.HasFlag(EPatch.Summons) || patch.HasFlag(EPatch.All))
         {
             if (newRecord is TES3Lib.Records.CREA creature
-            && TES3Merge.Merger.CREA.SummonedCreatures.Contains(creature.GetEditorId().TrimEnd('\0').ToLower())
+            && CREA.SummonedCreatures.Contains(creature.GetEditorId().TrimEnd('\0').ToLower())
             && !creature.Flags.Contains(TES3Lib.Enums.Flags.RecordFlag.Persistant))
             {
                 creature.Flags.Add(TES3Lib.Enums.Flags.RecordFlag.Persistant);

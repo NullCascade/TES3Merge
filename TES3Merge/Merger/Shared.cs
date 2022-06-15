@@ -31,7 +31,7 @@ internal static class Shared
             // Otherwise merge over individual properties.
             else
             {
-                return RecordMerger.MergeAllProperties(currentValue, firstValue, nextValue);
+                return MergeAllProperties(currentValue, firstValue, nextValue);
             }
         }
 
