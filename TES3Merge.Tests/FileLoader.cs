@@ -16,6 +16,7 @@ internal static class FileLoader
     private static readonly List<string> testedRecords = new(new string[] {
             "ALCH",
             "CREA",
+            "LEVC",
             "NPC_",
         });
 
