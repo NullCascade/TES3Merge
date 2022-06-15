@@ -106,15 +106,6 @@ internal static class LEVC
         {
             property.SetValue(currentParam, union);
             modified = true;
-
-            // Update list count.
-            var levc = currentParam as TES3Lib.Records.LEVC ?? throw new ArgumentException("Object is not of expected type.");
-
-            if (levc.INDX is null)
-            {
-                levc.INDX = new INDX();
-            }
-            levc.INDX.CreatureCount = union.Count;
         }
 
         return modified;
