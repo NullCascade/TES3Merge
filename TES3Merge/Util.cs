@@ -26,22 +26,23 @@ namespace TES3Merge
 
         public static IniData? Configuration;
 
-
         /// <summary>
         /// Finds the relevant Morrowind directory. It will prefer a directory that is shares or is parent to the current folder.
         /// </summary>
         /// <returns>A path to the directory where Morrowind.exe resides, or null if it could not be determined.</returns>
         internal static string? GetMorrowindFolder()
         {
-            if (File.Exists("Morrowind.exe"))
+            // All parent directories for Morrowind.exe.
+            for (var directory = new DirectoryInfo(Directory.GetCurrentDirectory()); directory is not null; directory = directory.Parent)
             {
-                return Directory.GetCurrentDirectory();
+                if (File.Exists("Morrowind.exe"))
+                {
+                    return directory.FullName;
+                }
             }
-            else if (File.Exists(Path.Combine("..", "Morrowind.exe")))
-            {
-                return Directory.GetParent(Directory.GetCurrentDirectory())?.FullName;
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+
+            // On windows, fall back to the registry.
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 var registryValue = Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\bethesda softworks\\Morrowind", "Installed Path", null) as string;
                 if (!string.IsNullOrEmpty(registryValue) && File.Exists(Path.Combine(registryValue, "Morrowind.exe")))
