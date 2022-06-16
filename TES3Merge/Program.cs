@@ -24,7 +24,8 @@ internal class Program
         LoadConfig();
         if (Configuration is null)
         {
-            WriteToLogAndConsole("Could not find installation directory. Aborting.");
+            WriteToLogAndConsole("Could not load TES3Merge's configuration. Aborting.");
+            ShowCompletionPrompt();
             return;
         }
 
@@ -33,7 +34,12 @@ internal class Program
         if (CurrentInstallation is null)
         {
             WriteToLogAndConsole("Could not find installation directory. Aborting.");
+            ShowCompletionPrompt();
             return;
+        }
+        else
+        {
+            WriteToLogAndConsole($"Installation folder: {CurrentInstallation.RootDirectory}");
         }
 
         await rootCommand.InvokeAsync(args);
