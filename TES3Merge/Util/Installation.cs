@@ -249,7 +249,7 @@ public class MorrowindInstallation : Installation
             foreach (var contained in bsa.Files)
             {
                 var existing = GetDataFile(contained.Name);
-                if (existing is not null && bsa.ModificationTime > existing.ModificationTime)
+                if (existing is null || bsa.ModificationTime > existing.ModificationTime)
                 {
                     DataFiles[contained.Name.ToLower()] = new ArchiveDataFile(contained);
                 }
