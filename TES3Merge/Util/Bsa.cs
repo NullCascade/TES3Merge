@@ -23,13 +23,15 @@ public struct BSAHashRecord
 
 public class BSARecord
 {
-    public BSARecord(string name, BSAFileInfo fileInfo, BSAHashRecord hash)
+    public BSARecord(BSAFile archive, string name, BSAFileInfo fileInfo, BSAHashRecord hash)
     {
+        Archive = archive;
         Name = name;
         FileInfo = fileInfo;
         Hash = hash;
     }
 
+    public BSAFile Archive { get; }
     public string Name;
     public BSAFileInfo FileInfo;
     public BSAHashRecord Hash;
@@ -37,18 +39,17 @@ public class BSARecord
 
 public class BSAFile
 {
-    public List<BSARecord> Files;
+    public List<BSARecord> Files = new();
 
-    public BSAFile()
-    {
-        Files = new List<BSARecord>();
-    }
-};
+    public DateTime ModificationTime { get; }
 
-public static class BsaParser
-{
-    public static BSAFile? Read(Stream stream)
+    public BSAFile(string path)
     {
+        var info = new FileInfo(path);
+        ModificationTime = info.LastWriteTime;
+
+        using var stream = new FileStream(path, FileMode.Open);
+
         var header = stream.ReadStruct<BSAHeader>();
 
         var fileinfos = new List<BSAFileInfo>();
@@ -92,18 +93,10 @@ public static class BsaParser
             fileHashes.Add(stream.ReadStruct<BSAHashRecord>());
         }
 
-        var files = new List<BSARecord>();
         for (var i = 0; i < header.numFiles; i++)
         {
-            var record = new BSARecord(fileNames[i], fileinfos[i], fileHashes[i]);
-            files.Add(record);
+            var record = new BSARecord(this, fileNames[i], fileinfos[i], fileHashes[i]);
+            Files.Add(record);
         }
-
-        var file = new BSAFile
-        {
-            Files = files
-        };
-        return file;
     }
-}
-
+};

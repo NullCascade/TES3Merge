@@ -17,7 +17,8 @@ using System.Text.RegularExpressions;
 using TES3Lib;
 using TES3Lib.Base;
 using TES3Merge.Merger;
-using static TES3Merge.Util;
+using TES3Merge.Util;
+using static TES3Merge.Util.Util;
 
 namespace TES3Merge.Commands;
 
@@ -139,17 +140,10 @@ internal static class MergeAction
     /// <exception cref="Exception"></exception>
     internal static void Merge(Settings settings)
     {
-        using var ssw = new ScopedStopwatch();
-        LoadConfig();
         ArgumentNullException.ThrowIfNull(Configuration);
+        ArgumentNullException.ThrowIfNull(CurrentInstallation);
 
-        // Find out where Morrowind lives.
-        var morrowindPath = GetMorrowindFolder();
-        if (string.IsNullOrEmpty(morrowindPath))
-        {
-            throw new Exception($"ERROR: Could not resolve Morrowind directory. Install TES3Merge into Morrowind\\TES3Merge\\TES3Merge.exe or reinstall Morrowind to fix registry values.");
-        }
-        Logger.WriteLine($"Morrowind found at '{morrowindPath}'.");
+        using var ssw = new ScopedStopwatch();
 
         // Create our merged object TES3 file.
         var mergedObjects = new TES3();
@@ -179,7 +173,7 @@ internal static class MergeAction
         WriteToLogAndConsole($"Supported record types: {string.Join(", ", supportedMergeTags)}");
 
         // get all loaded plugins
-        var sortedMasters = GetSortedMasters(morrowindPath);
+        var sortedMasters = CurrentInstallation.GameFiles;
         if (sortedMasters is null)
         {
             return;
@@ -192,7 +186,7 @@ internal static class MergeAction
         // Go through and build a record list.
         foreach (var sortedMaster in sortedMasters)
         {
-            var fullGameFilePath = Path.Combine(morrowindPath, "Data Files", $"{sortedMaster}");
+            var fullGameFilePath = Path.Combine(CurrentInstallation.RootDirectory, "Data Files", $"{sortedMaster}");
             var lastWriteTime = File.GetLastWriteTime(fullGameFilePath);
             Logger.WriteLine($"Parsing input file: {sortedMaster} @ {lastWriteTime}");
             var file = TES3.TES3Load(fullGameFilePath, supportedMergeTags);
@@ -265,15 +259,15 @@ internal static class MergeAction
         // commandline arguments
         if (settings.InclusiveListMerge)
         {
-            RecordMerger.MergePropertyFunctionMapper[typeof(List<TES3Lib.Subrecords.Shared.NPCO>)] = Merger.Shared.ItemsList;
+            RecordMerger.MergePropertyFunctionMapper[typeof(List<TES3Lib.Subrecords.Shared.NPCO>)] = Shared.ItemsList;
         }
         if (settings.NoObjects)
         {
             RecordMerger.MergePropertyFunctionMapper.Clear();
             RecordMerger.MergePropertyFunctionMapper[typeof(Subrecord)] = Shared.NoMerge;
 
-            RecordMerger.MergePropertyFunctionMapper[typeof(List<(TES3Lib.Subrecords.LEVI.INAM INAM, TES3Lib.Subrecords.LEVI.INTV INTV)>)] = Merger.LEVI.ITEM;
-            RecordMerger.MergePropertyFunctionMapper[typeof(List<(TES3Lib.Subrecords.LEVC.CNAM CNAM, TES3Lib.Subrecords.LEVC.INTV INTV)>)] = Merger.LEVC.CRIT;
+            RecordMerger.MergePropertyFunctionMapper[typeof(List<(TES3Lib.Subrecords.LEVI.INAM INAM, TES3Lib.Subrecords.LEVI.INTV INTV)>)] = LEVI.ITEM;
+            RecordMerger.MergePropertyFunctionMapper[typeof(List<(TES3Lib.Subrecords.LEVC.CNAM CNAM, TES3Lib.Subrecords.LEVC.INTV INTV)>)] = LEVC.CRIT;
         }
 
         // Go through and build merged objects.
@@ -308,7 +302,7 @@ internal static class MergeAction
             {
                 if (usedMasters.Contains(gameFile))
                 {
-                    var size = new FileInfo(Path.Combine(morrowindPath, "Data Files", $"{gameFile}")).Length;
+                    var size = new FileInfo(Path.Combine(CurrentInstallation.RootDirectory, "Data Files", $"{gameFile}")).Length;
                     mergedObjectsHeader.Masters.Add((new TES3Lib.Subrecords.TES3.MAST { Filename = $"{gameFile}\0" }, new TES3Lib.Subrecords.TES3.DATA { MasterDataSize = size }));
                 }
             }
@@ -319,7 +313,7 @@ internal static class MergeAction
         mergedObjectsHeader.HEDR.NumRecords = mergedObjects.Records.Count - 1;
 
         // mergedObjects.TES3Save(Path.Combine(morrowindPath, "Data Files", fileName));
-        using var fs = new FileStream(Path.Combine(morrowindPath, "Data Files", settings.FileName), FileMode.Create, FileAccess.ReadWrite);
+        using var fs = new FileStream(Path.Combine(CurrentInstallation.RootDirectory, "Data Files", settings.FileName), FileMode.Create, FileAccess.ReadWrite);
         foreach (var record in mergedObjects.Records)
         {
             var serializedRecord = record is TES3Lib.Records.CELL cell ? cell.SerializeRecordForMerge() : record.SerializeRecord();
@@ -395,6 +389,10 @@ internal static class MergeAction
             try
             {
                 var newSerialized = newRecord is TES3Lib.Records.CELL cell ? cell.SerializeRecordForMerge() : newRecord.SerializeRecord();
+                if (newSerialized is null)
+                {
+                    throw new Exception("Fuck.");
+                }
 
 #if DEBUG
                 //if (!lastSerialized.SequenceEqual(newSerialized) && !isAnythingChanged)

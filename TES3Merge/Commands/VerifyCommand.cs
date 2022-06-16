@@ -10,13 +10,12 @@
 
 using System.Collections.Concurrent;
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using TES3Lib;
 using TES3Lib.Base;
-using static TES3Merge.Util;
+using static TES3Merge.Util.Util;
 
 namespace TES3Merge.Commands;
 
@@ -65,33 +64,17 @@ internal static class VerifyAction
     /// <exception cref="Exception"></exception>
     private static void Verify()
     {
+        ArgumentNullException.ThrowIfNull(CurrentInstallation);
 
         using var ssw = new ScopedStopwatch();
         LoadConfig();
         ArgumentNullException.ThrowIfNull(Configuration);
 
-        // Find out where Morrowind lives.
-        var morrowindPath = GetMorrowindFolder();
-        if (string.IsNullOrEmpty(morrowindPath))
-        {
-            throw new Exception($"ERROR: Could not resolve Morrowind directory. Install TES3Merge into Morrowind\\TES3Merge\\TES3Merge.exe or reinstall Morrowind to fix registry values.");
-        }
-        Logger.WriteLine($"Morrowind found at '{morrowindPath}'.");
-
         // get merge tags
         var (supportedMergeTags, objectIdFilters) = GetMergeTags();
 
-        // get all loaded plugins
-        var sortedMasters = GetSortedMasters(morrowindPath);
-        if (sortedMasters is null)
-        {
-            return;
-        }
-
-        // get all physical and bsa files
-        var fileMap = GetFileMap(morrowindPath);
-        var extensionToFolderMap = GetExtensionMap(fileMap);
-
+        // Shorthand install access.
+        var sortedMasters = CurrentInstallation.GameFiles;
 
         // Go through and build a record list.
         var reportDict = new ConcurrentDictionary<string, Dictionary<string, List<string>>>();
@@ -110,7 +93,7 @@ internal static class VerifyAction
 
             // go through all records
             WriteToLogAndConsole($"Parsing input file: {sortedMaster}");
-            var fullGameFilePath = Path.Combine(morrowindPath, "Data Files", $"{sortedMaster}");
+            var fullGameFilePath = Path.Combine(CurrentInstallation.RootDirectory, "Data Files", $"{sortedMaster}");
             var file = TES3.TES3Load(fullGameFilePath, supportedMergeTags);
             foreach (var record in file.Records)
             {
@@ -155,13 +138,12 @@ internal static class VerifyAction
                 #endregion
 
                 // verify here
-                GetPathsInRecord(record, map, fileMap, extensionToFolderMap);
+                GetPathsInRecord(record, map);
             }
 
             if (map.Count > 0)
             {
                 reportDict.AddOrUpdate(sortedMaster, map, (key, oldValue) => map);
-                //reportDict.Add(x =>  sortedMaster, map);
             }
         }
         );
@@ -189,7 +171,7 @@ internal static class VerifyAction
         }
         // serialize to file
         WriteToLogAndConsole($"\n");
-        var reportPath = Path.Combine(morrowindPath, "Data Files", "report.json");
+        var reportPath = Path.Combine(CurrentInstallation.RootDirectory, "Data Files", "report.json");
         WriteToLogAndConsole($"Writing report to: {reportPath}");
         {
             using var fs = new FileStream(reportPath, FileMode.Create);
@@ -206,9 +188,7 @@ internal static class VerifyAction
     /// <param name="fileMap"></param>
     private static void GetPathsInRecord(
             Record record,
-            Dictionary<string, List<string>> map,
-            ILookup<string, string> fileMap,
-            Dictionary<string, List<string>> extensionToFolderMap)
+            Dictionary<string, List<string>> map)
     {
         var recordDict = new List<string>();
         var properties = record
@@ -222,7 +202,7 @@ internal static class VerifyAction
             var val = record is not null ? property.GetValue(record) : null;
             if (val is Subrecord subrecord)
             {
-                GetPathsInSubRecordRecursive(subrecord, recordDict, fileMap, extensionToFolderMap);
+                GetPathsInSubRecordRecursive(subrecord, recordDict);
             }
         }
 
@@ -243,10 +223,9 @@ internal static class VerifyAction
     /// <param name="fileMap"></param>
     private static void GetPathsInSubRecordRecursive(
         Subrecord subRecord,
-        List<string> map,
-        ILookup<string, string> fileMap,
-        Dictionary<string, List<string>> extensionToFolderMap)
+        List<string> map)
     {
+        ArgumentNullException.ThrowIfNull(CurrentInstallation);
 
         var recordTypeName = subRecord.Name;
         var properties = subRecord
@@ -261,63 +240,17 @@ internal static class VerifyAction
             if (val is string rawstr)
             {
                 var str = rawstr.TrimEnd('\0').ToLower();
-                var extension = Path.GetExtension(str);
-
-                if (string.IsNullOrEmpty(extension) || !extensionToFolderMap.ContainsKey(extension))
+                var file = CurrentInstallation.GetSubstitutingDataFile(str);
+                if (file is null)
                 {
-                    continue;
-                }
-
-                // formatting
-                if (str.Contains(Path.AltDirectorySeparatorChar))
-                {
-                    str = str.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
-                }
-                var filesOfExtension = fileMap[extension];
-                var found = false;
-
-                // check all folders 
-                var possibleFolders = extensionToFolderMap[extension];
-                foreach (var folder in possibleFolders)
-                {
-                    var resolved = $"{folder}\\{str}";
-                    if (filesOfExtension.Contains(resolved))
-                    {
-                        found = true;
-                        break;
-                    }
-                }
-
-                // check both tga and dds because they can be used interchangeably for some reason
-                if (!found && extension == ".tga")
-                {
-                    filesOfExtension = fileMap[".dds"];
-                    foreach (var folder in extensionToFolderMap[".dds"])
-                    {
-                        var resolved = $"{folder}\\{str}";
-                        resolved = Path.ChangeExtension(resolved, ".dds");
-                        if (filesOfExtension.Contains(resolved))
-                        {
-                            found = true;
-                            break;
-                        }
-                    }
-                }
-
-                if (!found)
-                {
-                    // resolve possible file paths
-                    var resolvedPath = possibleFolders.Count > 1
-                        ? Path.Combine($"<{string.Join(',', possibleFolders)}>", str)
-                        : Path.Combine($"{possibleFolders.First()}", str);
-                    map.Add(resolvedPath);
+                    map.Add(str);
                 }
             }
             else
             {
                 if (val is Subrecord subrecord)
                 {
-                    GetPathsInSubRecordRecursive(subrecord, map, fileMap, extensionToFolderMap);
+                    GetPathsInSubRecordRecursive(subrecord, map);
                 }
             }
         }

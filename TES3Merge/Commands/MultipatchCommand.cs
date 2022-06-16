@@ -23,7 +23,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using TES3Lib;
 using TES3Lib.Base;
-using static TES3Merge.Util;
+using static TES3Merge.Util.Util;
 
 namespace TES3Merge.Commands;
 
@@ -82,7 +82,7 @@ internal static class MultipatchAction
                 true,
                 new List<string>() { "LEVI", "LEVC", "CREA", "CELL" },
                 null,
-                EPatch.All,
+                Util.EPatch.All,
                 false,
                 true,
                 "multipatch.esp"));
