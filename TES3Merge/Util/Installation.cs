@@ -60,15 +60,17 @@ public abstract class Installation
                 if (File.Exists(Path.Combine(directory.FullName, "Morrowind.exe")))
                 {
                     install = new MorrowindInstallation(directory.FullName);
+                    break;
                 }
                 else if (File.Exists(Path.Combine(directory.FullName, "openmw.exe")))
                 {
                     install = new OpenMWInstallation(directory.FullName);
+                    break;
                 }
             }
 
             // On windows, fall back to the registry for Morrowind.
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (install is null && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 var registryValue = Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\bethesda softworks\\Morrowind", "Installed Path", null) as string;
                 if (!string.IsNullOrEmpty(registryValue) && File.Exists(Path.Combine(registryValue, "Morrowind.exe")))
@@ -215,7 +217,8 @@ public class MorrowindInstallation : Installation
         }
 
         // Add ESM files first.
-        foreach (var path in Directory.GetFiles(Path.Combine(RootDirectory, "Data Files"), "*.esm", SearchOption.TopDirectoryOnly).OrderBy(p => File.GetLastWriteTime(p).Ticks))
+        var dataFiles = Path.Combine(RootDirectory, "Data Files");
+        foreach (var path in Directory.GetFiles(dataFiles, "*.esm", SearchOption.TopDirectoryOnly).OrderBy(p => File.GetLastWriteTime(p).Ticks))
         {
             var fileName = Path.GetFileName(path);
             if (definedFiles.Contains(fileName))
@@ -225,7 +228,7 @@ public class MorrowindInstallation : Installation
         }
 
         // Then add other content files.
-        foreach (var path in Directory.GetFiles(Path.Combine(RootDirectory, "Data Files"), "*.esp", SearchOption.TopDirectoryOnly).OrderBy(p => File.GetLastWriteTime(p).Ticks))
+        foreach (var path in Directory.GetFiles(dataFiles, "*.esp", SearchOption.TopDirectoryOnly).OrderBy(p => File.GetLastWriteTime(p).Ticks))
         {
             var fileName = Path.GetFileName(path);
             if (definedFiles.Contains(fileName))
