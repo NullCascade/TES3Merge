@@ -48,6 +48,12 @@ public abstract class Installation
         RootDirectory = path;
     }
 
+    /// <summary>
+    /// Attempts to create an <see cref="Installation"/> object. It checks the current folder, then
+    /// all parent folders for a valid Morrowind or OpenMW installation. If it does not find
+    /// anything, it will fall back to registry values (Windows-only).
+    /// </summary>
+    /// <returns>The context-aware installation interface.</returns>
     public static Installation? CreateFromContext()
     {
         Installation? install = null;
@@ -96,8 +102,19 @@ public abstract class Installation
         return null;
     }
 
+    /// <summary>
+    /// This function is responsible for loading all the files, taking into consideration anything
+    /// like MO2 or OpenMW's VFS.
+    /// </summary>
     protected abstract void LoadDataFiles();
 
+    /// <summary>
+    /// Fetches file information relative to the Data Files directory. This file may be a normal
+    /// file, or it may be a record in a BSA archive. The files mappings here are overwritten so
+    /// that the last modified file always wins.
+    /// </summary>
+    /// <param name="path">The path, relative to Data Files, to fetch.</param>
+    /// <returns>The interface to the file.</returns>
     public DataFile? GetDataFile(string path)
     {
         if (DataFiles is null)
@@ -115,6 +132,12 @@ public abstract class Installation
         return null;
     }
 
+    /// <summary>
+    /// As <see cref="GetDataFile(string)"/>, but accounts for changes to paths that Morrowind
+    /// expects. Some assets will fall back to another file, i.e. texture.tga -> texture.dds.
+    /// </summary>
+    /// <param name="path">The path, relative to Data Files, to fetch.</param>
+    /// <returns>The interface to the file.</returns>
     public DataFile? GetSubstitutingDataFile(string path)
     {
         var raw = GetDataFile(path);
@@ -138,8 +161,15 @@ public abstract class Installation
     }
 }
 
+/// <summary>
+/// Represents an installation specific to the normal Morrowind game engine. There are few extra
+/// considerations needed.
+/// </summary>
 public class MorrowindInstallation : Installation
 {
+    /// <summary>
+    /// The deserialized contents of the Morrowind.ini file.
+    /// </summary>
     public IniData? Configuration;
 
     public MorrowindInstallation(string path) : base(path)
@@ -149,7 +179,11 @@ public class MorrowindInstallation : Installation
         BuildGameFilesList();
     }
 
-    internal void LoadConfiguration()
+    /// <summary>
+    /// Loads the <see cref="MorrowindInstallation.Configuration"/> member. It also logs malformed
+    /// ini formatting.
+    /// </summary>
+    private void LoadConfiguration()
     {
         try
         {
@@ -180,7 +214,10 @@ public class MorrowindInstallation : Installation
         }
     }
 
-    internal void BuildBSAList()
+    /// <summary>
+    /// Fills out the <see cref="Installation.Archives"/> list by parsing Morrowind.ini.
+    /// </summary>
+    private void BuildBSAList()
     {
         ArgumentNullException.ThrowIfNull(Configuration);
 
@@ -199,7 +236,11 @@ public class MorrowindInstallation : Installation
         }
     }
 
-    internal void BuildGameFilesList()
+    /// <summary>
+    /// Fills out the <see cref="Installation.GameFiles"/> list by parsing Morrowind.ini. The list
+    /// is sorted such that esm files appear before esp files, with ordering by last modification.
+    /// </summary>
+    private void BuildGameFilesList()
     {
         ArgumentNullException.ThrowIfNull(Configuration);
 
@@ -238,6 +279,12 @@ public class MorrowindInstallation : Installation
         }
     }
 
+    /// <summary>
+    /// Loops through all the archives defined in Morrowind.ini, and fetches record handles to any
+    /// files that exist in them. If the BSA was modified before the normal file, the BSA takes
+    /// priority.
+    /// </summary>
+    /// <exception cref="Exception"></exception>
     private void MapArchiveFiles()
     {
         ArgumentNullException.ThrowIfNull(DataFiles);
@@ -258,6 +305,11 @@ public class MorrowindInstallation : Installation
         }
     }
 
+    /// <summary>
+    /// Builds a list of all entries in Data Files, and stores them in the
+    /// <see cref="Installation.DataFiles"/> map. This must be called perior to the mapping of
+    /// BSA file contents.
+    /// </summary>
     private void MapNormalFiles()
     {
         ArgumentNullException.ThrowIfNull(DataFiles);
@@ -282,6 +334,12 @@ public class MorrowindInstallation : Installation
     }
 }
 
+/// <summary>
+/// Represents an installation specific to the normal OpenMW game engine. Extra considerations
+/// include:
+///  * Configuration format differs from normal.
+///  * Multiple Data Files folders are supported at once.
+/// </summary>
 public class OpenMWInstallation : Installation
 {
     public OpenMWInstallation(string path) : base(path)
