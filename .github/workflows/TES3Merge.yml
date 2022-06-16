@@ -7,7 +7,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v2
       with:
@@ -23,7 +23,7 @@ jobs:
       run: dotnet build --no-restore
 
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet test --no-build --verbosity normal --filter TestCategory!=Installation
 
   build-win:
     needs: [test]
@@ -40,7 +40,7 @@ jobs:
 
     - name: Publish
       run: dotnet publish TES3Merge/TES3Merge.csproj -o publish/win -c Release -r win-x64 -p:PublishSingleFile=true --no-self-contained
-    
+
     - uses: actions/upload-artifact@v3
       with:
         name: tes3merge-win
@@ -61,7 +61,7 @@ jobs:
 
     - name: Publish
       run: dotnet publish TES3Merge/TES3Merge.csproj -o publish/linux -c Release -r linux-x64 -p:PublishSingleFile=true --no-self-contained
-    
+
     - uses: actions/upload-artifact@v3
       with:
         name: tes3merge-linux
@@ -82,7 +82,7 @@ jobs:
 
     - name: Publish
       run: dotnet publish TES3Merge/TES3Merge.csproj -o publish/osx -c Release -r osx-x64 -p:PublishSingleFile=true --no-self-contained
-    
+
     - uses: actions/upload-artifact@v3
       with:
         name: tes3merge-osx

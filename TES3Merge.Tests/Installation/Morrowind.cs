@@ -11,7 +11,7 @@ using static TES3Merge.Tests.Utility;
 
 namespace TES3Merge.Tests.Installation;
 
-[TestClass]
+[TestClass, TestCategory("Installation")]
 public class Morrowind
 {
     protected IHost _host;
