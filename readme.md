@@ -6,7 +6,6 @@ This tool helps to automatically patch conflicts between mods for _The Elder Scr
 
 This program includes an INI file to allow customization. Check [TES3Merge.ini](TES3Merge/TES3Merge.ini) for details on object blacklisting/whitelisting, debug options, and object type toggles.
 
-
 ## Usage
 
 Extract the TES3Merge folder into the Morrowind installation directory. It can work outside this directory, but when managing multiple installs, it will always look to the parent directory first to find Morrowind.
@@ -15,12 +14,10 @@ Simply run TES3Merge.exe, then activate the new Merged Objects.esp file.
 
 If running a Russian, Polish, or Japanese install, see [TES3Merge.ini](TES3Merge/TES3Merge.ini) to specify file encoding.
 
-Additional command line parameter options are available, detailed below. The default behavior of TES3Merge is equivalent to `TES3Merge.exe multipatch verify --patches all`.
+Additional command line parameter options are available, detailed below. The default behavior of TES3Merge is equivalent to `TES3Merge.exe --patches all`.
 
 | Option                                      | Description                                                                     |
 | ------------------------------------------- | ------------------------------------------------------------------------------- |
-| `multipatch`                                | Create a multipatch that merges levelled lists and fixes various other bugs.    |
-| `verify`                                    | Checks esps for missing file paths.                                             |
 | `-i`, `--inclusive`                         | Merge lists inclusively per element (implemented for List<NPCO>).               |
 | `--no-masters`                              | Do not add masters to the merged esp.                                           |
 | `-r`, `--records <records>`                 | Merge only specified records.                                                   |
@@ -41,11 +38,18 @@ TES3Merge creates patches to solve common issue in mods. These are all enabled b
 | fogbug    | This option creates a patch that fixes all fogbugged cells in your active plugins by setting the fog density of those cells to a non-zero value. |
 | summons   | This option to the multipatch ensures that known summoned creatures are flagged as persistent.                                                   |
 
+### Commands
+
+Additionally, there are additional commands beside the default merge command. You can run them with `TES3Merge.exe multipatch` and `TES3Merge.exe verify`.
+
+| Command                                     | Description                                                                     |
+| ------------------------------------------- | ------------------------------------------------------------------------------- |
+| `multipatch`                                | Create a multipatch that merges levelled lists and fixes various other bugs.    |
+| `verify`                                    | Checks esps for missing file paths.                                             |
 
 ### Configuration
 
 TES3Merge also contains a configuration file, [TES3Merge.ini](TES3Merge/TES3Merge.ini). Documentation for the config file can be found in the file itself.
-
 
 ## Further Details
 
@@ -57,11 +61,9 @@ Currently, TES3Merge supports the following record types: Activator, Alchemy, Ap
 
 Merge rules respect the load order, with the first appearance of the record becoming the base for comparisons. If a later mod modifies the record, its changes will be preserved. Another mod after that will only have its changes made if they differ from the base record.
 
-
 ## Contributing and Credits
 
 TES3Merge is written using C#, and makes use of the [TES3Tool](https://github.com/SaintBahamut/TES3Tool) library by [SaintBahamut](https://github.com/SaintBahamut). A fork of this dependency is cloned with this repo.
-
 
 ## License
 

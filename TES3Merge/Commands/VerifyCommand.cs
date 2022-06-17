@@ -2,10 +2,7 @@
  * TODO
  * 
  * check NIF paths for each esp
- * 
- * 
- * 
- * 
+ *
  */
 
 using System.Collections.Concurrent;
@@ -147,12 +144,6 @@ internal static class VerifyAction
             }
         }
         );
-
-        // parse nifs (in esp?)
-
-        // TODO
-
-
 
         // pretty print
         WriteToLogAndConsole($"\n------------------------------------");

@@ -498,7 +498,6 @@ internal static class MergeAction
                 if (cell.DATA.Flags.Contains(TES3Lib.Enums.Flags.CellFlag.IsInteriorCell)
                     && !cell.DATA.Flags.Contains(TES3Lib.Enums.Flags.CellFlag.BehaveLikeExterior))
                 {
-                    // TODO Fog Density in DATA
                     if (cell.AMBI is not null && cell.AMBI.FogDensity == 0f)
                     {
                         cell.AMBI.FogDensity = 0.01f;
