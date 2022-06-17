@@ -180,13 +180,16 @@ internal static class MergeAction
         }
 
         // Build a list of ignored files.
-        var ignoredFiles = new HashSet<string>();
-        ignoredFiles.Add(settings.FileName.ToLower());
+        var ignoredFiles = new HashSet<string>
+        {
+            settings.FileName.ToLower()
+        };
         foreach (var entry in Configuration["FileFilters"])
         {
             if (bool.TryParse(entry.Value, out var allow) && !allow)
             {
                 ignoredFiles.Add(entry.KeyName.ToLower());
+                WriteToLogAndConsole($"Ignoring file {entry.KeyName.ToLower()}");
             }
         }
 
