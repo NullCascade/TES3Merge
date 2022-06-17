@@ -37,15 +37,61 @@ public abstract class Installation
     /// </summary>
     protected Dictionary<string, DataFile>? DataFiles;
 
-    /// <summary>
-    /// An internal flag for if the installation was successfully loaded.
-    /// </summary>
-    internal bool Valid { get; set; }
-
     public Installation(string path)
     {
-        Valid = true;
         RootDirectory = path;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="path"></param>
+    /// <returns></returns>
+    private static bool IsValidInstallationDirectory(string path)
+    {
+        if (string.IsNullOrEmpty(path))
+        {
+            return false;
+        }
+
+        return File.Exists(Path.Combine(path, "Morrowind.exe")) || File.Exists(Path.Combine(path, "openmw.cfg"));
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    private static string? GetContextAwareInstallPath()
+    {
+        ArgumentNullException.ThrowIfNull(Util.Configuration);
+
+        // Do we have an explicit install in our config file?
+        var explicitPath = Util.Configuration["General"]["InstallPath"];
+        if (IsValidInstallationDirectory(explicitPath))
+        {
+            return explicitPath;
+        }
+
+        // Search all parent directories for Morrowind/OpenMW.
+        for (var directory = new DirectoryInfo(Directory.GetCurrentDirectory()); directory is not null; directory = directory.Parent)
+        {
+            if (IsValidInstallationDirectory(directory.FullName))
+            {
+                return directory.FullName;
+            }
+        }
+
+        // On windows, fall back to the registry for Morrowind.
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            var registryValue = Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\bethesda softworks\\Morrowind", "Installed Path", null) as string;
+            if (!string.IsNullOrEmpty(registryValue) && IsValidInstallationDirectory(registryValue))
+            {
+                return registryValue;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -56,47 +102,26 @@ public abstract class Installation
     /// <returns>The context-aware installation interface.</returns>
     public static Installation? CreateFromContext()
     {
-        Installation? install = null;
+        var path = GetContextAwareInstallPath();
+        if (path is null)
+        {
+            throw new Exception("Could not determine installation location.");
+        }
 
         try
         {
-            // Search all parent directories for Morrowind/OpenMW.
-            for (var directory = new DirectoryInfo(Directory.GetCurrentDirectory()); directory is not null; directory = directory.Parent)
+            if (File.Exists(Path.Combine(path, "Morrowind.exe")))
             {
-                if (File.Exists(Path.Combine(directory.FullName, "Morrowind.exe")))
-                {
-                    install = new MorrowindInstallation(directory.FullName);
-                    break;
-                }
-                else if (File.Exists(Path.Combine(directory.FullName, "openmw.exe")))
-                {
-                    install = new OpenMWInstallation(directory.FullName);
-                    break;
-                }
+                return new MorrowindInstallation(path);
             }
-
-            // On windows, fall back to the registry for Morrowind.
-            if (install is null && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            else if (File.Exists(Path.Combine(path, "openmw.cfg")))
             {
-                var registryValue = Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\bethesda softworks\\Morrowind", "Installed Path", null) as string;
-                if (!string.IsNullOrEmpty(registryValue) && File.Exists(Path.Combine(registryValue, "Morrowind.exe")))
-                {
-                    install = new MorrowindInstallation(registryValue);
-                }
+                return new OpenMWInstallation(path);
             }
         }
         catch (Exception e)
         {
-            if (install is not null)
-            {
-                install.Valid = false;
-            }
             Util.Logger.WriteLine(e.Message);
-        }
-
-        if (install is not null && install.Valid)
-        {
-            return install;
         }
 
         return null;
@@ -175,7 +200,7 @@ public class MorrowindInstallation : Installation
     public MorrowindInstallation(string path) : base(path)
     {
         LoadConfiguration();
-        BuildBSAList();
+        BuildArchiveList();
         BuildGameFilesList();
     }
 
@@ -217,7 +242,7 @@ public class MorrowindInstallation : Installation
     /// <summary>
     /// Fills out the <see cref="Installation.Archives"/> list by parsing Morrowind.ini.
     /// </summary>
-    private void BuildBSAList()
+    private void BuildArchiveList()
     {
         ArgumentNullException.ThrowIfNull(Configuration);
 
