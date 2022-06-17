@@ -367,7 +367,47 @@ public class MorrowindInstallation : Installation
 /// </summary>
 public class OpenMWInstallation : Installation
 {
+    private List<string> DataDirectories = new();
+
     public OpenMWInstallation(string path) : base(path)
+    {
+        LoadConfiguration();
+        BuildArchiveList();
+        BuildGameFilesList();
+    }
+
+    private static string GetConfigurationLocation()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            var myDocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            return Path.Combine(myDocs, "My Games", "OpenMW", "openmw.cfg");
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            return Path.Combine(home, ".config", "openmw", "openmw.cfg");
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            return Path.Combine(home, "Library", "Preferences", "openmw", "openmw.cfg");
+        }
+
+        throw new Exception("Could not determine configuration path.");
+    }
+
+    private void LoadConfiguration()
+    {
+        throw new NotImplementedException();
+    }
+
+    private void BuildArchiveList()
+    {
+        throw new NotImplementedException();
+    }
+
+    private void BuildGameFilesList()
     {
         throw new NotImplementedException();
     }
