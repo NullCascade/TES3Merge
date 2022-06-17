@@ -179,6 +179,17 @@ internal static class MergeAction
             return;
         }
 
+        // Build a list of ignored files.
+        var ignoredFiles = new HashSet<string>();
+        ignoredFiles.Add(settings.FileName.ToLower());
+        foreach (var entry in Configuration["FileFilters"])
+        {
+            if (bool.TryParse(entry.Value, out var allow) && !allow)
+            {
+                ignoredFiles.Add(entry.KeyName.ToLower());
+            }
+        }
+
         // Collections for managing our objects.
         var recordOverwriteMap = new Dictionary<string, Dictionary<string, List<TES3Lib.Base.Record>>>();
         var mapTES3ToFileNames = new Dictionary<TES3, string>();
@@ -186,8 +197,8 @@ internal static class MergeAction
         // Go through and build a record list.
         foreach (var sortedMaster in sortedMasters)
         {
-            // Skip Merged Objects.
-            if (sortedMaster == settings.FileName)
+            // Skip ignored files.
+            if (ignoredFiles.Contains(sortedMaster.ToLower()))
             {
                 continue;
             }
