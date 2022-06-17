@@ -186,10 +186,19 @@ internal static class MergeAction
         // Go through and build a record list.
         foreach (var sortedMaster in sortedMasters)
         {
-            var fullGameFilePath = Path.Combine(CurrentInstallation.RootDirectory, "Data Files", $"{sortedMaster}");
-            var lastWriteTime = File.GetLastWriteTime(fullGameFilePath);
-            Logger.WriteLine($"Parsing input file: {sortedMaster} @ {lastWriteTime}");
-            var file = TES3.TES3Load(fullGameFilePath, supportedMergeTags);
+            // Skip Merged Objects.
+            if (sortedMaster == settings.FileName)
+            {
+                continue;
+            }
+
+            if (CurrentInstallation.GetDataFile(sortedMaster) is not NormalDataFile dataFile)
+            {
+                continue;
+            }
+
+            Logger.WriteLine($"Parsing input file: {sortedMaster} @ {dataFile.ModificationTime}");
+            var file = TES3.TES3Load(dataFile.FilePath, supportedMergeTags);
             mapTES3ToFileNames[file] = sortedMaster;
 
             foreach (var record in file.Records)
@@ -308,11 +317,13 @@ internal static class MergeAction
             }
         }
 
-
         // Save out the merged objects file.
+        // TODO: Force this logic into TES3Lib.
         mergedObjectsHeader.HEDR.NumRecords = mergedObjects.Records.Count - 1;
 
         // mergedObjects.TES3Save(Path.Combine(morrowindPath, "Data Files", fileName));
+        // TODO: Add this as a utility function to TES3Lib.
+        // TODO: Add configuration for output directory.
         using var fs = new FileStream(Path.Combine(CurrentInstallation.RootDirectory, "Data Files", settings.FileName), FileMode.Create, FileAccess.ReadWrite);
         foreach (var record in mergedObjects.Records)
         {
