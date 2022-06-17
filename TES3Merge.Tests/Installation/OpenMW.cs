@@ -12,14 +12,14 @@ using static TES3Merge.Tests.Utility;
 namespace TES3Merge.Tests.Installation;
 
 [TestClass, TestCategory("Installation")]
-public class Morrowind
+public class OpenMW
 {
     protected IHost _host;
     protected Microsoft.Extensions.Logging.ILogger _logger;
 
-    public MorrowindInstallation? Install;
+    public OpenMWInstallation? Install;
 
-    public Morrowind()
+    public OpenMW()
     {
         // Setup logging.
         Log.Logger = new LoggerConfiguration()
@@ -35,14 +35,14 @@ public class Morrowind
 
         if (Directory.Exists(Properties.Resources.OpenMWInstallDirectory))
         {
-            Install = new MorrowindInstallation(Properties.Resources.MorrowindInstallDirectory);
+            Install = new OpenMWInstallation(Properties.Resources.OpenMWInstallDirectory);
         }
     }
 
     [TestMethod]
     public void InstallationFound()
     {
-        if (Directory.Exists(Properties.Resources.MorrowindInstallDirectory))
+        if (Directory.Exists(Properties.Resources.OpenMWInstallDirectory))
         {
             Assert.IsNotNull(Install);
         }
@@ -58,8 +58,8 @@ public class Morrowind
         }
 
         _logger.LogInformation("Installation Directory: {path}", Install.RootDirectory);
-        var exePath = Path.Combine(Install.RootDirectory, "Morrowind.exe");
-        Assert.IsTrue(File.Exists(exePath));
+        var cfgPath = Path.Combine(Install.RootDirectory, "openmw.cfg");
+        Assert.IsTrue(File.Exists(cfgPath));
     }
 
     [TestMethod]

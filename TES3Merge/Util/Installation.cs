@@ -372,8 +372,6 @@ public class OpenMWInstallation : Installation
     public OpenMWInstallation(string path) : base(path)
     {
         LoadConfiguration();
-        BuildArchiveList();
-        BuildGameFilesList();
     }
 
     private static string GetConfigurationLocation()
@@ -399,21 +397,85 @@ public class OpenMWInstallation : Installation
 
     private void LoadConfiguration()
     {
-        throw new NotImplementedException();
+        var configPath = GetConfigurationLocation();
+        if (!File.Exists(configPath))
+        {
+            throw new Exception("Configuration file does not exist.");
+        }
+
+        foreach (var line in File.ReadLines(configPath))
+        {
+            var tokens = line.Split('=', 2);
+            var key = tokens[0].Trim();
+            var value = tokens[1].Trim(new char[] { ' ', '"' });
+
+            switch (key)
+            {
+                case "data":
+                    DataDirectories.Add(value.Replace('/', '\\'));
+                    break;
+                case "content":
+                    GameFiles.Add(value);
+                    break;
+                case "fallback-archive":
+                    Archives.Add(value);
+                    break;
+            }
+        }
     }
 
-    private void BuildArchiveList()
+    /// <summary>
+    /// Loops through all the archives defined in Morrowind.ini, and fetches record handles to any
+    /// files that exist in them. BSAs always lose priority to loose files.
+    /// </summary>
+    /// <exception cref="Exception"></exception>
+    private void MapArchiveFiles()
     {
-        throw new NotImplementedException();
+        ArgumentNullException.ThrowIfNull(DataFiles);
+
+        foreach (var archive in Archives)
+        {
+            var archiveFile = GetDataFile(archive) as NormalDataFile ?? throw new Exception($"Archive '{archive}' could not be found.");
+            var bsa = new BSAFile(archiveFile.FilePath);
+            foreach (var contained in bsa.Files)
+            {
+                var existing = GetDataFile(contained.Name);
+                if (existing is null)
+                {
+                    DataFiles[contained.Name.ToLower()] = new ArchiveDataFile(contained);
+                }
+            }
+            ArchiveFiles[archive.ToLower()] = bsa;
+        }
     }
 
-    private void BuildGameFilesList()
+    /// <summary>
+    /// Builds a list of all entries in a data folder, and stores them in the
+    /// <see cref="Installation.DataFiles"/> map. This must be called perior to the mapping of
+    /// BSA file contents.
+    /// </summary>
+    private void MapNormalFiles(string dataFiles)
     {
-        throw new NotImplementedException();
+        ArgumentNullException.ThrowIfNull(DataFiles);
+
+        var physicalFiles = Directory
+            .GetFiles(dataFiles, "*", SearchOption.AllDirectories)
+            .Select(x => x[(dataFiles.Length + 1)..]);
+
+        foreach (var file in physicalFiles)
+        {
+            DataFiles[file.ToLower()] = new NormalDataFile(Path.Combine(dataFiles, file));
+        }
     }
 
     protected override void LoadDataFiles()
     {
-        throw new NotImplementedException();
+        DataFiles = new();
+
+        foreach (var dataFiles in DataDirectories)
+        {
+            MapNormalFiles(dataFiles);
+        }
+        MapArchiveFiles();
     }
 }
