@@ -1,5 +1,29 @@
 # TES3Merge Changelog
 
+## v0.10.2 (2022-06-17)
+
+* Significant refactoring.
+* Added general support for handling OpenMW's VFS and reading OpenMW's config files. This starts basic support for OpenMW. TES3Lib still doesn't support omwaddon files.
+* More fixes to finding the correct installation path from the current execution folder.
+* The Morrowind installation directory can now be hardcoded into the TES3Merge.ini file.
+
+## v0.10.1 (2022-06-15)
+
+* Fixed assembly version.
+* Fixed issue where merging LEVC/LEVI records would fail if one of the merging records had no index/collection.
+* Improved search for Morrowind directory. TES3Merge can now be placed more than one directory below Morrowind.exe. Morrowind\Tools\TES3Merge\TES3Merge.exe will now always find the installation folder it is associated with instead of defaulting to the registry value.
+* Added basic tests to ensure LEVC records could merge.
+
+## v0.10 (2022-06-14)
+
+* Added merging of AI packages.
+* Added `multipatch` option: Merges leveled lists and fixes common bugs in mods (cellname reversion, invalid fog, non-persistent summons). This covers these issues better than tes3cmd's multipatch, centralizing TES3Merge as the only command that needs to be run when adding/removing/updating content files.
+* Added `verify` option: verifies all esps in the active load order and checks for missing files.
+* Added more command line options in general. See GitHub readme or use --help for details.
+* Improved merging of NPC values.
+* Added more unit testing to the project.
+* More major refactors to the code base.
+
 ## v0.9 (2021-01-09)
 
 * Fixed error when merging NPC skill values.
