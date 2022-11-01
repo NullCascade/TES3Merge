@@ -1,4 +1,7 @@
 # TES3Merge Changelog
+## v0.10.3 (unreleased)
+
+* Fixed issue where deleted NPC records with no NPC data would cause an error.
 
 ## v0.10.2 (2022-06-17)
 
