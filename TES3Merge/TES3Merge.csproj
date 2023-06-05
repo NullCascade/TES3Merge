@@ -6,10 +6,15 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PackageProjectUrl>https://github.com/NullCascade/TES3Merge</PackageProjectUrl>
-    <Version>0.10.1</Version>
+    <Version>0.10.2</Version>
 	<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 	<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+	<ApplicationIcon>tes3merge_icon_by_markel.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="tes3merge_icon_by_markel.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
