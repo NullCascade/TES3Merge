@@ -13,6 +13,7 @@
  */
 
 using System.CommandLine;
+using System.Drawing;
 using System.Text.RegularExpressions;
 using TES3Lib;
 using TES3Lib.Base;
@@ -325,8 +326,17 @@ internal static class MergeAction
             {
                 if (usedMasters.Contains(gameFile))
                 {
-                    var size = new FileInfo(Path.Combine(CurrentInstallation.RootDirectory, "Data Files", $"{gameFile}")).Length;
-                    mergedObjectsHeader.Masters.Add((new TES3Lib.Subrecords.TES3.MAST { Filename = $"{gameFile}\0" }, new TES3Lib.Subrecords.TES3.DATA { MasterDataSize = size }));
+                    var gameDataFile = CurrentInstallation.GetDataFile(gameFile) as NormalDataFile;
+                    if (gameDataFile is not null)
+                    {
+                        var size = new FileInfo(gameDataFile.FilePath).Length;
+                        mergedObjectsHeader.Masters.Add((new TES3Lib.Subrecords.TES3.MAST { Filename = $"{gameFile}\0" }, new TES3Lib.Subrecords.TES3.DATA { MasterDataSize = size }));
+                    }
+                    else
+                    {
+                        WriteToLogAndConsole($"Warning: Could not determine file size for gameFile {gameFile}");
+                        mergedObjectsHeader.Masters.Add((new TES3Lib.Subrecords.TES3.MAST { Filename = $"{gameFile}\0" }, new TES3Lib.Subrecords.TES3.DATA { MasterDataSize = 0 }));
+                    }
                 }
             }
         }
