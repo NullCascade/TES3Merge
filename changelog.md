@@ -2,6 +2,8 @@
 ## v0.10.3 (unreleased)
 
 * Fixed issue where deleted NPC records with no NPC data would cause an error.
+* Fixed issue with OpenMW installs where master sizes couldn't be resolved.
+* Added a new icon by Markel.
 
 ## v0.10.2 (2022-06-17)
 
