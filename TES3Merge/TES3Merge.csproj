@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PackageProjectUrl>https://github.com/NullCascade/TES3Merge</PackageProjectUrl>
-    <Version>0.10.3</Version>
+    <Version>0.11.0</Version>
 	<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 	<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
 	<ApplicationIcon>tes3merge_icon_by_markel.ico</ApplicationIcon>

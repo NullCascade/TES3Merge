@@ -1,10 +1,12 @@
 # TES3Merge Changelog
-## v0.10.3 (unreleased)
+## v0.11 (unreleased)
 
+* Improved support for OpenMW:
+	* Fixed issue with OpenMW installs where master sizes couldn't be resolved.
+	* Fixed issue with OpenMW installs where TES3Merge would try to save to a potentially invalid directory. By default the first defined `data` directory will be used as the output path.
+	* Added `OutputPath` configuration option to the ini. This can be used to explicitly set where the merged plugin will be created.
 * Fixed issue where deleted NPC records with no NPC data would cause an error.
-* Fixed issue with OpenMW installs where master sizes couldn't be resolved.
-* Fixed issue with OpenMW installs where TES3Merge would try to save to a potentially invalid directory. By default the first defined `data` directory will be used as the output path.
-* Added `OutputPath` configuration option to the ini. This can be used to explicitly set where the merged plugin will be created.
+* Fixed issue where certain objects would cause a crash when using `-r` or `-ir` commands to overwrite supported record types.
 * Added a new icon by Markel.
 
 ## v0.10.2 (2022-06-17)
