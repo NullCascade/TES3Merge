@@ -8,7 +8,7 @@ This program includes an INI file to allow customization. Check [TES3Merge.ini](
 
 ## Usage
 
-Extract the TES3Merge folder into the Morrowind installation directory. It can work outside this directory, but when managing multiple installs, it will always look to the parent directory first to find Morrowind.
+Extract the TES3Merge folder into a subfolder of the Morrowind installation directory. It can work outside this directory, but when managing multiple installs, it will always look to an ancestor directory first to find Morrowind.
 
 Simply run TES3Merge.exe, then activate the new Merged Objects.esp file.
 
@@ -20,8 +20,8 @@ Additional command line parameter options are available, detailed below. The def
 | ------------------------------------------- | ------------------------------------------------------------------------------- |
 | `-i`, `--inclusive`                         | Merge lists inclusively per element (implemented for List<NPCO>).               |
 | `--no-masters`                              | Do not add masters to the merged esp.                                           |
-| `-r`, `--records <records>`                 | Merge only specified records.                                                   |
-| `--ignore-records`, `--ir <ignore-records>` | Ignore specified records.                                                       |
+| `-r`, `--records <records>`                 | Merge only specified record types.                                              |
+| `--ignore-records`, `--ir <ignore-records>` | Ignore specified record types                                                   |
 | `-p`, `--patches <patches>`                 | Apply any of the patches detailed below. If left empty all patches are applied. |
 | `--version`                                 | Show version information                                                        |
 | `-?`, `-h`, `--help`                        | Show help and usage information                                                 |
