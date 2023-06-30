@@ -229,7 +229,7 @@ internal static class MergeAction
                     continue;
                 }
 
-                var editorId = record.GetEditorId().Replace("\0", string.Empty);
+                var editorId = record.GetEditorId()?.Replace("\0", string.Empty);
                 if (string.IsNullOrEmpty(editorId))
                 {
                     continue;
