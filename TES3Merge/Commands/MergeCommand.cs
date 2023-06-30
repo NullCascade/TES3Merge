@@ -14,6 +14,7 @@
 
 using System.CommandLine;
 using System.Drawing;
+using System.Net.Security;
 using System.Text.RegularExpressions;
 using TES3Lib;
 using TES3Lib.Base;
@@ -341,24 +342,46 @@ internal static class MergeAction
             }
         }
 
-        // Save out the merged objects file.
+        // Fix the number of records count.
         // TODO: Force this logic into TES3Lib.
         mergedObjectsHeader.HEDR.NumRecords = mergedObjects.Records.Count - 1;
 
-        // mergedObjects.TES3Save(Path.Combine(morrowindPath, "Data Files", fileName));
-        // TODO: Add this as a utility function to TES3Lib.
-        // TODO: Add configuration for output directory.
-        using var fs = new FileStream(Path.Combine(CurrentInstallation.RootDirectory, "Data Files", settings.FileName), FileMode.Create, FileAccess.ReadWrite);
-        foreach (var record in mergedObjects.Records)
-        {
-            var serializedRecord = record is TES3Lib.Records.CELL cell ? cell.SerializeRecordForMerge() : record.SerializeRecord();
-            fs.Write(serializedRecord, 0, serializedRecord.Length);
-        }
-        Logger.WriteLine($"Wrote {mergedObjects.Records.Count - 1} merged objects.");
+        SaveMergedPlugin();
 
         //
         // Local functions
         //
+        void SaveMergedPlugin()
+        {
+            ArgumentNullException.ThrowIfNull(Configuration);
+            ArgumentNullException.ThrowIfNull(CurrentInstallation);
+
+            // TODO: Add this as a utility function to TES3Lib.
+
+            var outDir = Configuration["General"]["OutputPath"];
+            if (string.IsNullOrWhiteSpace(outDir))
+            {
+                outDir = CurrentInstallation.GetDefaultOutputDirectory();
+            }
+
+            if (string.IsNullOrWhiteSpace(outDir))
+            {
+                throw new Exception("Invalid output directory. No valid path could be resolved.");
+            }
+            else if (!Directory.Exists(outDir))
+            {
+                throw new Exception($"Invalid output directory. Directory '{outDir}' does not exist.");
+            }
+
+            using var fs = new FileStream(Path.Combine(outDir, settings.FileName), FileMode.Create, FileAccess.ReadWrite);
+            foreach (var record in mergedObjects.Records)
+            {
+                var serializedRecord = record is TES3Lib.Records.CELL cell ? cell.SerializeRecordForMerge() : record.SerializeRecord();
+                fs.Write(serializedRecord, 0, serializedRecord.Length);
+            }
+            Logger.WriteLine($"Wrote {mergedObjects.Records.Count - 1} merged objects.");
+        }
+
         void MergeAndPatchRecords(string id, List<Record> records)
         {
             var firstRecord = records.First();

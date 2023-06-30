@@ -134,6 +134,12 @@ public abstract class Installation
     protected abstract void LoadDataFiles();
 
     /// <summary>
+    /// Gets the output path to write the result merged objects plugin to.
+    /// </summary>
+    /// <returns>The path to use for the installation</returns>
+    public abstract string GetDefaultOutputDirectory();
+
+    /// <summary>
     /// Fetches file information relative to the Data Files directory. This file may be a normal
     /// file, or it may be a record in a BSA archive. The files mappings here are overwritten so
     /// that the last modified file always wins.
@@ -357,6 +363,11 @@ public class MorrowindInstallation : Installation
         MapNormalFiles();
         MapArchiveFiles();
     }
+
+    public override string GetDefaultOutputDirectory()
+    {
+        return Path.Combine(RootDirectory, "Data Files");
+    }
 }
 
 /// <summary>
@@ -477,5 +488,16 @@ public class OpenMWInstallation : Installation
             MapNormalFiles(dataFiles);
         }
         MapArchiveFiles();
+    }
+
+    public override string GetDefaultOutputDirectory()
+    {
+        if (DataDirectories.Count == 0)
+        {
+            throw new Exception("No data directories defined. No default output directory could be resolved.");
+        }
+
+        // Just use the first data directory.
+        return DataDirectories[0];
     }
 }
