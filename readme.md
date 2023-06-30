@@ -1,4 +1,4 @@
-# TES3Merge v0.10
+# TES3Merge v0.11
 
 [![.NET](https://github.com/NullCascade/TES3Merge/actions/workflows/TES3Merge.yml/badge.svg)](https://github.com/NullCascade/TES3Merge/actions/workflows/TES3Merge.yml)
 
