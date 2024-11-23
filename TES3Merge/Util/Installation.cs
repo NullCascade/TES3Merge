@@ -352,6 +352,12 @@ public class MorrowindInstallation : Installation
 
         foreach (var file in physicalFiles)
         {
+            // Ignore files hidden by MO2.
+            if (file.EndsWith(".mohidden"))
+            {
+                continue;
+            }
+
             DataFiles[file.ToLower()] = new NormalDataFile(Path.Combine(dataFiles, file));
         }
     }
@@ -475,6 +481,12 @@ public class OpenMWInstallation : Installation
 
         foreach (var file in physicalFiles)
         {
+            // Ignore files hidden by MO2.
+            if (file.EndsWith(".mohidden"))
+            {
+                continue;
+            }
+
             DataFiles[file.ToLower()] = new NormalDataFile(Path.Combine(dataFiles, file));
         }
     }
