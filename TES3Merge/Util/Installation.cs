@@ -348,16 +348,12 @@ public class MorrowindInstallation : Installation
         var dataFiles = Path.Combine(RootDirectory, "Data Files");
         var physicalFiles = Directory
             .GetFiles(dataFiles, "*", SearchOption.AllDirectories)
+            .Where(x => !x.EndsWith(".mohidden"))
+            .Where(x => !x.Contains(Path.DirectorySeparatorChar + ".git" + Path.DirectorySeparatorChar))
             .Select(x => x[(dataFiles.Length + 1)..]);
 
         foreach (var file in physicalFiles)
         {
-            // Ignore files hidden by MO2.
-            if (file.EndsWith(".mohidden"))
-            {
-                continue;
-            }
-
             DataFiles[file.ToLower()] = new NormalDataFile(Path.Combine(dataFiles, file));
         }
     }
@@ -477,16 +473,12 @@ public class OpenMWInstallation : Installation
 
         var physicalFiles = Directory
             .GetFiles(dataFiles, "*", SearchOption.AllDirectories)
+            .Where(x => !x.EndsWith(".mohidden"))
+            //.Where(x => !x.Contains(Path.DirectorySeparatorChar + ".git" + Path.DirectorySeparatorChar))
             .Select(x => x[(dataFiles.Length + 1)..]);
 
         foreach (var file in physicalFiles)
         {
-            // Ignore files hidden by MO2.
-            if (file.EndsWith(".mohidden"))
-            {
-                continue;
-            }
-
             DataFiles[file.ToLower()] = new NormalDataFile(Path.Combine(dataFiles, file));
         }
     }

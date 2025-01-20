@@ -1,4 +1,13 @@
 # TES3Merge Changelog
+
+## v0.11.2 (2025-01-19)
+
+* Don't parse files inside .git folders.
+
+## v0.11.1 (2024-11-24)
+
+* Don't parse files that are hidden by MO2.
+
 ## v0.11 (2023-06-30)
 
 * Improved support for OpenMW:
