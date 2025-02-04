@@ -373,12 +373,24 @@ internal static class MergeAction
                 throw new Exception($"Invalid output directory. Directory '{outDir}' does not exist.");
             }
 
-            using var fs = new FileStream(Path.Combine(outDir, settings.FileName), FileMode.Create, FileAccess.ReadWrite);
-            foreach (var record in mergedObjects.Records)
+            var outPath = Path.Combine(outDir, settings.FileName);
+            var lastWriteTime = DateTime.Now;
+            if (File.Exists(outPath))
             {
-                var serializedRecord = record is TES3Lib.Records.CELL cell ? cell.SerializeRecordForMerge() : record.SerializeRecord();
-                fs.Write(serializedRecord, 0, serializedRecord.Length);
+                lastWriteTime = File.GetLastWriteTime(outPath);
             }
+
+            using (var fs = new FileStream(Path.Combine(outDir, settings.FileName), FileMode.Create, FileAccess.ReadWrite))
+            {
+                foreach (var record in mergedObjects.Records)
+                {
+                    var serializedRecord = record is TES3Lib.Records.CELL cell ? cell.SerializeRecordForMerge() : record.SerializeRecord();
+                    fs.Write(serializedRecord, 0, serializedRecord.Length);
+                }
+            }
+
+            File.SetLastWriteTime(outPath, lastWriteTime);
+
             Logger.WriteLine($"Wrote {mergedObjects.Records.Count - 1} merged objects.");
         }
 
