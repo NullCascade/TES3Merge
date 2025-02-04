@@ -41,7 +41,7 @@ jobs:
     - name: Publish
       run: dotnet publish TES3Merge/TES3Merge.csproj -o publish/win -c Release -r win-x64 -p:PublishSingleFile=true --no-self-contained
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: tes3merge-win
         path: ./publish/win/TES3Merge.exe
@@ -62,7 +62,7 @@ jobs:
     - name: Publish
       run: dotnet publish TES3Merge/TES3Merge.csproj -o publish/linux -c Release -r linux-x64 -p:PublishSingleFile=true --no-self-contained
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: tes3merge-linux
         path: ./publish/linux/TES3Merge
@@ -83,7 +83,7 @@ jobs:
     - name: Publish
       run: dotnet publish TES3Merge/TES3Merge.csproj -o publish/osx -c Release -r osx-x64 -p:PublishSingleFile=true --no-self-contained
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: tes3merge-osx
         path: ./publish/osx/TES3Merge
