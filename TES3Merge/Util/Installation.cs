@@ -391,22 +391,22 @@ public class OpenMWInstallation : Installation
             DataDirectories.Add(ParseDataDirectory(DataLocalDirectory));
     }
 
-    private static string GetConfigurationLocation()
+    private static string GetConfigurationDirectory()
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             var myDocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            return Path.Combine(myDocs, "My Games", "OpenMW", "openmw.cfg");
+            return Path.Combine(myDocs, "My Games", "OpenMW");
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
             var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            return Path.Combine(home, ".config", "openmw", "openmw.cfg");
+            return Path.Combine(home, ".config", "openmw");
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
             var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            return Path.Combine(home, "Library", "Preferences", "openmw", "openmw.cfg");
+            return Path.Combine(home, "Library", "Preferences", "openmw");
         }
 
         throw new Exception("Could not determine configuration path.");
@@ -520,6 +520,12 @@ public class OpenMWInstallation : Installation
                     }
 
                     DataLocalDirectory = value;
+                    break;
+                case "config":
+                    if (value == "?userconfig?")
+                        value = GetConfigurationDirectory();
+
+                    LoadConfiguration(value);
                     break;
             }
         }
