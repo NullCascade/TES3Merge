@@ -463,9 +463,10 @@ public class OpenMWInstallation : Installation
                         value = UnescapeAmpersands(value.Trim('"'));
                     }
 
-                    var shouldUseBackslash = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-                    var configDir = shouldUseBackslash ? value.Replace('/', '\\') : value;
-                    DataDirectories.Add(configDir);
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                        value = value.Replace('/', '\\');
+
+                    DataDirectories.Add(value);
                     break;
                 case "content":
                     GameFiles.Add(value);
