@@ -512,7 +512,12 @@ public class OpenMWInstallation : Installation
                     break;
                 case "data-local":
                     if (value == "?data-local?")
+                    {
                         value = GetDataLocalDirectory();
+
+                        if (!Directory.Exists(value))
+                            Directory.CreateDirectory(value);
+                    }
 
                     DataLocalDirectory = value;
                     break;
