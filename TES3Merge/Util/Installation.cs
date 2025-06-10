@@ -418,6 +418,8 @@ public class OpenMWInstallation : Installation
 
         foreach (var line in File.ReadLines(configPath))
         {
+            if (line.Trim().StartsWith("#")) continue;
+
             var tokens = line.Split('=', 2);
 
             if (tokens.Length < 2) continue;
