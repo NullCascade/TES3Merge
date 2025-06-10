@@ -260,7 +260,8 @@ public class MorrowindInstallation : Installation
         for (var i = 0; true; ++i)
         {
             var archive = configArchives["Archive " + i];
-            if (string.IsNullOrEmpty(archive)) {
+            if (string.IsNullOrEmpty(archive))
+            {
                 break;
             }
             Archives.Add(archive);
@@ -408,6 +409,28 @@ public class OpenMWInstallation : Installation
         throw new Exception("Could not determine configuration path.");
     }
 
+    private static string UnescapeAmpersands(string input)
+    {
+        var result = new System.Text.StringBuilder(input.Length);
+        for (int i = 0; i < input.Length; i++)
+        {
+            if (input[i] == '&')
+            {
+                // If next char is also &, keep one and skip the next
+                if (i + 1 < input.Length && input[i + 1] == '&')
+                {
+                    result.Append('&');
+                    i++;
+                }
+            }
+            else
+            {
+                result.Append(input[i]);
+            }
+        }
+        return result.ToString();
+    }
+
     private void LoadConfiguration(string configPath)
     {
         configPath = Path.Combine(configPath, "openmw.cfg");
@@ -418,18 +441,28 @@ public class OpenMWInstallation : Installation
 
         foreach (var line in File.ReadLines(configPath))
         {
-            if (line.Trim().StartsWith("#")) continue;
+            if (line.IsNullOrEmpty || line.Trim().StartsWith("#")) continue;
 
             var tokens = line.Split('=', 2);
 
             if (tokens.Length < 2) continue;
 
             var key = tokens[0].Trim();
-            var value = tokens[1].Trim(new char[] { ' ', '"' });
+            var value = tokens[1].Trim();
 
             switch (key)
             {
                 case "data":
+                    if (value.StartsWith('"'))
+                    {
+                        int lastQuote = value.LastIndexOf('"');
+                        if (lastQuote > 0)
+                        {
+                            value = value.Substring(0, lastQuote + 1);
+                        }
+                        value = UnescapeAmpersands(value.Trim('"'));
+                    }
+
                     var shouldUseBackslash = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
                     var configDir = shouldUseBackslash ? value.Replace('/', '\\') : value;
                     DataDirectories.Add(configDir);
