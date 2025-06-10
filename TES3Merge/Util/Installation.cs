@@ -382,10 +382,13 @@ public class MorrowindInstallation : Installation
 public class OpenMWInstallation : Installation
 {
     private List<string> DataDirectories = new();
+    private string DataLocalDirectory;
 
     public OpenMWInstallation(string path) : base(path)
     {
         LoadConfiguration(path);
+        if (!string.IsNullOrEmpty(DataLocalDirectory))
+            DataDirectories.Add(ParseDataDirectory(DataLocalDirectory));
     }
 
     private static string GetConfigurationLocation()
@@ -407,6 +410,31 @@ public class OpenMWInstallation : Installation
         }
 
         throw new Exception("Could not determine configuration path.");
+    }
+
+    private static string GetDataLocalDirectory()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            var myDocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            return Path.Combine(myDocs, "My Games", "OpenMW", "data");
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            string dataHome = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
+
+            if (string.IsNullOrEmpty(dataHome))
+                dataHome = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".local", "share");
+
+            return Path.Combine(dataHome, "openmw", "data");
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            return Path.Combine(home, "Library", "Application Support", "openmw", "data");
+        }
+
+        throw new Exception("Could not determine user data directory.");
     }
 
     private static string UnescapeAmpersands(string input)
@@ -431,6 +459,27 @@ public class OpenMWInstallation : Installation
         return result.ToString();
     }
 
+    private static string ParseDataDirectory(string value)
+    {
+        if (value.StartsWith('"'))
+        {
+            int lastQuote = value.LastIndexOf('"');
+            if (lastQuote > 0)
+            {
+                value = value.Substring(0, lastQuote + 1);
+            }
+            value = UnescapeAmpersands(value.Trim('"'));
+        }
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            value = value.Replace('/', '\\');
+
+        if (!Path.IsPathRooted(value))
+            value = Path.GetFullPath(Path.Combine(configDir, value));
+
+        return value;
+    }
+
     private void LoadConfiguration(string configDir)
     {
         var configPath = Path.Combine(configDir, "openmw.cfg");
@@ -453,29 +502,19 @@ public class OpenMWInstallation : Installation
             switch (key)
             {
                 case "data":
-                    if (value.StartsWith('"'))
-                    {
-                        int lastQuote = value.LastIndexOf('"');
-                        if (lastQuote > 0)
-                        {
-                            value = value.Substring(0, lastQuote + 1);
-                        }
-                        value = UnescapeAmpersands(value.Trim('"'));
-                    }
-
-                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                        value = value.Replace('/', '\\');
-
-                    if (!Path.IsPathRooted(value))
-                        value = Path.GetFullPath(Path.Combine(configDir, value));
-
-                    DataDirectories.Add(value);
+                    DataDirectories.Add(ParseDataDirectory(value));
                     break;
                 case "content":
                     GameFiles.Add(value);
                     break;
                 case "fallback-archive":
                     Archives.Add(value);
+                    break;
+                case "data-local":
+                    if (value == "?data-local?")
+                        value = GetDataLocalDirectory();
+
+                    DataLocalDirectory = value;
                     break;
             }
         }
