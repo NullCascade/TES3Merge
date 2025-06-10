@@ -430,7 +430,9 @@ public class OpenMWInstallation : Installation
             switch (key)
             {
                 case "data":
-                    DataDirectories.Add(value.Replace('/', '\\'));
+                    var shouldUseBackslash = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+                    var configDir = shouldUseBackslash ? value.Replace('/', '\\') : value;
+                    DataDirectories.Add(configDir);
                     break;
                 case "content":
                     GameFiles.Add(value);
