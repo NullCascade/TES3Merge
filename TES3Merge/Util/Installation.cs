@@ -384,7 +384,7 @@ public class OpenMWInstallation : Installation
 
     public OpenMWInstallation(string path) : base(path)
     {
-        LoadConfiguration();
+        LoadConfiguration(path);
     }
 
     private static string GetConfigurationLocation()
@@ -408,9 +408,9 @@ public class OpenMWInstallation : Installation
         throw new Exception("Could not determine configuration path.");
     }
 
-    private void LoadConfiguration()
+    private void LoadConfiguration(string configPath)
     {
-        var configPath = GetConfigurationLocation();
+        configPath = Path.Combine(configPath, "openmw.cfg");
         if (!File.Exists(configPath))
         {
             throw new Exception("Configuration file does not exist.");
