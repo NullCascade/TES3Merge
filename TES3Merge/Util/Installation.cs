@@ -431,9 +431,9 @@ public class OpenMWInstallation : Installation
         return result.ToString();
     }
 
-    private void LoadConfiguration(string configPath)
+    private void LoadConfiguration(string configDir)
     {
-        configPath = Path.Combine(configPath, "openmw.cfg");
+        var configPath = Path.Combine(configDir, "openmw.cfg");
         if (!File.Exists(configPath))
         {
             throw new Exception("Configuration file does not exist.");
@@ -465,6 +465,9 @@ public class OpenMWInstallation : Installation
 
                     if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                         value = value.Replace('/', '\\');
+
+                    if (!Path.IsPathRooted(value))
+                        value = Path.GetFullPath(Path.Combine(configDir, value));
 
                     DataDirectories.Add(value);
                     break;
