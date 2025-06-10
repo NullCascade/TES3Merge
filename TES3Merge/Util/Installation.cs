@@ -482,7 +482,7 @@ public class OpenMWInstallation : Installation
             .GetFiles(dataFiles, "*", SearchOption.AllDirectories)
             .Where(x => !x.EndsWith(".mohidden"))
             //.Where(x => !x.Contains(Path.DirectorySeparatorChar + ".git" + Path.DirectorySeparatorChar))
-            .Select(x => x[(dataFiles.Length + 1)..]);
+            .Select(x => Path.GetRelativePath(dataFiles, x));
 
         foreach (var file in physicalFiles)
         {
