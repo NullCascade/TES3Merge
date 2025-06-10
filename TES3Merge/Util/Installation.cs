@@ -419,6 +419,9 @@ public class OpenMWInstallation : Installation
         foreach (var line in File.ReadLines(configPath))
         {
             var tokens = line.Split('=', 2);
+
+            if (tokens.Length < 2) continue;
+
             var key = tokens[0].Trim();
             var value = tokens[1].Trim(new char[] { ' ', '"' });
 
