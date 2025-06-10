@@ -382,13 +382,13 @@ public class MorrowindInstallation : Installation
 public class OpenMWInstallation : Installation
 {
     private List<string> DataDirectories = new();
-    private string DataLocalDirectory;
+    private string? DataLocalDirectory;
 
     public OpenMWInstallation(string path) : base(path)
     {
         LoadConfiguration(path);
         if (!string.IsNullOrEmpty(DataLocalDirectory))
-            DataDirectories.Add(ParseDataDirectory(DataLocalDirectory));
+            DataDirectories.Add(ParseDataDirectory(path, DataLocalDirectory));
     }
 
     private static string GetConfigurationDirectory()
@@ -421,7 +421,7 @@ public class OpenMWInstallation : Installation
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
-            string dataHome = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
+            var dataHome = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
 
             if (string.IsNullOrEmpty(dataHome))
                 dataHome = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".local", "share");
@@ -459,25 +459,25 @@ public class OpenMWInstallation : Installation
         return result.ToString();
     }
 
-    private static string ParseDataDirectory(string value)
+    private static string ParseDataDirectory(string configDir, string dataDir)
     {
-        if (value.StartsWith('"'))
+        if (dataDir.StartsWith('"'))
         {
-            int lastQuote = value.LastIndexOf('"');
+            int lastQuote = dataDir.LastIndexOf('"');
             if (lastQuote > 0)
             {
-                value = value.Substring(0, lastQuote + 1);
+                dataDir = dataDir.Substring(0, lastQuote + 1);
             }
-            value = UnescapeAmpersands(value.Trim('"'));
+            dataDir = UnescapeAmpersands(dataDir.Trim('"'));
         }
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            value = value.Replace('/', '\\');
+            dataDir = dataDir.Replace('/', '\\');
 
-        if (!Path.IsPathRooted(value))
-            value = Path.GetFullPath(Path.Combine(configDir, value));
+        if (!Path.IsPathRooted(dataDir))
+            dataDir = Path.GetFullPath(Path.Combine(configDir, dataDir));
 
-        return value;
+        return dataDir;
     }
 
     private void LoadConfiguration(string configDir)
@@ -490,7 +490,7 @@ public class OpenMWInstallation : Installation
 
         foreach (var line in File.ReadLines(configPath))
         {
-            if (line.IsNullOrEmpty || line.Trim().StartsWith("#")) continue;
+            if (string.IsNullOrEmpty(line) || line.Trim().StartsWith("#")) continue;
 
             var tokens = line.Split('=', 2);
 
@@ -502,7 +502,7 @@ public class OpenMWInstallation : Installation
             switch (key)
             {
                 case "data":
-                    DataDirectories.Add(ParseDataDirectory(value));
+                    DataDirectories.Add(ParseDataDirectory(configDir, value));
                     break;
                 case "content":
                     GameFiles.Add(value);
@@ -523,9 +523,9 @@ public class OpenMWInstallation : Installation
                     break;
                 case "config":
                     if (value == "?userconfig?")
-                        value = GetConfigurationDirectory();
-
-                    LoadConfiguration(value);
+                        LoadConfiguration(GetConfigurationDirectory());
+                    else
+                        LoadConfiguration(ParseDataDirectory(configDir, value));
                     break;
             }
         }
