@@ -564,7 +564,7 @@ public class OpenMWInstallation : Installation
                     }
                     catch
                     {
-                        Util.Logger.WriteLine("WARNING: Sub-configuration " + configDir + "does not contain an openmw.cfg, skipping");
+                        Util.Logger.WriteLine("WARNING: Sub-configuration " + configDir + " does not contain an openmw.cfg, skipping");
                     }
                     break;
                 case "resources":
