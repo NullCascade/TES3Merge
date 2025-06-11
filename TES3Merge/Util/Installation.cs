@@ -467,9 +467,9 @@ public class OpenMWInstallation : Installation
         }
 
         if (dataDir.StartsWith("?userdata?"))
-            dataDir = dataDir.Replace("?userdata?", GetDefaultUserDataDirectory() + Path.PathSeparator);
+            dataDir = dataDir.Replace("?userdata?", GetDefaultUserDataDirectory());
         else if (dataDir.StartsWith("?userconfig?"))
-            dataDir = dataDir.Replace("?userconfig?", GetDefaultConfigurationDirectory() + Path.PathSeparator);
+            dataDir = dataDir.Replace("?userconfig?", GetDefaultConfigurationDirectory());
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             dataDir = dataDir.Replace('/', '\\');
