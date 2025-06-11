@@ -461,11 +461,6 @@ public class OpenMWInstallation : Installation
 
     private static string ParseDataDirectory(string configDir, string dataDir)
     {
-        if (dataDir.StartsWith("?userdata?"))
-            dataDir = dataDir.Replace("?userdata?", GetDefaultUserDataDirectory() + Path.PathSeparator);
-        else if (dataDir.StartsWith("?userconfig?"))
-            dataDir = dataDir.Replace("?userconfig?", GetDefaultConfigurationDirectory() + Path.PathSeparator);
-
         if (dataDir.StartsWith('"'))
         {
             int lastQuote = -1;
@@ -493,6 +488,11 @@ public class OpenMWInstallation : Installation
             }
             dataDir = UnescapeAmpersands(dataDir.Trim('"'));
         }
+
+        if (dataDir.StartsWith("?userdata?"))
+            dataDir = dataDir.Replace("?userdata?", GetDefaultUserDataDirectory() + Path.PathSeparator);
+        else if (dataDir.StartsWith("?userconfig?"))
+            dataDir = dataDir.Replace("?userconfig?", GetDefaultConfigurationDirectory() + Path.PathSeparator);
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             dataDir = dataDir.Replace('/', '\\');
