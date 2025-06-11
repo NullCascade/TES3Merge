@@ -384,12 +384,14 @@ public class OpenMWInstallation : Installation
 {
     private List<string> DataDirectories = new();
     private string? DataLocalDirectory;
+    private string? ResourcesDirectory;
     private static readonly string DuplicateSeparatorPattern =
     $"[{Regex.Escape($"{Path.DirectorySeparatorChar}{Path.AltDirectorySeparatorChar}")}]+";
 
     public OpenMWInstallation(string path) : base(path)
     {
         LoadConfiguration(path);
+
         if (!string.IsNullOrEmpty(DataLocalDirectory))
         {
             var realDataDirectory = ParseDataDirectory(path, DataLocalDirectory);
@@ -398,6 +400,9 @@ public class OpenMWInstallation : Installation
             if (!Directory.Exists(realDataDirectory))
                 Directory.CreateDirectory(realDataDirectory);
         }
+
+        if (!string.IsNullOrEmpty(ResourcesDirectory))
+            DataDirectories.Insert(0, Path.Combine(ParseDataDirectory(path, ResourcesDirectory), "vfs"));
     }
 
     private static string GetDefaultConfigurationDirectory()
@@ -550,6 +555,9 @@ public class OpenMWInstallation : Installation
                     break;
                 case "config":
                     LoadConfiguration(ParseDataDirectory(configDir, value));
+                    break;
+                case "resources":
+                    ResourcesDirectory = ParseDataDirectory(configDir, value);
                     break;
             }
         }
