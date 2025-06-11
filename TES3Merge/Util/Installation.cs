@@ -489,6 +489,7 @@ public class OpenMWInstallation : Installation
             throw new Exception("Configuration file does not exist.");
         }
 
+        List<string> subConfigs = new List<string> { };
         foreach (var line in File.ReadLines(configPath))
         {
             if (string.IsNullOrEmpty(line) || line.Trim().StartsWith("#")) continue;
@@ -519,20 +520,23 @@ public class OpenMWInstallation : Installation
                     DataLocalDirectory = value;
                     break;
                 case "config":
-                    try
-                    {
-                        LoadConfiguration(ParseDataDirectory(configDir, value));
-                    }
-                    catch
-                    {
-                        Util.Logger.WriteLine("WARNING: Sub-configuration " + configDir + " does not contain an openmw.cfg, skipping");
-                    }
+                    subConfigs.Add(ParseDataDirectory(configDir, value));
                     break;
                 case "resources":
                     ResourcesDirectory = ParseDataDirectory(configDir, value);
                     break;
             }
         }
+
+        foreach (string config in subConfigs)
+            try
+            {
+                LoadConfiguration(ParseDataDirectory(configDir, config));
+            }
+            catch
+            {
+                Util.Logger.WriteLine("WARNING: Sub-configuration " + configDir + " does not contain an openmw.cfg, skipping");
+            }
     }
 
     /// <summary>
