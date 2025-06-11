@@ -545,6 +545,8 @@ public class OpenMWInstallation : Installation
                     DataDirectories.Add(ParseDataDirectory(configDir, value));
                     break;
                 case "content":
+                    if (value.ToLower().EndsWith(".omwscripts")) continue;
+
                     GameFiles.Add(value);
                     break;
                 case "fallback-archive":
