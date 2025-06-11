@@ -556,7 +556,14 @@ public class OpenMWInstallation : Installation
                     DataLocalDirectory = value;
                     break;
                 case "config":
-                    LoadConfiguration(ParseDataDirectory(configDir, value));
+                    try
+                    {
+                        LoadConfiguration(ParseDataDirectory(configDir, value));
+                    }
+                    catch
+                    {
+                        Util.Logger.WriteLine("WARNING: Sub-configuration " + configDir + "does not contain an openmw.cfg, skipping");
+                    }
                     break;
                 case "resources":
                     ResourcesDirectory = ParseDataDirectory(configDir, value);
