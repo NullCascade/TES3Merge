@@ -394,11 +394,10 @@ public class OpenMWInstallation : Installation
 
         if (!string.IsNullOrEmpty(DataLocalDirectory))
         {
-            var realDataDirectory = ParseDataDirectory(path, DataLocalDirectory);
-            DataDirectories.Add(realDataDirectory);
+            DataDirectories.Add(DataLocalDirectory);
 
-            if (!Directory.Exists(realDataDirectory))
-                Directory.CreateDirectory(realDataDirectory);
+            if (!Directory.Exists(DataLocalDirectory))
+                Directory.CreateDirectory(DataLocalDirectory);
         }
 
         if (!string.IsNullOrEmpty(ResourcesDirectory))
@@ -517,7 +516,7 @@ public class OpenMWInstallation : Installation
                     Archives.Add(value);
                     break;
                 case "data-local":
-                    DataLocalDirectory = value;
+                    DataLocalDirectory = ParseDataDirectory(configDir, value);
                     break;
                 case "config":
                     subConfigs.Add(ParseDataDirectory(configDir, value));
