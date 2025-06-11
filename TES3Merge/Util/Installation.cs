@@ -478,9 +478,6 @@ public class OpenMWInstallation : Installation
         if (!Path.IsPathRooted(dataDir))
             dataDir = Path.GetFullPath(Path.Combine(configDir, dataDir));
 
-        dataDir = dataDir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-        dataDir = Regex.Replace(dataDir, DuplicateSeparatorPattern, Path.DirectorySeparatorChar.ToString());
-
         return dataDir;
     }
 
