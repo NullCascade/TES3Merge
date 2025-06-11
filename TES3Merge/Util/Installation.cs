@@ -451,56 +451,20 @@ public class OpenMWInstallation : Installation
         throw new Exception("Could not determine user data directory.");
     }
 
-    private static string UnescapeAmpersands(string input)
-    {
-        var result = new System.Text.StringBuilder(input.Length);
-        for (int i = 0; i < input.Length; i++)
-        {
-            if (input[i] == '&')
-            {
-                // If next char is also &, keep one and skip the next
-                if (i + 1 < input.Length && input[i + 1] == '&')
-                {
-                    result.Append('&');
-                    i++;
-                }
-            }
-            else
-            {
-                result.Append(input[i]);
-            }
-        }
-        return result.ToString();
-    }
-
     private static string ParseDataDirectory(string configDir, string dataDir)
     {
         if (dataDir.StartsWith('"'))
         {
-            int lastQuote = -1;
-            for (int i = dataDir.Length - 1; i > 0; i--)
+            var original = dataDir;
+            dataDir = "";
+            for (int i = 1; i < original.Length; i++)
             {
-                if (dataDir[i] == '"')
-                {
-                    int ampCount = 0;
-                    int j = i - 1;
-                    while (j >= 0 && dataDir[j] == '&')
-                    {
-                        ampCount++;
-                        j--;
-                    }
-                    if (ampCount % 2 == 0)
-                    {
-                        lastQuote = i;
-                        break;
-                    }
-                }
+                if (original[i] == '&')
+                    i++;
+                else if (original[i] == '"')
+                    break;
+                dataDir += original[i];
             }
-            if (lastQuote > 0)
-            {
-                dataDir = dataDir.Substring(0, lastQuote + 1);
-            }
-            dataDir = UnescapeAmpersands(dataDir.Trim('"'));
         }
 
         if (dataDir.StartsWith("?userdata?"))
