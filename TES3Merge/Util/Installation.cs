@@ -463,7 +463,25 @@ public class OpenMWInstallation : Installation
     {
         if (dataDir.StartsWith('"'))
         {
-            int lastQuote = dataDir.LastIndexOf('"');
+            int lastQuote = -1;
+            for (int i = dataDir.Length - 1; i > 0; i--)
+            {
+                if (dataDir[i] == '"')
+                {
+                    int ampCount = 0;
+                    int j = i - 1;
+                    while (j >= 0 && dataDir[j] == '&')
+                    {
+                        ampCount++;
+                        j--;
+                    }
+                    if (ampCount % 2 == 0)
+                    {
+                        lastQuote = i;
+                        break;
+                    }
+                }
+            }
             if (lastQuote > 0)
             {
                 dataDir = dataDir.Substring(0, lastQuote + 1);
