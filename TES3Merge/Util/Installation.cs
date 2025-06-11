@@ -391,7 +391,7 @@ public class OpenMWInstallation : Installation
             DataDirectories.Add(ParseDataDirectory(path, DataLocalDirectory));
     }
 
-    private static string GetConfigurationDirectory()
+    private static string GetDefaultConfigurationDirectory()
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
@@ -412,7 +412,7 @@ public class OpenMWInstallation : Installation
         throw new Exception("Could not determine configuration path.");
     }
 
-    private static string GetDataLocalDirectory()
+    private static string GetDefaultUserDataDirectory()
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
@@ -461,6 +461,11 @@ public class OpenMWInstallation : Installation
 
     private static string ParseDataDirectory(string configDir, string dataDir)
     {
+        if (dataDir.StartsWith("?userdata?"))
+            dataDir = dataDir.Replace("?userdata?", GetDefaultUserDataDirectory() + Path.PathSeparator);
+        else if (dataDir.StartsWith("?userconfig?"))
+            dataDir = dataDir.Replace("?userconfig?", GetDefaultConfigurationDirectory() + Path.PathSeparator);
+
         if (dataDir.StartsWith('"'))
         {
             int lastQuote = -1;
