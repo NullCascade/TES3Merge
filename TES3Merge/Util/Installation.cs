@@ -2,6 +2,7 @@
 using IniParser.Model;
 using Microsoft.Win32;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using TES3Merge.BSA;
 
 namespace TES3Merge.Util;
@@ -383,6 +384,8 @@ public class OpenMWInstallation : Installation
 {
     private List<string> DataDirectories = new();
     private string? DataLocalDirectory;
+    private static readonly string DuplicateSeparatorPattern =
+    $"[{Regex.Escape($"{Path.DirectorySeparatorChar}{Path.AltDirectorySeparatorChar}")}]+";
 
     public OpenMWInstallation(string path) : base(path)
     {
@@ -499,6 +502,9 @@ public class OpenMWInstallation : Installation
 
         if (!Path.IsPathRooted(dataDir))
             dataDir = Path.GetFullPath(Path.Combine(configDir, dataDir));
+
+        dataDir = dataDir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        dataDir = Regex.Replace(dataDir, DuplicateSeparatorPattern, Path.DirectorySeparatorChar.ToString());
 
         return dataDir;
     }
