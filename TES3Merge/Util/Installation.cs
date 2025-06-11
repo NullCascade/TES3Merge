@@ -597,12 +597,13 @@ public class OpenMWInstallation : Installation
 
     public override string GetDefaultOutputDirectory()
     {
-        if (DataDirectories.Count == 0)
-        {
+        // If a data-local directory was defined, always write there to avoid stale files
+        if (!string.IsNullOrEmpty(DataLocalDirectory))
+            return DataDirectories[DataDirectories.Count - 1];
+        // Otherwise just use the first data directory.
+        else if (DataDirectories.Count > 0)
+            return DataDirectories[0];
+        else
             throw new Exception("No data directories defined. No default output directory could be resolved.");
-        }
-
-        // Just use the first data directory.
-        return DataDirectories[0];
     }
 }
