@@ -537,10 +537,7 @@ public class OpenMWInstallation : Installation
                     DataLocalDirectory = value;
                     break;
                 case "config":
-                    if (value == "?userconfig?")
-                        LoadConfiguration(GetConfigurationDirectory());
-                    else
-                        LoadConfiguration(ParseDataDirectory(configDir, value));
+                    LoadConfiguration(ParseDataDirectory(configDir, value));
                     break;
             }
         }
