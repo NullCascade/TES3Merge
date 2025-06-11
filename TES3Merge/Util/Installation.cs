@@ -417,7 +417,7 @@ public class OpenMWInstallation : Installation
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             var myDocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            return Path.Combine(myDocs, "My Games", "OpenMW", "data");
+            return Path.Combine(myDocs, "My Games", "OpenMW");
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
@@ -426,12 +426,12 @@ public class OpenMWInstallation : Installation
             if (string.IsNullOrEmpty(dataHome))
                 dataHome = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".local", "share");
 
-            return Path.Combine(dataHome, "openmw", "data");
+            return Path.Combine(dataHome, "openmw");
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
             var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            return Path.Combine(home, "Library", "Application Support", "openmw", "data");
+            return Path.Combine(home, "Library", "Application Support", "openmw");
         }
 
         throw new Exception("Could not determine user data directory.");
