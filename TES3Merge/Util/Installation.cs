@@ -485,7 +485,7 @@ public class OpenMWInstallation : Installation
         var configPath = Path.Combine(configDir, "openmw.cfg");
         if (!File.Exists(configPath))
         {
-            throw new Exception("Configuration file does not exist.");
+            throw new Exception("openmw.cfg does not exist at the path " + configPath);
         }
 
         List<string> subConfigs = new List<string> { };
@@ -532,9 +532,9 @@ public class OpenMWInstallation : Installation
             {
                 LoadConfiguration(ParseDataDirectory(configDir, config));
             }
-            catch
+            catch (Exception e)
             {
-                Util.Logger.WriteLine("WARNING: Sub-configuration " + configDir + " does not contain an openmw.cfg, skipping");
+                Util.Logger.WriteLine("WARNING: Sub-configuration " + configDir + " does not contain an openmw.cfg, skipping due to: " + e);
             }
     }
 
