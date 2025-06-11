@@ -546,6 +546,8 @@ public class OpenMWInstallation : Installation
                     break;
                 case "content":
                     if (value.ToLower().EndsWith(".omwscripts")) continue;
+                    else if (GameFiles.Contains(value))
+                        throw new Exception(value + " was listed as a content file by two configurations! The second one was: " + configDir);
 
                     GameFiles.Add(value);
                     break;
