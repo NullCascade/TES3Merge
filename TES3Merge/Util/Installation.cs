@@ -529,13 +529,10 @@ public class OpenMWInstallation : Installation
                     Archives.Add(value);
                     break;
                 case "data-local":
-                    if (value == "?data-local?")
-                    {
-                        value = GetDataLocalDirectory();
+                    value = ParseDataDirectory(configDir, value);
 
-                        if (!Directory.Exists(value))
-                            Directory.CreateDirectory(value);
-                    }
+                    if (!Directory.Exists(value))
+                        Directory.CreateDirectory(value);
 
                     DataLocalDirectory = value;
                     break;
