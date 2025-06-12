@@ -528,6 +528,21 @@ public class OpenMWInstallation : Installation
                 case "resources":
                     ResourcesDirectory = ParseDataDirectory(configDir, value);
                     break;
+                case "replace":
+                    if (value == "content")
+                        GameFiles.Clear();
+                    else if (value == "data")
+                        DataDirectories.Clear();
+                    else if (value == "config")
+                    {
+                        Archives.Clear();
+                        DataDirectories.Clear();
+                        GameFiles.Clear();
+                        subConfigs.Clear();
+                        ResourcesDirectory = null;
+                        DataLocalDirectory = null;
+                    }
+                    break;
             }
         }
 
