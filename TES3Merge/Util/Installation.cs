@@ -72,8 +72,12 @@ public abstract class Installation
             return explicitPath;
         }
 
+        var cwd = Directory.GetCurrentDirectory();
+        if (IsValidInstallationDirectory(cwd))
+            return cwd;
+
         // Search all parent directories for Morrowind/OpenMW.
-        for (var directory = new DirectoryInfo(Directory.GetCurrentDirectory()); directory is not null; directory = directory.Parent)
+        for (var directory = new DirectoryInfo(cwd); directory is not null; directory = directory.Parent)
         {
             if (IsValidInstallationDirectory(directory.FullName))
             {
@@ -260,7 +264,8 @@ public class MorrowindInstallation : Installation
         for (var i = 0; true; ++i)
         {
             var archive = configArchives["Archive " + i];
-            if (string.IsNullOrEmpty(archive)) {
+            if (string.IsNullOrEmpty(archive))
+            {
                 break;
             }
             Archives.Add(archive);
