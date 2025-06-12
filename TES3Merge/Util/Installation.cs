@@ -602,11 +602,10 @@ public class OpenMWInstallation : Installation
     public override string GetDefaultOutputDirectory()
     {
         if (DataDirectories.Count == 0)
-        {
             throw new Exception("No data directories defined. No default output directory could be resolved.");
-        }
 
-        // Just use the first data directory.
-        return DataDirectories[0];
+        var outputDirIndex = string.IsNullOrEmpty(DataLocalDirectory) ? 0 : DataDirectories.Count - 1;
+
+        return DataDirectories[outputDirIndex];
     }
 }
