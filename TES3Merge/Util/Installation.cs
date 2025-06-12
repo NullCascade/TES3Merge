@@ -2,6 +2,7 @@
 using IniParser.Model;
 using Microsoft.Win32;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using TES3Merge.BSA;
 
 namespace TES3Merge.Util;
@@ -386,60 +387,159 @@ public class MorrowindInstallation : Installation
 public class OpenMWInstallation : Installation
 {
     private List<string> DataDirectories = new();
+    private string? DataLocalDirectory;
+    private string? ResourcesDirectory;
+    private static readonly string DuplicateSeparatorPattern =
+    $"[{Regex.Escape($"{Path.DirectorySeparatorChar}{Path.AltDirectorySeparatorChar}")}]+";
 
     public OpenMWInstallation(string path) : base(path)
     {
-        LoadConfiguration();
+        LoadConfiguration(path);
+
+        if (!string.IsNullOrEmpty(DataLocalDirectory))
+        {
+            DataDirectories.Add(DataLocalDirectory);
+
+            if (!Directory.Exists(DataLocalDirectory))
+                Directory.CreateDirectory(DataLocalDirectory);
+        }
+
+        if (!string.IsNullOrEmpty(ResourcesDirectory))
+            DataDirectories.Insert(0, Path.Combine(ParseDataDirectory(path, ResourcesDirectory), "vfs"));
     }
 
-    private static string GetConfigurationLocation()
+    private static string GetDefaultConfigurationDirectory()
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             var myDocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            return Path.Combine(myDocs, "My Games", "OpenMW", "openmw.cfg");
+            return Path.Combine(myDocs, "My Games", "OpenMW");
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
             var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            return Path.Combine(home, ".config", "openmw", "openmw.cfg");
+            return Path.Combine(home, ".config", "openmw");
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
             var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            return Path.Combine(home, "Library", "Preferences", "openmw", "openmw.cfg");
+            return Path.Combine(home, "Library", "Preferences", "openmw");
         }
 
         throw new Exception("Could not determine configuration path.");
     }
 
-    private void LoadConfiguration()
+    private static string GetDefaultUserDataDirectory()
     {
-        var configPath = GetConfigurationLocation();
-        if (!File.Exists(configPath))
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            throw new Exception("Configuration file does not exist.");
+            var myDocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            return Path.Combine(myDocs, "My Games", "OpenMW");
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            var dataHome = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
+
+            if (string.IsNullOrEmpty(dataHome))
+                dataHome = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".local", "share");
+
+            return Path.Combine(dataHome, "openmw");
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            return Path.Combine(home, "Library", "Application Support", "openmw");
         }
 
+        throw new Exception("Could not determine user data directory.");
+    }
+
+    private static string ParseDataDirectory(string configDir, string dataDir)
+    {
+        if (dataDir.StartsWith('"'))
+        {
+            var original = dataDir;
+            dataDir = "";
+            for (int i = 1; i < original.Length; i++)
+            {
+                if (original[i] == '&')
+                    i++;
+                else if (original[i] == '"')
+                    break;
+                dataDir += original[i];
+            }
+        }
+
+        if (dataDir.StartsWith("?userdata?"))
+            dataDir = dataDir.Replace("?userdata?", GetDefaultUserDataDirectory());
+        else if (dataDir.StartsWith("?userconfig?"))
+            dataDir = dataDir.Replace("?userconfig?", GetDefaultConfigurationDirectory());
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            dataDir = dataDir.Replace('/', '\\');
+
+        if (!Path.IsPathRooted(dataDir))
+            dataDir = Path.GetFullPath(Path.Combine(configDir, dataDir));
+
+        return dataDir;
+    }
+
+    private void LoadConfiguration(string configDir)
+    {
+        var configPath = Path.Combine(configDir, "openmw.cfg");
+        if (!File.Exists(configPath))
+        {
+            throw new Exception("openmw.cfg does not exist at the path " + configPath);
+        }
+
+        List<string> subConfigs = new List<string> { };
         foreach (var line in File.ReadLines(configPath))
         {
+            if (string.IsNullOrEmpty(line) || line.Trim().StartsWith("#")) continue;
+
             var tokens = line.Split('=', 2);
+
+            if (tokens.Length < 2) continue;
+
             var key = tokens[0].Trim();
-            var value = tokens[1].Trim(new char[] { ' ', '"' });
+            var value = tokens[1].Trim();
 
             switch (key)
             {
                 case "data":
-                    DataDirectories.Add(value.Replace('/', '\\'));
+                    DataDirectories.Add(ParseDataDirectory(configDir, value));
                     break;
                 case "content":
+                    if (value.ToLower().EndsWith(".omwscripts")) continue;
+                    else if (GameFiles.Contains(value))
+                        throw new Exception(value + " was listed as a content file by two configurations! The second one was: " + configDir);
+
                     GameFiles.Add(value);
                     break;
                 case "fallback-archive":
                     Archives.Add(value);
                     break;
+                case "data-local":
+                    DataLocalDirectory = ParseDataDirectory(configDir, value);
+                    break;
+                case "config":
+                    subConfigs.Add(ParseDataDirectory(configDir, value));
+                    break;
+                case "resources":
+                    ResourcesDirectory = ParseDataDirectory(configDir, value);
+                    break;
             }
         }
+
+        foreach (string config in subConfigs)
+            try
+            {
+                LoadConfiguration(ParseDataDirectory(configDir, config));
+            }
+            catch (Exception e)
+            {
+                Util.Logger.WriteLine("WARNING: Sub-configuration " + configDir + " does not contain an openmw.cfg, skipping due to: " + e);
+            }
     }
 
     /// <summary>
@@ -480,7 +580,7 @@ public class OpenMWInstallation : Installation
             .GetFiles(dataFiles, "*", SearchOption.AllDirectories)
             .Where(x => !x.EndsWith(".mohidden"))
             //.Where(x => !x.Contains(Path.DirectorySeparatorChar + ".git" + Path.DirectorySeparatorChar))
-            .Select(x => x[(dataFiles.Length + 1)..]);
+            .Select(x => Path.GetRelativePath(dataFiles, x));
 
         foreach (var file in physicalFiles)
         {
