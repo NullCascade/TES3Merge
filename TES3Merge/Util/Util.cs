@@ -136,6 +136,9 @@ internal static class Util
             if (!File.Exists(iniPath))
                 iniPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TES3Merge.ini");
 
+            if (!File.Exists(iniPath))
+                iniPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "tes3merge", "TES3Merge.ini");
+
             Configuration = parser.ReadFile(iniPath);
         }
 
