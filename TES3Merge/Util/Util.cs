@@ -131,7 +131,11 @@ internal static class Util
     {
         {
             var parser = new FileIniDataParser();
-            var iniPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TES3Merge.ini");
+            var iniPath = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "TES3Merge.ini");
+
+            if (!File.Exists(iniPath))
+                iniPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TES3Merge.ini");
+
             Configuration = parser.ReadFile(iniPath);
         }
 
