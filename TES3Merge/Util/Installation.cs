@@ -528,6 +528,21 @@ public class OpenMWInstallation : Installation
                 case "resources":
                     ResourcesDirectory = ParseDataDirectory(configDir, value);
                     break;
+                case "replace":
+                    if (value == "content")
+                        GameFiles.Clear();
+                    else if (value == "data")
+                        DataDirectories.Clear();
+                    else if (value == "config")
+                    {
+                        Archives.Clear();
+                        DataDirectories.Clear();
+                        GameFiles.Clear();
+                        subConfigs.Clear();
+                        ResourcesDirectory = null;
+                        DataLocalDirectory = null;
+                    }
+                    break;
             }
         }
 
@@ -604,8 +619,20 @@ public class OpenMWInstallation : Installation
         if (DataDirectories.Count == 0)
             throw new Exception("No data directories defined. No default output directory could be resolved.");
 
-        var outputDirIndex = string.IsNullOrEmpty(DataLocalDirectory) ? 0 : DataDirectories.Count - 1;
-
-        return DataDirectories[outputDirIndex];
+        if (!string.IsNullOrEmpty(DataLocalDirectory))
+        {
+            // DataLocalDirectory is always added last
+            return DataDirectories[^1];
+        }
+        else if (!string.IsNullOrEmpty(ResourcesDirectory) && DataDirectories.Count > 1)
+        {
+            // ResourcesDirectory is inserted at index 0, so skip it
+            return DataDirectories[1];
+        }
+        else
+        {
+            // No ResourcesDirectory, so use the first data directory
+            return DataDirectories[0];
+        }
     }
 }
