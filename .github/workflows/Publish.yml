@@ -26,7 +26,7 @@ jobs:
     
     # create zip
     - run: ls -R
-    - run: zip TES3Merge-linux.zip publish/linux/TES3Merge publish/linux/TES3Merge.ini
+    - run: zip TES3Merge-linux.zip publish/linux/tes3merge publish/linux/TES3Merge.ini
 
     # RELEASE
     - name: Release
@@ -58,7 +58,7 @@ jobs:
 
     # create zip
     - run: dir
-    - run: Compress-Archive -LiteralPath "publish\win\TES3Merge.exe","publish\win\TES3Merge.ini" -DestinationPath "TES3Merge-win.zip"
+    - run: Compress-Archive -LiteralPath "publish\win\tes3merge.exe","publish\win\TES3Merge.ini" -DestinationPath "TES3Merge-win.zip"
 
 
     # RELEASE
@@ -92,7 +92,7 @@ jobs:
     
     # create zip
     - run: ls -R
-    - run: zip TES3Merge-osx.zip publish/osx/TES3Merge publish/osx/TES3Merge.ini
+    - run: zip TES3Merge-osx.zip publish/osx/tes3merge publish/osx/TES3Merge.ini
 
 
     # RELEASE
